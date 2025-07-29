@@ -1,6 +1,6 @@
-package com.stylemycloset.controller;
+package com.stylemycloset.common.controller;
 
-import com.stylemycloset.controller.exception.StyleMyClosetException;
+import com.stylemycloset.common.controller.exception.StyleMyClosetException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;

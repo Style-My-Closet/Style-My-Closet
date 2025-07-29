@@ -1,4 +1,4 @@
-package com.stylemycloset.controller.exception;
+package com.stylemycloset.common.controller.exception;
 
 import java.time.Instant;
 import java.util.Map;
