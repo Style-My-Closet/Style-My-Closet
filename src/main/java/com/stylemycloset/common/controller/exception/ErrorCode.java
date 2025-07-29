@@ -1,4 +1,4 @@
-package com.stylemycloset.controller.exception;
+package com.stylemycloset.common.controller.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
