@@ -1,0 +1,36 @@
+spring:
+  flyway:
+    enabled: true
+    baseline-on-migrate: false # ?? ???? ?? ?? ??? true ?? ??
+  config:
+    import: optional:file:.env[.properties]
+  profiles:
+    active: dev
+  servlet:
+    multipart:
+      max-file-size: 4MB
+      max-request-size: 4MB
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        use_sql_comments: true
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+    generate-ddl: false
+  sql:
+    init:
+      mode: never
+
+logging:
+  level:
+    root: info
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics
