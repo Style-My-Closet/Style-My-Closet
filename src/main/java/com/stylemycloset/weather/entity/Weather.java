@@ -17,8 +17,9 @@ import com.stylemycloset.common.entity.BaseEntity;
 public class Weather extends BaseEntity {
 //weather쪽에서는 id가 uuid타입이여서 baseentity 상속받으면 문제 생길것 같습니다!
   @Id
-  @Column(name = "id", nullable = false)
-  private UUID id = UUID.randomUUID();
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "weather_seq_gen")
+  @SequenceGenerator(name = "weather_seq_gen", sequenceName = "weather_seq", allocationSize = 1)
+  private Long id;
 
   @Column(name = "forecasted_at", nullable = false)
   private LocalDateTime forecastedAt;
@@ -73,7 +74,6 @@ public class Weather extends BaseEntity {
       Precipitation precipitation, Temperature temperature,
       Humidity humidity, WindSpeed windSpeed,
       Boolean isAlertTriggered, AlertType alertType) {
-    this.id = UUID.randomUUID();
     this.forecastedAt = forecastedAt;
     this.forecastAt = forecastAt;
     this.location = location;
@@ -95,42 +95,4 @@ public class Weather extends BaseEntity {
   }
 
 
-  @Embeddable
-  @Getter
-  @AllArgsConstructor
-  @NoArgsConstructor
-  public static class Precipitation {
-    private String type; // RAIN, SNOW 등 → enum으로 바꿔도 OK
-    private Double amount;
-    private Double probability;
-  }
-
-  @Embeddable
-  @Getter
-  @AllArgsConstructor
-  @NoArgsConstructor
-  public static class Temperature {
-    private Double current;
-    private Double comparedToDayBefore;
-    private Double min;
-    private Double max;
-  }
-
-  @Embeddable
-  @Getter
-  @AllArgsConstructor
-  @NoArgsConstructor
-  public static class Humidity {
-    private Double current;
-    private Double comparedToDayBefore;
-  }
-
-  @Embeddable
-  @Getter
-  @AllArgsConstructor
-  @NoArgsConstructor
-  public static class WindSpeed {
-    private Double current;
-    private Double comparedToDayBefore;
-  }
 }

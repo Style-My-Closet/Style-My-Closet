@@ -92,6 +92,57 @@ CREATE TABLE binary_content
 
 -- weather
 
+CREATE SEQUENCE weather_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE TABLE weather (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    forecasted_at TIMESTAMP NOT NULL,
+    forecast_at TIMESTAMP NOT NULL,
+
+    -- ENUM  # VARCHAR : 이점 한눈에 구조가 보여서 좋다.
+    sky_status VARCHAR(20) NOT NULL CHECK (sky_status IN ('CLEAR', 'MOSTLY_CLOUDY', 'CLOUDY')),
+
+    -- Precipitation
+    precipitation_type VARCHAR(20),
+    precipitation_amount DOUBLE PRECISION,
+    precipitation_probability DOUBLE PRECISION,
+
+    -- Temperature
+    temperature_current DOUBLE PRECISION,
+    temperature_compared_to_day_before DOUBLE PRECISION,
+    temperature_min DOUBLE PRECISION,
+    temperature_max DOUBLE PRECISION,
+
+    -- Humidity
+    humidity_current DOUBLE PRECISION,
+    humidity_compared_to_day_before DOUBLE PRECISION,
+
+    -- WindSpeed
+    wind_speed_current DOUBLE PRECISION,
+    wind_speed_compared_to_day_before DOUBLE PRECISION,
+
+    -- 알림 관련
+    is_alert_triggered BOOLEAN DEFAULT FALSE,
+    alert_type VARCHAR(20) CHECK (alert_type IN ('NONE', 'RAIN', 'HEAVY_RAIN', 'HIGH_TEMP', 'LOW_TEMP', 'STRONG_WIND')),
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+);
+
+CREATE TABLE location (
+    id BIGSERIAL PRIMARY KEY,
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION,
+    x INTEGER,
+    y INTEGER
+);
+
 ------------------- feed ---------------------
 
 -- feeds
