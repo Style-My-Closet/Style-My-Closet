@@ -1,7 +1,9 @@
 package com.stylemycloset.weather.dto;
 
+import com.stylemycloset.weather.entity.Weather.AlertType;
+
 public record PrecipitationDto(
-    String type,
+    AlertType type,
     Double amount,
     Double probability
 ) {}

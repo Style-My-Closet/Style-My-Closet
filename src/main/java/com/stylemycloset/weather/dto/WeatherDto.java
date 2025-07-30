@@ -4,6 +4,7 @@ import com.stylemycloset.common.entity.Location;
 import com.stylemycloset.weather.entity.Humidity;
 import com.stylemycloset.weather.entity.Precipitation;
 import com.stylemycloset.weather.entity.Temperature;
+import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import com.stylemycloset.weather.entity.WindSpeed;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -13,7 +14,7 @@ public record WeatherDto(
     LocalDateTime forecastedAt,
     LocalDateTime forecastAt,
     Location location,
-    String skyStatus,
+    SkyStatus skyStatus,
     Precipitation precipitation,
     Humidity humidity,
     Temperature temperature,
