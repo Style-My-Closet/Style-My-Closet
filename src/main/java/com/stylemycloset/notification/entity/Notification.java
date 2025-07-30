@@ -28,7 +28,7 @@ import org.springframework.data.annotation.CreatedDate;
 public class Notification{
 
   @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "notification_seq")
   @SequenceGenerator(
       name = "notification_seq",
       sequenceName = "notification_id_seq",

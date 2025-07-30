@@ -2,6 +2,7 @@ package com.stylemycloset.ootd.entity;
 
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.user.entity.User;
+import com.stylemycloset.common.entity.BaseEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,14 +14,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.Where;
 
 @Entity
@@ -29,8 +28,7 @@ import org.hibernate.annotations.Where;
 @NoArgsConstructor
 @SQLDelete(sql = "UPDATE feeds SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 @Where(clause = "deleted_at IS NULL")
-public class Feed {
-
+public class Feed extends BaseEntity{
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
   private Long id;
@@ -46,17 +44,8 @@ public class Feed {
   @Column(columnDefinition = "TEXT", nullable = false)
   private String content;
 
-  @CreationTimestamp
-  @Column(updatable = false, nullable = false)
-  private Timestamp createdAt;
+  private Instant deletedAt;
 
-  @UpdateTimestamp
-  @Column(nullable = false)
-  private Timestamp updatedAt;
-
-  private Timestamp deletedAt;
-
-//  @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true)
-//  private List<FeedClothes> feedClothes = new ArrayList<>();
-
+  @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<FeedClothes> feedClothes = new ArrayList<>();
 }

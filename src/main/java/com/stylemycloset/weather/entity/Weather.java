@@ -20,7 +20,7 @@ public class Weather extends BaseEntity {
   @Column(name = "id", nullable = false)
   private UUID id = UUID.randomUUID();
 
-  @Column(name = "forecasted_at", nullable = false)
+  @Column(name = "forecasted_at", nullable = false) // LocalDateTime으로 한 이유가 있으실까요?
   private LocalDateTime forecastedAt;
 
   @Column(name = "forecast_at", nullable = false)

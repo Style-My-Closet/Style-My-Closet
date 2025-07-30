@@ -1,15 +1,26 @@
 package com.stylemycloset.user.entity;
 
-import com.stylemycloset.common.entity.BaseEntity;
+import com.stylemycloset.common.entity.SoftDeleteEntity;
+import com.stylemycloset.common.util.StringListJsonConverter;
 import jakarta.persistence.*;
+import com.stylemycloset.common.entity.Location;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
 @Getter
 @Setter
-public class User extends BaseEntity {
+@NoArgsConstructor
+public class User extends SoftDeleteEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
+
     @Column(name = "name", nullable = false)
     private String name;
 
@@ -27,5 +38,18 @@ public class User extends BaseEntity {
     @Column(name = "gender")
     private Gender gender;
 
-//    @Column(name = "birth_date")
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
+
+    @Column(name = "temperature_sensitivity")
+    private Integer temperatureSensitivity;
+
+    @Column(name = "linked_oauth_providers", columnDefinition = "JSON")
+    @Convert(converter = StringListJsonConverter.class)
+    private List<String> linkedOAuthProviders;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_id")
+    private Location location;
+
 }
