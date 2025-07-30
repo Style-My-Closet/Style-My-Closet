@@ -95,42 +95,4 @@ public class Weather extends BaseEntity {
   }
 
 
-  @Embeddable
-  @Getter
-  @AllArgsConstructor
-  @NoArgsConstructor
-  public static class Precipitation {
-    private String type; // RAIN, SNOW 등 → enum으로 바꿔도 OK
-    private Double amount;
-    private Double probability;
-  }
-
-  @Embeddable
-  @Getter
-  @AllArgsConstructor
-  @NoArgsConstructor
-  public static class Temperature {
-    private Double current;
-    private Double comparedToDayBefore;
-    private Double min;
-    private Double max;
-  }
-
-  @Embeddable
-  @Getter
-  @AllArgsConstructor
-  @NoArgsConstructor
-  public static class Humidity {
-    private Double current;
-    private Double comparedToDayBefore;
-  }
-
-  @Embeddable
-  @Getter
-  @AllArgsConstructor
-  @NoArgsConstructor
-  public static class WindSpeed {
-    private Double current;
-    private Double comparedToDayBefore;
-  }
 }
