@@ -9,7 +9,7 @@ CREATE TABLE follows
     followed_at  TIMESTAMP WITH TIME ZONE NOT NULL,
     deleted_at   TIMESTAMP WITH TIME ZONE,
     created_at   TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at   TIMESTAMP WITH TIME ZONE,
+    updated_at   TIMESTAMP WITH TIME ZONE
 );
 
 -- message
@@ -22,7 +22,7 @@ CREATE TABLE messages
     sent_at     TIMESTAMP WITH TIME ZONE NOT NULL,
     deleted_at  TIMESTAMP WITH TIME ZONE,
     created_at  TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at  TIMESTAMP WITH TIME ZONE,
+    updated_at  TIMESTAMP WITH TIME ZONE
 );
 
 ------------------ notification ------------------
@@ -68,7 +68,7 @@ CREATE TABLE locations
     location_names JSONB,
 
     create_at      TIMESTAMP WITH TIME ZONE NOT NULL,
-    update_at      TIMESTAMP WITH TIME ZONE,
+    update_at      TIMESTAMP WITH TIME ZONE
 );
 
 ------------------- cloth --------------------
