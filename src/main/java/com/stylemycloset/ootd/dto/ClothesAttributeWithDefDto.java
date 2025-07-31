@@ -7,4 +7,6 @@ public record ClothesAttributeWithDefDto(
     String definitionName,
     List<String> selectableValues,
     String value
-) {}
+) {
+
+}

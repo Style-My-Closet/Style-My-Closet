@@ -1,8 +1,8 @@
 package com.stylemycloset.ootd.entity;
 
-import com.stylemycloset.weather.entity.Weather;
-import com.stylemycloset.user.entity.User;
 import com.stylemycloset.common.entity.BaseEntity;
+import com.stylemycloset.user.entity.User;
+import com.stylemycloset.weather.entity.Weather;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,7 +28,8 @@ import org.hibernate.annotations.Where;
 @NoArgsConstructor
 @SQLDelete(sql = "UPDATE feeds SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 @Where(clause = "deleted_at IS NULL")
-public class Feed extends BaseEntity{
+public class Feed extends BaseEntity {
+
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
   private Long id;

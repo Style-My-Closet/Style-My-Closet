@@ -2,14 +2,19 @@ package com.stylemycloset.ootd.entity;
 
 import com.stylemycloset.common.entity.SoftDeleteEntity;
 import com.stylemycloset.user.entity.User;
-import com.stylemycloset.common.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
-
-import java.time.Instant;
 
 @Entity
 @Table(name = "feed_comments")
@@ -18,18 +23,19 @@ import java.time.Instant;
 @SQLDelete(sql = "UPDATE feed_comments SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 @Where(clause = "deleted_at IS NULL")
 public class FeedComment extends SoftDeleteEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "feed_id", nullable = false)
-    private Feed feed;
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id", nullable = false)
-    private User author;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "feed_id", nullable = false)
+  private Feed feed;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String content;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "author_id", nullable = false)
+  private User author;
+
+  @Column(columnDefinition = "TEXT", nullable = false)
+  private String content;
 }

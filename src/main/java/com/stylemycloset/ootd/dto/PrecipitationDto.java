@@ -6,4 +6,6 @@ public record PrecipitationDto(
     PrecipitationType type,
     Double amount,
     Double probability
-) {}
+) {
+
+}

@@ -9,4 +9,6 @@ public record OotdItemDto(
     String imageUrl,
     ClothesType type,
     List<ClothesAttributeWithDefDto> attributes
-) {}
+) {
+
+}

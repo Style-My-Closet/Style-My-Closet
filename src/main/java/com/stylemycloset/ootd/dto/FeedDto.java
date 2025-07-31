@@ -14,4 +14,6 @@ public record FeedDto(
     Long likeCount,
     Integer commentCount,
     Boolean likedByMe
-) {}
+) {
+
+}

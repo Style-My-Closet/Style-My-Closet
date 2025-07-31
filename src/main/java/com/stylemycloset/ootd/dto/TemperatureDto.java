@@ -5,4 +5,6 @@ public record TemperatureDto(
     Double comparedToDayBefore,
     Double min,
     Double max
-) {}
+) {
+
+}

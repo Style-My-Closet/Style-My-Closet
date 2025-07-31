@@ -12,4 +12,6 @@ public record FeedCreateRequest(
     List<Long> clothesIds,
     @NotNull(message = "피드 내용은 필수입니다.")
     String content
-) {}
+) {
+
+}

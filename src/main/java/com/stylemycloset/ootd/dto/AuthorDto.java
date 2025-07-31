@@ -4,4 +4,6 @@ public record AuthorDto(
     Long userId,
     String name,
     String profileImageUrl
-) {}
+) {
+
+}

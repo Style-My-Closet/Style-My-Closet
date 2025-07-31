@@ -7,4 +7,6 @@ public record WeatherSummaryDto(
     SkyStatus skyStatus,
     PrecipitationDto precipitation,
     TemperatureDto temperature
-) {}
+) {
+
+}
