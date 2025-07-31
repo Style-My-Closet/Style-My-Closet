@@ -1,33 +1,29 @@
 package com.stylemycloset.ootd.entity;
 
+import com.stylemycloset.common.entity.CreatedAtEntity;
 import com.stylemycloset.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.data.annotation.CreatedDate;
-
-import java.time.Instant;
 
 
 @Entity
 @Table(name = "feed_likes")
 @Getter
 @NoArgsConstructor
-public class FeedLike {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
+public class FeedLike extends CreatedAtEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "feed_likes_seq_gen")
+  @SequenceGenerator(name = "feed_likes_seq_gen", sequenceName = "feed_likes_id_seq", allocationSize = 1)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "feed_id", nullable = false)
-    private Feed feed;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 
-    @CreatedDate
-    @Column(updatable = false, nullable = false)
-    private Instant createdAt;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "feed_id", nullable = false)
+  private Feed feed;
+
 }

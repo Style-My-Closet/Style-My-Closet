@@ -1,34 +1,42 @@
 package com.stylemycloset.cloth.entity;
 
 
-import jakarta.persistence.*;
+import com.stylemycloset.common.entity.SoftDeletableEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import com.stylemycloset.common.entity.BaseEntity;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "clothes_attributes_categories")
+@Table(name = "clothes_categories")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ClothingCategory  extends BaseEntity{
+public class ClothingCategory extends SoftDeletableEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long categoryId;
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "clothes_categories_seq_gen")
+  @SequenceGenerator(name = "clothes_categories_seq_gen", sequenceName = "clothes_categories_id_seq", allocationSize = 1)
+  private Long id;
 
-    @Column(nullable = false, length = 50)
-    private String name;
+  @Column(nullable = false, length = 50)
+  private String name;
 
-    @Column(name="deleted_at",columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private Instant deletedAt;
+  @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
+  private List<Cloth> clothes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
-    @JoinColumn(name = "cloth_id",nullable = false)
-    private List<Cloth> clothes = new ArrayList<>();
+  public ClothingCategory(String name, List<Cloth> clothes) {
+    this.name = name;
+    this.clothes = clothes;
+  }
 
 }

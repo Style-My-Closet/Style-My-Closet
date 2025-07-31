@@ -1,6 +1,6 @@
 package com.stylemycloset.notification.entity;
 
-public enum NotficationLevel {
+public enum NotificationLevel {
   INFO,
   WARNING,
   ERROR
