@@ -2,8 +2,10 @@ package com.stylemycloset.user.entity;
 
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import com.stylemycloset.common.util.StringListJsonConverter;
+import com.stylemycloset.user.dto.request.UserCreateRequest;
 import jakarta.persistence.*;
 import com.stylemycloset.location.Location;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -27,12 +29,15 @@ public class User extends SoftDeletableEntity {
   @Column(name = "email", nullable = false, unique = true)
   private String email;
 
+  @Column(name = "password", nullable = false)
+  private String password;
+
   @Enumerated(EnumType.STRING)
   @Column(name = "role", nullable = false)
-  private Role role = Role.USER;
+  private Role role;
 
   @Column(name = "locked", nullable = false)
-  private boolean locked = false;
+  private boolean locked;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "gender")
@@ -45,12 +50,36 @@ public class User extends SoftDeletableEntity {
   private Integer temperatureSensitivity;
 
   @Transient
-  @Column(name = "linked_oauth_providers", columnDefinition = "JSON")
   @Convert(converter = StringListJsonConverter.class)
   private List<String> linkedOAuthProviders;
 
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "location_id")
   private Location location;
+
+  public User(UserCreateRequest request) {
+    this.name = request.name();
+    this.email = request.email();
+    this.password = request.password();
+    this.role = Role.USER;
+    this.linkedOAuthProviders = List.of("google");
+    this.locked = false;
+  }
+
+  public void updateRole(Role newRole) {
+    this.role = newRole;
+  }
+
+  public void changePassword(String newPassword) {
+    this.password = newPassword;
+  }
+
+  public void lockUser() {
+    this.locked = true;
+  }
+
+  public void softDelete() {
+    super.setDeleteAt(Instant.now());
+  }
 
 }
