@@ -15,7 +15,7 @@ import com.stylemycloset.common.entity.BaseEntity;
 @Builder
 
 public class Weather extends BaseEntity {
-//weather쪽에서는 id가 uuid타입이여서 baseentity 상속받으면 문제 생길것 같습니다!
+  //weather쪽에서는 id가 uuid타입이여서 baseentity 상속받으면 문제 생길것 같습니다!
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "weather_seq_gen")
   @SequenceGenerator(name = "weather_seq_gen", sequenceName = "weather_seq", allocationSize = 1)
@@ -70,10 +70,10 @@ public class Weather extends BaseEntity {
 
   @Builder
   public Weather(LocalDateTime forecastedAt, LocalDateTime forecastAt,
-      Location location, SkyStatus skyStatus,
-      Precipitation precipitation, Temperature temperature,
-      Humidity humidity, WindSpeed windSpeed,
-      Boolean isAlertTriggered, AlertType alertType) {
+                 Location location, SkyStatus skyStatus,
+                 Precipitation precipitation, Temperature temperature,
+                 Humidity humidity, WindSpeed windSpeed,
+                 Boolean isAlertTriggered, AlertType alertType) {
     this.forecastedAt = forecastedAt;
     this.forecastAt = forecastAt;
     this.location = location;

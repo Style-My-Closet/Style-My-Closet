@@ -21,5 +21,4 @@ public class BaseEntity {
   @LastModifiedDate
   @Column(nullable = false)
   protected Instant updatedAt;
-
 }
