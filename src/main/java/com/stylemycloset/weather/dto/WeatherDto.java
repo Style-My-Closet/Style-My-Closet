@@ -1,6 +1,6 @@
 package com.stylemycloset.weather.dto;
 
-import com.stylemycloset.common.entity.Location;
+import com.stylemycloset.location.Location;
 import com.stylemycloset.weather.entity.Humidity;
 import com.stylemycloset.weather.entity.Precipitation;
 import com.stylemycloset.weather.entity.Temperature;
