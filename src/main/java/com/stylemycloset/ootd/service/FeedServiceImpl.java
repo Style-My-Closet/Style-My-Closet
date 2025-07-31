@@ -14,7 +14,6 @@ import com.stylemycloset.weather.entity.Weather;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +31,7 @@ public class FeedServiceImpl implements FeedService {
 
   public FeedDto createFeed(FeedCreateRequest request) {
     User author = userRepository.findById(request.authorId())
-        .orElseThrow(()-> new StyleMyClosetException(ErrorCode.USER_NOT_FOUND,
+        .orElseThrow(() -> new StyleMyClosetException(ErrorCode.USER_NOT_FOUND,
             Map.of("userId", request.authorId())));
 
     Weather weather = findWeatherOrNull(request.weatherId());
