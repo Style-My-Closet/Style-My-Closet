@@ -42,6 +42,7 @@ public class SseServiceImpl implements SseService {
             .filter(event ->
                 event.id() > lastId
             ).toList();
+        log.debug("missedInfo Size={}", missedInfo.size());
 
         for (SseInfo info : missedInfo) {
           sendToClient(userId, emitter, String.valueOf(info.id()), info.name(), info.data());
