@@ -1,9 +1,11 @@
 package com.stylemycloset.sse.repository;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -17,18 +19,17 @@ public class SseRepository {
   }
 
   public void delete(Long userId, SseEmitter emitter) {
-    if(!userEmitters.containsKey(userId)) return;
-
-    List<SseEmitter> emitters = userEmitters.get(userId);
-    emitters.remove(emitter);
-    if(emitters.isEmpty()) userEmitters.remove(userId);
+    userEmitters.computeIfPresent(userId, (k, emitters) -> {
+      emitters.remove(emitter);
+      return emitters.isEmpty() ? null : emitters;
+    });
   }
 
-  public Map<Long, CopyOnWriteArrayList<SseEmitter>> findAllEmitters() {
-    Map<Long, CopyOnWriteArrayList<SseEmitter>> map = new ConcurrentHashMap<>();
-    userEmitters.forEach((userId, emitters) ->
-      map.put(userId, new CopyOnWriteArrayList<>(emitters))
-    );
-    return map;
+  public Map<Long, List<SseEmitter>> getAllEmittersReadOnly() {
+    return userEmitters.entrySet().stream()
+        .collect(Collectors.toMap(
+            Map.Entry::getKey,
+            entry -> Collections.unmodifiableList(entry.getValue())
+        ));
   }
 }
