@@ -51,7 +51,7 @@ public class openApiService {
 
         for (int page = 1; page <= totalPages; page++) {
             try {
-                String apiUrl = String.format("%s/getVilageFcst?serviceKey=%s&numOfRows=%d&pageNo=%d&"
+                String apiUrl = String.format("%s/getVilageFcst?serviceKey=%s&dataType=JSON&numOfRows=%d&pageNo=%d&"
                         + "base_date=%s&base_time=%s&nx=%d&ny=%d",
                     baseUrl, serviceKey, page, numOfRows, baseDate, baseTime, location.getX(), location.getY());
                 URI uri = new URI(apiUrl);
