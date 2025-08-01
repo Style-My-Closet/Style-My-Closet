@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record WeatherDto(
-    UUID id,
+    Long id,
     LocalDateTime forecastedAt,
     LocalDateTime forecastAt,
     Location location,
