@@ -17,6 +17,7 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,7 @@ import org.hibernate.annotations.Where;
 @Table(name = "feeds")
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @SQLDelete(sql = "UPDATE feeds SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 @Where(clause = "deleted_at IS NULL")
@@ -49,6 +51,7 @@ public class Feed extends BaseEntity {
 
   private Instant deletedAt;
 
+  @Builder.Default
   @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<FeedClothes> feedClothes = new ArrayList<>();
 }
