@@ -1,5 +1,6 @@
 package com.stylemycloset.cloth.entity;
 
+import com.stylemycloset.common.entity.SoftDeletableEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -16,22 +17,16 @@ import java.util.List;
 @Table(name = "closets")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Closet {
+public class Closet extends SoftDeletableEntity {
+
   @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE)
-  private Long closetId;
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "closets_seq_gen")
+  @SequenceGenerator(name = "closets_seq_gen", sequenceName = "closets_id_seq", allocationSize = 1)
+  private Long id;
 
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
-
-  @Column(name="deleted_at",columnDefinition = "TIMESTAMP WITH TIME ZONE")
-  private Instant deletedAt;
-
-
-  @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-  private Instant createdAt;
-
 
   @OneToMany(mappedBy = "closet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<Cloth> clothes = new ArrayList<>();

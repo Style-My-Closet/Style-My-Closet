@@ -1,5 +1,6 @@
 package com.stylemycloset.weather.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,6 +11,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Humidity {
-    private Double current;
-    private Double comparedToDayBefore;
+
+  @Column(name = "humidity_current")
+  private Double current;
+
+  @Column(name = "humidity_compared_to_day_before")
+  private Double comparedToDayBefore;
+
 }

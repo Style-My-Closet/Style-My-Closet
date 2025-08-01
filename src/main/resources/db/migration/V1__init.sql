@@ -3,13 +3,13 @@
 -- follow
 CREATE TABLE follows
 (
-    id           BIGSERIAL PRIMARY KEY,
-    follower_id  BIGINT                   NOT NULL,
+    id          BIGSERIAL PRIMARY KEY,
+    follower_id BIGINT                   NOT NULL,
     followee_id BIGINT                   NOT NULL,
-    followed_at  TIMESTAMP WITH TIME ZONE NOT NULL,
-    deleted_at   TIMESTAMP WITH TIME ZONE,
-    created_at   TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at   TIMESTAMP WITH TIME ZONE
+    followed_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    deleted_at  TIMESTAMP WITH TIME ZONE,
+    created_at  TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at  TIMESTAMP WITH TIME ZONE
 );
 
 -- message
@@ -42,7 +42,7 @@ CREATE TABLE notifications
 -- user
 CREATE TABLE users
 (
-    user_id                 BIGSERIAL PRIMARY KEY,
+    id                      BIGSERIAL PRIMARY KEY,
     name                    VARCHAR(20)              NOT NULL,
     email                   VARCHAR(30)              NOT NULL UNIQUE,
     role                    VARCHAR(10)              NOT NULL,
@@ -50,9 +50,9 @@ CREATE TABLE users
     gender                  VARCHAR(10),
     birth_date              DATE,
     temperature_sensitivity INTEGER,
-    delete_at               TIMESTAMP WITH TIME ZONE,
-    create_at               TIMESTAMP WITH TIME ZONE NOT NULL,
-    update_at               TIMESTAMP WITH TIME ZONE,
+    deleted_at              TIMESTAMP WITH TIME ZONE,
+    created_at              TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at              TIMESTAMP WITH TIME ZONE,
 
     location_id             BIGINT
 );
@@ -67,8 +67,8 @@ CREATE TABLE locations
     y              INTEGER,
     location_names JSONB,
 
-    create_at      TIMESTAMP WITH TIME ZONE NOT NULL,
-    update_at      TIMESTAMP WITH TIME ZONE
+    created_at     TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at     TIMESTAMP WITH TIME ZONE
 );
 
 ------------------- cloth --------------------
@@ -76,66 +76,66 @@ CREATE TABLE locations
 -- closet
 CREATE TABLE closets
 (
-    closet_id  BIGSERIAL PRIMARY KEY,
+    id         BIGSERIAL PRIMARY KEY,
     user_id    BIGINT                   NOT NULL UNIQUE,
     deleted_at TIMESTAMP WITH TIME ZONE,
-    create_at  TIMESTAMP WITH TIME ZONE NOT NULL,
-    update_at  TIMESTAMP WITH TIME ZONE
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE
 );
 
 -- category
 CREATE TABLE clothes_categories
 (
-    category_id BIGSERIAL PRIMARY KEY,
-    name        VARCHAR(50)              NOT NULL UNIQUE,
-    deleted_at  TIMESTAMP WITH TIME ZONE,
-    create_at   TIMESTAMP WITH TIME ZONE NOT NULL,
-    update_at   TIMESTAMP WITH TIME ZONE
+    id         BIGSERIAL PRIMARY KEY,
+    name       VARCHAR(50)              NOT NULL UNIQUE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE
 );
 
 -- clothes
 CREATE TABLE clothes
 (
-    cloth_id    BIGSERIAL PRIMARY KEY,
+    id          BIGSERIAL PRIMARY KEY,
     closet_id   BIGINT                   NOT NULL,
     category_id BIGINT                   NOT NULL,
     image_id    UUID,
     name        VARCHAR(100)             NOT NULL,
     deleted_at  TIMESTAMP WITH TIME ZONE,
-    create_at   TIMESTAMP WITH TIME ZONE NOT NULL,
-    update_at   TIMESTAMP WITH TIME ZONE
+    created_at  TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at  TIMESTAMP WITH TIME ZONE
 );
 
 -- cloth_attribute : 계절 등 큰 카테고리
 CREATE TABLE clothes_attributes_categories
 (
-    attribute_id BIGSERIAL PRIMARY KEY,
-    name         VARCHAR(100)             NOT NULL,
-    deleted_at   TIMESTAMP WITH TIME ZONE,
-    create_at    TIMESTAMP WITH TIME ZONE NOT NULL,
-    update_at    TIMESTAMP WITH TIME ZONE
+    id         BIGSERIAL PRIMARY KEY,
+    name       VARCHAR(100)             NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE
 );
 
 -- cloth_attribute_option : 계절의 여름, 가을, 겨울
 CREATE TABLE clothes_attributes_category_options
 (
-    option_id    BIGSERIAL PRIMARY KEY,
+    id           BIGSERIAL PRIMARY KEY,
     attribute_id BIGINT                   NOT NULL,
     value        VARCHAR(50)              NOT NULL UNIQUE,
     deleted_at   TIMESTAMP WITH TIME ZONE,
-    create_at    TIMESTAMP WITH TIME ZONE NOT NULL,
-    update_at    TIMESTAMP WITH TIME ZONE
+    created_at   TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at   TIMESTAMP WITH TIME ZONE
 );
 
 -- cloth_attribute_mapping : 여름, 가을 세부적인 속성 옵션들이 옷과 매핑이 되어있는걸 표현
 CREATE TABLE clothes_to_attribute_options
 (
-    clothing_value_id BIGSERIAL PRIMARY KEY,
-    cloth_id          BIGINT                   NOT NULL,
-    attribute_id      BIGINT                   NOT NULL,
-    option_id         BIGINT                   NOT NULL,
-    create_at         TIMESTAMP WITH TIME ZONE NOT NULL,
-    update_at         TIMESTAMP WITH TIME ZONE,
+    id           BIGSERIAL PRIMARY KEY,
+    cloth_id     BIGINT                   NOT NULL,
+    attribute_id BIGINT                   NOT NULL,
+    option_id    BIGINT                   NOT NULL,
+    created_at   TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at   TIMESTAMP WITH TIME ZONE,
 
     CONSTRAINT uq_clothing_attribute UNIQUE (cloth_id, attribute_id, option_id)
 );
@@ -158,11 +158,11 @@ CREATE TABLE binary_contents
 -- weather
 CREATE TABLE weather
 (
-    id                                 UUID PRIMARY KEY         NOT NULL,
+    id                                 BIGSERIAL PRIMARY KEY,
     forecasted_at                      TIMESTAMP WITH TIME ZONE NOT NULL,
     forecast_at                        TIMESTAMP WITH TIME ZONE NOT NULL,
 
-    sky_status                         VARCHAR(20) NOT NULL,
+    sky_status                         VARCHAR(20)              NOT NULL,
 
     precipitation_type                 VARCHAR(20),
     precipitation_amount               DOUBLE PRECISION,
@@ -181,7 +181,8 @@ CREATE TABLE weather
 
     is_alert_triggered                 BOOLEAN DEFAULT FALSE,
     alert_type                         VARCHAR(20) CHECK (alert_type IN
-                                                          ('NONE', 'RAIN', 'HEAVY_RAIN', 'HIGH_TEMP', 'LOW_TEMP',
+                                                          ('NONE', 'RAIN', 'HEAVY_RAIN',
+                                                           'HIGH_TEMP', 'LOW_TEMP',
                                                            'STRONG_WIND')),
 
     created_at                         TIMESTAMP WITH TIME ZONE NOT NULL,

@@ -2,7 +2,7 @@ package com.stylemycloset.ootd.service;
 
 import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.repo.ClothRepository;
-import com.stylemycloset.common.controller.exception.ErrorCode;
+import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.controller.exception.StyleMyClosetException;
 import com.stylemycloset.ootd.dto.AuthorDto;
 import com.stylemycloset.ootd.dto.ClothesAttributeWithDefDto;
@@ -11,7 +11,6 @@ import com.stylemycloset.ootd.dto.FeedDto;
 import com.stylemycloset.ootd.dto.OotdItemDto;
 import com.stylemycloset.ootd.dto.PrecipitationDto;
 import com.stylemycloset.ootd.dto.TemperatureDto;
-import com.stylemycloset.ootd.dto.WeatherSummaryDto;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.FeedClothes;
 import com.stylemycloset.ootd.repo.FeedClothesRepository;
@@ -19,6 +18,7 @@ import com.stylemycloset.ootd.repo.FeedRepository;
 import com.stylemycloset.ootd.tempEnum.ClothesType;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repo.UserRepository;
+import com.stylemycloset.weather.dto.WeatherSummaryDto;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.repo.WeatherRepository;
 import java.util.ArrayList;
@@ -40,6 +40,7 @@ public class FeedServiceImpl implements FeedService {
   private final ClothRepository clothRepository;
   private final WeatherRepository weatherRepository;
 
+  @Override
   public FeedDto createFeed(FeedCreateRequest request) {
     User author = userRepository.findById(request.authorId())
         .orElseThrow(() -> new StyleMyClosetException(ErrorCode.USER_NOT_FOUND,

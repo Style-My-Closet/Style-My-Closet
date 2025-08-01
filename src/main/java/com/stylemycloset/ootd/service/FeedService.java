@@ -5,5 +5,5 @@ import com.stylemycloset.ootd.dto.FeedDto;
 
 public interface FeedService {
 
-  FeedDto createFeed(FeedCreateRequest reqeust);
+  FeedDto createFeed(FeedCreateRequest request);
 }
