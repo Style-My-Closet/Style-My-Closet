@@ -10,6 +10,7 @@ import com.stylemycloset.weather.entity.Precipitation;
 import com.stylemycloset.weather.entity.Temperature;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.entity.WindSpeed;
+import com.stylemycloset.weather.mapper.WeatherMapper;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +24,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class WeatherServiceTest {
     @Mock
     private WeatherRepository weatherRepository;
+
+    @Mock
+    private WeatherMapper weatherMapper;
 
     @InjectMocks
     private WeatherServiceImpl weatherService;
@@ -59,8 +63,21 @@ public class WeatherServiceTest {
         when(weatherRepository.findByLocation(37.5665, 126.9780))
             .thenReturn(List.of(weather));
 
+        when(weatherMapper.toDto(weather)).thenReturn(new WeatherDto(
+            weather.getId(),
+            weather.getForecastedAt(),
+            weather.getForecastAt(),
+            weather.getLocation(),
+            weather.getSkyStatus(),
+            weather.getPrecipitation(),
+            weather.getHumidity(),
+            weather.getTemperature(),
+            weather.getWindSpeed()
+        ));
+
         // when
         List<WeatherDto> result = weatherService.getWeatherByCoordinates(37.5665, 126.9780);
+        //weatherService.getWeatherByCoordinates(37.5665, 126.9780);
 
         // then
         assertEquals(1, result.size());
