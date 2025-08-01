@@ -35,14 +35,19 @@ public class SseServiceImpl implements SseService {
     sendToClient(userId, emitter, eventId, "connect", "Sse Connected");
 
     if(lastEventId != null &&  !lastEventId.isEmpty()) {
-      long lastId = Long.parseLong(lastEventId);
-      List<SseInfo> missedInfo = userEvents.getOrDefault(userId, new CopyOnWriteArrayList<>()).stream()
-          .filter(event ->
-            event.id() > lastId
-          ).toList();
+      try {
+        long lastId = Long.parseLong(lastEventId);
+        List<SseInfo> missedInfo = userEvents.getOrDefault(userId, new CopyOnWriteArrayList<>())
+            .stream()
+            .filter(event ->
+                event.id() > lastId
+            ).toList();
 
-      for(SseInfo info : missedInfo) {
-        sendToClient(userId, emitter, String.valueOf(info.id()), info.name(), info.data());
+        for (SseInfo info : missedInfo) {
+          sendToClient(userId, emitter, String.valueOf(info.id()), info.name(), info.data());
+        }
+      } catch(NumberFormatException e) {
+        log.warn("유효하지 않는 lastEventId 형식 : {}", lastEventId);
       }
     }
 
@@ -57,19 +62,20 @@ public class SseServiceImpl implements SseService {
           .data(data));
       log.debug("[{}]의 {} SSE 이벤트 수신 완료 (eventId: {})", userId, eventName, eventId);
     } catch (IOException e){
-      log.error("[{}]의 {} SSE 이벤트 실패 (eventId: {})", userId, eventName, eventId, e);
+      log.warn("[{}]의 {} SSE 이벤트 실패 (eventId: {})", userId, eventName, eventId, e);
       sseRepository.delete(userId, emitter);
     }
   }
 
   @Scheduled(fixedRate = 2 * 60 * 1000)
   private void cleanUpSseEmitter() {
-    sseRepository.findAllEmitters()
+    sseRepository.getAllEmittersReadOnly()
         .forEach((userId, emitters) ->
             emitters.forEach(emitter -> {
               try{
                 emitter.send(SseEmitter.event().name("heartbeat").data("data"));
               } catch (IOException e){
+                log.debug("user [{}]에 대한 연결이 실패하여 emitter를 삭제", userId);
                 sseRepository.delete(userId, emitter);
               }
             }));
