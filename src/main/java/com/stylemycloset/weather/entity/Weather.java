@@ -2,6 +2,7 @@ package com.stylemycloset.weather.entity;
 
 import com.stylemycloset.location.Location;
 import jakarta.persistence.*; // JPA 어노테이션 전반
+import java.util.UUID;
 import lombok.*; // Lombok 어노테이션
 import java.time.LocalDateTime; // 시간 관련
 import com.stylemycloset.common.entity.CreatedAtEntity;
