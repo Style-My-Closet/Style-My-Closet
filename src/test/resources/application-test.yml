@@ -19,3 +19,9 @@ spring:
 logging:
   level:
     com.stylemycloset: DEBUG
+
+external:
+  market-index:
+    service-key: ${SERVICE_KEY}
+    base-url: https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0
+    num-of-rows: 100
