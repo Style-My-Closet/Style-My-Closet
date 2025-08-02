@@ -33,6 +33,7 @@ public class WeatherController {
         @RequestParam double latitude,
         @RequestParam double longitude
     ){
-
+        WeatherAPILocation location = weatherService.getLocation(latitude,longitude);
+        return ResponseEntity.ok(location);
     }
 }
