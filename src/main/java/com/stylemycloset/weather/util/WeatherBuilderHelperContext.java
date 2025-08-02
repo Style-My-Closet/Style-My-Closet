@@ -8,6 +8,8 @@ import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.entity.WindSpeed;
 import java.time.LocalDateTime;
 
+
+
 public class WeatherBuilderHelperContext {
     public LocalDateTime forecastedAt;
     public LocalDateTime forecastAt;
