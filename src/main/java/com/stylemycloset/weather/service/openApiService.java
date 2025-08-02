@@ -5,19 +5,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.location.Location;
-import com.stylemycloset.weather.entity.Humidity;
-import com.stylemycloset.weather.entity.Precipitation;
-import com.stylemycloset.weather.entity.Temperature;
+import com.stylemycloset.location.LocationRepository;
 import com.stylemycloset.weather.entity.Weather;
-import com.stylemycloset.weather.entity.WindSpeed;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import java.net.URI;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +27,7 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class openApiService {
     private final WeatherRepository weatherRepository;
+    private final LocationRepository locationRepository;
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -133,11 +131,15 @@ public class openApiService {
             builder.setCategoryValue(category, fcstValue);
         }
 
+        Weather weather = null;
         // 모든 builder 완성 후 Weather 객체 생성 및 저장 로직 추가 가능
         for (WeatherBuilderHelper builder : weatherBuilders.values()) {
-            Weather weather = builder.build();
+            weather = builder.build();
             // 저장 또는 후처리
             log.info("빌드된 Weather: {}", weather);
         }
+        weatherRepository.save(Optional.of(weather).orElseThrow(()
+            -> new StyleMyClosetException(ErrorCode.ERROR_CODE,Map.of("location", location))));
+        locationRepository.save(weather.getLocation());
     }
 }
