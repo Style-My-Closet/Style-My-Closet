@@ -6,7 +6,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-
 import com.stylemycloset.notification.dto.NotificationDto;
 import com.stylemycloset.notification.dto.NotificationDtoCursorResponse;
 import com.stylemycloset.notification.dto.NotificationFindAllRequest;
@@ -27,14 +26,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.util.ReflectionTestUtils;
 
 public class NotificationServiceTest extends IntegrationTestSupport {
 
-  private static final Logger log = LoggerFactory.getLogger(NotificationServiceTest.class);
   @Mock
   NotificationRepository notificationRepository;
 
@@ -71,7 +67,7 @@ public class NotificationServiceTest extends IntegrationTestSupport {
     NotificationDto result =
         notificationService.create(user1, "testTitle", "testContent", NotificationLevel.INFO);
 
-    // then
+    // then 
     assertThat(result.getClass()).isEqualTo(NotificationDto.class);
     assertThat(result.title()).isEqualTo("testTitle");
     assertThat(result.content()).isEqualTo("testContent");
@@ -147,7 +143,7 @@ public class NotificationServiceTest extends IntegrationTestSupport {
     NotificationFindAllRequest request = new NotificationFindAllRequest(null, null, 2);
 
     given(notificationQueryRepository.findAllByCursor(request, 1)).willReturn(notifications);
-    given(notificationRepository.countByReceiver_Id(1)).willReturn(3L);
+    given(notificationRepository.countByReceiverId(1)).willReturn(3L);
 
     // when
     NotificationDtoCursorResponse result = notificationService.findAll(1,  request);

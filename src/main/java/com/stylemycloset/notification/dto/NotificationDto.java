@@ -18,12 +18,12 @@ public record NotificationDto(
   public static NotificationDto from(Notification notification) {
     return NotificationDto.builder()
       .id(notification.getId())
-        .createdAt(notification.getCreatedAt())
-        .receiverId(notification.getReceiver().getId())
-        .title(notification.getTitle())
-        .content(notification.getContent())
-        .level(notification.getLevel())
-        .build();
+      .createdAt(notification.getCreatedAt())
+      .receiverId(notification.getReceiver().getId())
+      .title(notification.getTitle())
+      .content(notification.getContent())
+      .level(notification.getLevel())
+      .build();
   }
 
   public static List<NotificationDto> fromList(List<Notification> notifications) {

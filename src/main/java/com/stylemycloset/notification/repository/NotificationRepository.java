@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-  long countByReceiver_Id(long receiverId);
+  long countByReceiverId(long receiverId);
 }

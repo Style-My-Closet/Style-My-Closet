@@ -1,6 +1,7 @@
 package com.stylemycloset.notification.dto;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import lombok.Builder;
 
@@ -8,7 +9,7 @@ import lombok.Builder;
 public record NotificationDtoCursorResponse(
     List<NotificationDto> data,
     Instant nextCursor,
-    long nextIdAfter,
+    Long nextIdAfter,
     boolean hasNext,
     long totalCount,
     String sortBy,
@@ -17,12 +18,12 @@ public record NotificationDtoCursorResponse(
   public static NotificationDtoCursorResponse of(
       List<NotificationDto> data,
       Instant nextCursor,
-      long nextIdAfter,
+      Long nextIdAfter,
       boolean hasNext,
       long totalCount
   ) {
     return NotificationDtoCursorResponse.builder()
-      .data(data)
+      .data(Collections.unmodifiableList(data))
       .nextCursor(nextCursor)
         .nextIdAfter(nextIdAfter)
         .hasNext(hasNext)

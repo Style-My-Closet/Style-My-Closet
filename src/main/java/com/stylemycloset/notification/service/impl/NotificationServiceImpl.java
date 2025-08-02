@@ -9,7 +9,6 @@ import com.stylemycloset.notification.repository.NotificationQueryRepository;
 import com.stylemycloset.notification.repository.NotificationRepository;
 import com.stylemycloset.notification.service.NotificationService;
 import com.stylemycloset.user.entity.User;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -42,10 +41,10 @@ public class NotificationServiceImpl implements NotificationService {
   public List<NotificationDto> createAll(Set<User> receivers, String title, String content, NotificationLevel level) {
     log.info("여러 알림 생성 시작: 수신자 수={}, title={},content={},level={}", receivers.size(), title, content, level);
 
-    List<Notification> notifications = new ArrayList<>();
-    for (User receiver : receivers) {
-      notifications.add(new Notification(receiver, title, content, level));
-    }
+    List<Notification> notifications = receivers.stream()
+            .map(receiver -> new Notification(receiver, title, content, level))
+            .toList();
+
     notificationRepository.saveAll(notifications);
 
     return NotificationDto.fromList(notifications);
@@ -70,20 +69,15 @@ public class NotificationServiceImpl implements NotificationService {
   // @PreAuthorize("principal.userDto.id == #userId")
   public NotificationDtoCursorResponse findAll(long userId, NotificationFindAllRequest request) {
     List<Notification> notifications = notificationQueryRepository.findAllByCursor(request, userId);
-    long totalCount = notificationRepository.countByReceiver_Id(userId);
+    long totalCount = notificationRepository.countByReceiverId(userId);
 
     boolean hasNext = !notifications.isEmpty() && notifications.size() > request.limit();
 
-    List<NotificationDto> data = new ArrayList<>();
-    if(hasNext) {
-      for(int i = 0; i < request.limit(); i++) {
-        data.add(NotificationDto.from(notifications.get(i)));
-      }
-    }else{
-      for(Notification notification : notifications) {
-        data.add(NotificationDto.from(notification));
-      }
-    }
+    int size = hasNext ? request.limit() : notifications.size();
+    List<NotificationDto> data = notifications.stream()
+        .limit(size)
+        .map(NotificationDto::from)
+        .toList();
 
     if(hasNext) {
       NotificationDto lastDto = data.getLast();
@@ -99,7 +93,7 @@ public class NotificationServiceImpl implements NotificationService {
     return NotificationDtoCursorResponse.of(
         data,
         null,
-        0,
+        0L,
         hasNext,
         totalCount
     );

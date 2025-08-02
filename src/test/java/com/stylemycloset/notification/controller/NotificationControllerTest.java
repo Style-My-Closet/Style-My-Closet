@@ -14,19 +14,17 @@ import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
+@Transactional
 public class NotificationControllerTest extends IntegrationTestSupport {
 
-  private static final Logger log = LoggerFactory.getLogger(NotificationControllerTest.class);
   @Autowired
   MockMvc mockMvc;
 
@@ -41,8 +39,7 @@ public class NotificationControllerTest extends IntegrationTestSupport {
   void deleteNotifications_ReturnIsNoContent() throws Exception{
     // given
     UserCreateRequest request1 = new UserCreateRequest("test", "test@test.test", "test");
-    User user1 = new User(request1);
-    ReflectionTestUtils.setField(user1, "id", 1L);
+    User user1 = userRepository.save(new User(request1));
 
     Notification notification = notificationRepository.save(
         new Notification(user1, "testTitle", "testContent", NotificationLevel.INFO));
