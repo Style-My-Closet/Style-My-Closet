@@ -25,7 +25,7 @@ public class NotificationController {
       @PathVariable long notificationId
   ) {
     notificationService.delete(receiverId, notificationId);
-    return ResponseEntity.ok().build();
+    return ResponseEntity.noContent().build();
   }
 
   @GetMapping("/{userId}")

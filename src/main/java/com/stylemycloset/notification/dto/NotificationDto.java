@@ -8,9 +8,9 @@ import lombok.Builder;
 
 @Builder
 public record NotificationDto(
-    long id,
+    Long id,
     Instant createdAt,
-    long receiverId,
+    Long receiverId,
     String title,
     String content,
     NotificationLevel level

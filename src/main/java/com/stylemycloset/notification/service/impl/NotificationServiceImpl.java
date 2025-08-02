@@ -25,6 +25,7 @@ public class NotificationServiceImpl implements NotificationService {
   private final NotificationRepository notificationRepository;
   private final NotificationQueryRepository notificationQueryRepository;
 
+  @Override
   @Transactional
   public NotificationDto create(User receiver, String title, String content, NotificationLevel level) {
     log.info("단일 알림 생성 시작: receiver={}, title={},content={},level={}",  receiver, title, content, level);
@@ -36,6 +37,7 @@ public class NotificationServiceImpl implements NotificationService {
     return NotificationDto.from(notification);
   }
 
+  @Override
   @Transactional
   public List<NotificationDto> createAll(Set<User> receivers, String title, String content, NotificationLevel level) {
     log.info("여러 알림 생성 시작: 수신자 수={}, title={},content={},level={}", receivers.size(), title, content, level);
@@ -49,6 +51,7 @@ public class NotificationServiceImpl implements NotificationService {
     return NotificationDto.fromList(notifications);
   }
 
+  @Override
   @Transactional
   // @PreAuthorize("principal.userDto.id == #receiverId")
   public void delete(long receiverId, long notificationId) {
@@ -62,11 +65,12 @@ public class NotificationServiceImpl implements NotificationService {
     notificationRepository.delete(notification);
   }
 
+  @Override
   @Transactional(readOnly = true)
   // @PreAuthorize("principal.userDto.id == #userId")
   public NotificationDtoCursorResponse findAll(long userId, NotificationFindAllRequest request) {
     List<Notification> notifications = notificationQueryRepository.findAllByCursor(request, userId);
-    long totalCount = notificationRepository.countByReceiverId(userId);
+    long totalCount = notificationRepository.countByReceiver_Id(userId);
 
     boolean hasNext = !notifications.isEmpty() && notifications.size() > request.limit();
 
