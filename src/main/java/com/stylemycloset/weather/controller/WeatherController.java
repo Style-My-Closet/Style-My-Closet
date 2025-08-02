@@ -28,7 +28,7 @@ public class WeatherController {
         return ResponseEntity.ok(weathers);
     }
 
-    @GetMapping
+    @GetMapping("/location")
     public ResponseEntity<WeatherAPILocation> getWeatherLocation(
         @RequestParam double latitude,
         @RequestParam double longitude
