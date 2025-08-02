@@ -6,6 +6,7 @@ import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.location.Location;
 import com.stylemycloset.location.LocationRepository;
 import com.stylemycloset.weather.entity.Weather;
+import com.stylemycloset.weather.processor.WeatherCategoryProcessor;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import com.stylemycloset.weather.util.WeatherApiFetcher;
 import com.stylemycloset.weather.util.WeatherBuilderHelper;
@@ -27,6 +28,7 @@ public class OpenApiService {
     private final WeatherItemDeduplicator deduplicator;
     private final WeatherRepository weatherRepository;
     private final LocationRepository locationRepository;
+    private final List<WeatherCategoryProcessor> processors;
 
     public void fetchData(String baseDate, String baseTime, Location location) {
         List<JsonNode> rawItems = apiFetcher.fetchAllPages(baseDate, baseTime, location);
@@ -41,7 +43,7 @@ public class OpenApiService {
             String key = fcstDate + "|" + fcstTime + "|" + item.path("nx").asText() + "," + item.path("ny").asText();
 
             WeatherBuilderHelper builder = builders.computeIfAbsent(key,
-                k -> new WeatherBuilderHelper(baseDate, baseTime, fcstDate, fcstTime, location));
+                k -> new WeatherBuilderHelper(baseDate, baseTime, fcstDate, fcstTime, location,processors));
             builder.setCategoryValue(item.path("category").asText(), item.path("fcstValue").asText());
         }
 
