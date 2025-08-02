@@ -32,7 +32,7 @@ class OpenApiServiceTest {
     private ObjectMapper objectMapper;
 
     @InjectMocks
-    private openApiService openApiService;
+    private OpenApiService openApiService;
 
     @BeforeEach
     void setUp() {
