@@ -17,4 +17,6 @@ public record FollowSummaryResult(
     Boolean followingMe
 ) {
 
+
+
 }

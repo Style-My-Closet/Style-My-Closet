@@ -11,7 +11,7 @@ public interface FollowService {
 
   FollowResult startFollowing(FollowCreateRequest followCreateRequest);
 
-  FollowSummaryResult summaryFollowInfo(Long userId);
+  FollowSummaryResult summaryFollowInfo(Long targetUserId, Long logInUserId);
 
   FollowListResponse<FollowResult> getFollowings(SearchFollowingsCondition followingsCondition);
 

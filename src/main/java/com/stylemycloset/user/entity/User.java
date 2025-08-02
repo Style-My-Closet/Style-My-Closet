@@ -1,5 +1,6 @@
 package com.stylemycloset.user.entity;
 
+import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import com.stylemycloset.common.util.StringListJsonConverter;
 import jakarta.persistence.*;
@@ -52,5 +53,9 @@ public class User extends SoftDeletableEntity {
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "location_id")
   private Location location;
+
+  @OneToOne
+  @JoinColumn(name = "profile_id")
+  private BinaryContent profileImage;
 
 }

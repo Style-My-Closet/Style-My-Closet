@@ -9,6 +9,7 @@ import com.stylemycloset.follow.dto.request.SearchFollowingsCondition;
 import com.stylemycloset.follow.service.FollowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -33,9 +34,13 @@ public class FollowController {
 
   @GetMapping("/summary")
   public ResponseEntity<FollowSummaryResult> getFollowSummaryResult(
-      @RequestParam(value = "userId") Long userId
+      @RequestParam(value = "userId") Long targetUserId,
+      @AuthenticationPrincipal Long logInUserId // 시큐리티 구현시 추후 수정 예정
   ) {
-    FollowSummaryResult followSummaryResult = followService.summaryFollowInfo(userId);
+    FollowSummaryResult followSummaryResult = followService.summaryFollowInfo(
+        targetUserId,
+        logInUserId
+    );
     return ResponseEntity.ok(followSummaryResult);
   }
 

@@ -37,8 +37,9 @@ out/
 ### VS Code ###
 .vscode/
 
-### Environment Variable File ###
-.env
-
 ### Log File ###
 .logs
+
+### Local-Binary-File ###
+.stylemycloset/storage
+.stylemycloset/storage/test
