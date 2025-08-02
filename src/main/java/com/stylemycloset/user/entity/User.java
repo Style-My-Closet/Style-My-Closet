@@ -2,13 +2,26 @@ package com.stylemycloset.user.entity;
 
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import com.stylemycloset.common.util.StringListJsonConverter;
-import jakarta.persistence.*;
 import com.stylemycloset.location.Location;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
+import com.stylemycloset.user.dto.UserCreateRequest;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.time.LocalDate;
 import java.util.List;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "users")
@@ -27,12 +40,15 @@ public class User extends SoftDeletableEntity {
   @Column(name = "email", nullable = false, unique = true)
   private String email;
 
+  @Column(name = "password", nullable = false)
+  private String password;
+
   @Enumerated(EnumType.STRING)
   @Column(name = "role", nullable = false)
-  private Role role = Role.USER;
+  private Role role;
 
   @Column(name = "locked", nullable = false)
-  private boolean locked = false;
+  private boolean locked;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "gender")
@@ -45,7 +61,6 @@ public class User extends SoftDeletableEntity {
   private Integer temperatureSensitivity;
 
   @Transient
-  @Column(name = "linked_oauth_providers", columnDefinition = "JSON")
   @Convert(converter = StringListJsonConverter.class)
   private List<String> linkedOAuthProviders;
 
@@ -53,4 +68,12 @@ public class User extends SoftDeletableEntity {
   @JoinColumn(name = "location_id")
   private Location location;
 
+  public User(UserCreateRequest request) {
+    this.name = request.name();
+    this.email = request.email();
+    this.password = request.password();
+    this.role = Role.USER;
+    this.linkedOAuthProviders = List.of("google");
+    this.locked = false;
+  }
 }
