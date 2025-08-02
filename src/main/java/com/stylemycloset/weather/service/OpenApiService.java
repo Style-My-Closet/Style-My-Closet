@@ -8,6 +8,7 @@ import com.stylemycloset.location.LocationRepository;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import com.stylemycloset.weather.util.WeatherApiFetcher;
+import com.stylemycloset.weather.util.WeatherBuilderHelper;
 import com.stylemycloset.weather.util.WeatherItemDeduplicator;
 import java.util.HashMap;
 import java.util.List;
