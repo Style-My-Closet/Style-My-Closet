@@ -1,5 +1,6 @@
 package com.stylemycloset.weather.service;
 
+import com.stylemycloset.weather.dto.WeatherAPILocation;
 import com.stylemycloset.weather.dto.WeatherDto;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.mapper.WeatherMapper;
@@ -24,6 +25,8 @@ public class WeatherServiceImpl implements WeatherService {
             .toList();
     }
 
+    public WeatherAPILocation getLocation(Double latitude, Double longitude) {
 
+    }
 }
 
