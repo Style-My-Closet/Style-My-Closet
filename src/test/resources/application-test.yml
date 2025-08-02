@@ -22,6 +22,6 @@ logging:
 
 external:
   market-index:
-    service-key: ${SERVICE_KEY:111}
+    service-key: ${SERVICE_KEY:1111}
     base-url: https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0
     num-of-rows: 100
