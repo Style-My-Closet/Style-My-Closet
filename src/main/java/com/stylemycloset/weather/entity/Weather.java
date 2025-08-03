@@ -1,11 +1,11 @@
 package com.stylemycloset.weather.entity;
 
-import com.stylemycloset.common.entity.Location;
+import com.stylemycloset.location.Location;
 import jakarta.persistence.*; // JPA 어노테이션 전반
+import java.util.UUID;
 import lombok.*; // Lombok 어노테이션
 import java.time.LocalDateTime; // 시간 관련
-import java.util.UUID; // UUID 타입
-import com.stylemycloset.common.entity.BaseEntity;
+import com.stylemycloset.common.entity.CreatedAtEntity;
 
 @Entity
 @Table(name = "weather")
@@ -13,12 +13,12 @@ import com.stylemycloset.common.entity.BaseEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+public class Weather extends CreatedAtEntity {
 
-public class Weather extends BaseEntity {
-//weather쪽에서는 id가 uuid타입이여서 baseentity 상속받으면 문제 생길것 같습니다!
   @Id
-  @Column(name = "id", nullable = false)
-  private UUID id = UUID.randomUUID();
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "weather_seq_gen")
+  @SequenceGenerator(name = "weather_seq_gen", sequenceName = "weather_id_seq", allocationSize = 1)
+  private Long id;
 
   @Column(name = "forecasted_at", nullable = false)
   private LocalDateTime forecastedAt;
@@ -59,6 +59,7 @@ public class Weather extends BaseEntity {
 
   // 알림 관련
   @Column(name = "is_alert_triggered")
+  @Builder.Default
   private Boolean isAlertTriggered = false;
   //이 날씨 정보로 인해 알림이 트리거되었는지 여부
 
@@ -69,11 +70,10 @@ public class Weather extends BaseEntity {
 
   @Builder
   public Weather(LocalDateTime forecastedAt, LocalDateTime forecastAt,
-      Location location, SkyStatus skyStatus,
-      Precipitation precipitation, Temperature temperature,
-      Humidity humidity, WindSpeed windSpeed,
-      Boolean isAlertTriggered, AlertType alertType) {
-    this.id = UUID.randomUUID();
+                 Location location, SkyStatus skyStatus,
+                 Precipitation precipitation, Temperature temperature,
+                 Humidity humidity, WindSpeed windSpeed,
+                 Boolean isAlertTriggered, AlertType alertType) {
     this.forecastedAt = forecastedAt;
     this.forecastAt = forecastAt;
     this.location = location;
@@ -94,43 +94,4 @@ public class Weather extends BaseEntity {
     NONE, RAIN, HEAVY_RAIN, HIGH_TEMP, LOW_TEMP, STRONG_WIND
   }
 
-
-  @Embeddable
-  @Getter
-  @AllArgsConstructor
-  @NoArgsConstructor
-  public static class Precipitation {
-    private String type; // RAIN, SNOW 등 → enum으로 바꿔도 OK
-    private Double amount;
-    private Double probability;
-  }
-
-  @Embeddable
-  @Getter
-  @AllArgsConstructor
-  @NoArgsConstructor
-  public static class Temperature {
-    private Double current;
-    private Double comparedToDayBefore;
-    private Double min;
-    private Double max;
-  }
-
-  @Embeddable
-  @Getter
-  @AllArgsConstructor
-  @NoArgsConstructor
-  public static class Humidity {
-    private Double current;
-    private Double comparedToDayBefore;
-  }
-
-  @Embeddable
-  @Getter
-  @AllArgsConstructor
-  @NoArgsConstructor
-  public static class WindSpeed {
-    private Double current;
-    private Double comparedToDayBefore;
-  }
 }
