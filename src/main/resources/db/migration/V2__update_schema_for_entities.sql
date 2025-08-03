@@ -1,0 +1,2 @@
+
+ALTER TABLE binary_contents ADD COLUMN IF NOT EXISTS image_url VARCHAR(500);
