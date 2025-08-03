@@ -1,6 +1,7 @@
 package com.stylemycloset.binarycontent;
 
 import com.stylemycloset.common.entity.CreatedAtEntity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,8 +22,13 @@ public class BinaryContent extends CreatedAtEntity {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
+  @Column(name = "file_name")
   private String fileName;
 
+  @Column(name = "image_url")
+  private String imageUrl;
+
+  @Column(name = "content_type")
   private String contentType;
 
   private Long size;

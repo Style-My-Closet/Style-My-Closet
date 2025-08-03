@@ -1,56 +1,54 @@
 package com.stylemycloset.user.entity;
 
-import com.stylemycloset.common.entity.SoftDeletableEntity;
-import com.stylemycloset.common.util.StringListJsonConverter;
-import jakarta.persistence.*;
+import com.stylemycloset.common.entity.BaseTimeEntity;
 import com.stylemycloset.location.Location;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
 @Getter
-@NoArgsConstructor
-public class User extends SoftDeletableEntity {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class User extends BaseTimeEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq_gen")
-  @SequenceGenerator(name = "users_seq_gen", sequenceName = "users_id_seq", allocationSize = 1)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq_gen")
+    @SequenceGenerator(name = "users_seq_gen", sequenceName = "users_id_seq", allocationSize = 1)
+    private Long id;
 
-  @Column(name = "name", nullable = false)
-  private String name;
+    @Column(nullable = false, length = 20)
+    private String name;
 
-  @Column(name = "email", nullable = false, unique = true)
-  private String email;
+    @Column(nullable = false, unique = true, length = 30)
+    private String email;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "role", nullable = false)
-  private Role role = Role.USER;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private Role role = Role.USER;
 
-  @Column(name = "locked", nullable = false)
-  private boolean locked = false;
+    @Column(nullable = false)
+    private Boolean locked = false;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "gender")
-  private Gender gender;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 10)
+    private Gender gender;
 
-  @Column(name = "birth_date")
-  private LocalDate birthDate;
+    @Column(name = "birth_date")
+    private java.time.LocalDate birthDate;
 
-  @Column(name = "temperature_sensitivity")
-  private Integer temperatureSensitivity;
+    @Column(name = "temperature_sensitivity")
+    private Integer temperatureSensitivity;
 
-  @Transient
-  @Column(name = "linked_oauth_providers", columnDefinition = "JSON")
-  @Convert(converter = StringListJsonConverter.class)
-  private List<String> linkedOAuthProviders;
+    @Column(name = "location_id")
+    private Long locationId;
 
-  @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "location_id")
-  private Location location;
-
+    public User(String name, String email, Role role, Gender gender) {
+        this.name = name;
+        this.email = email;
+        this.role = role;
+        this.gender = gender;
+        this.locked = false;
+    }
 }
