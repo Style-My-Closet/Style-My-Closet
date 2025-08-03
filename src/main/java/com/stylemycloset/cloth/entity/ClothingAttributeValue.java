@@ -1,9 +1,9 @@
 package com.stylemycloset.cloth.entity;
 
 import com.stylemycloset.common.entity.BaseTimeEntity;
-import com.stylemycloset.common.entity.CreatedAtEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -30,4 +30,24 @@ public class ClothingAttributeValue extends BaseTimeEntity {
   @JoinColumn(name = "option_id", nullable = false)
   private AttributeOption option;
 
+  @Builder
+  public ClothingAttributeValue(Cloth cloth, ClothingAttribute attribute, AttributeOption option) {
+    this.cloth = cloth;
+    this.attribute = attribute;
+    this.option = option;
+  }
+  // 동기화 메서드
+  public static ClothingAttributeValue createValue(Cloth cloth, ClothingAttribute attribute, AttributeOption option) {
+    ClothingAttributeValue value = ClothingAttributeValue.builder()
+            .cloth(cloth)
+            .attribute(attribute)
+            .option(option)
+            .build();
+    
+    cloth.getAttributeValues().add(value);
+    attribute.getAttributeValues().add(value);
+    option.getAttributeValues().add(value);
+    
+    return value;
+  }
 }

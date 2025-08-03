@@ -6,10 +6,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import com.stylemycloset.user.entity.User;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,5 +26,19 @@ public class Closet extends SoftDeletableEntity {
 
   @OneToMany(mappedBy = "closet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<Cloth> clothes = new ArrayList<>();
+
+
+//  public void addCloth(Cloth cloth) {
+//    this.clothes.add(cloth);
+//  }
+//
+//
+//  public void removeCloth(Cloth cloth) {
+//    this.clothes.remove(cloth);
+//  }
+
+  public Closet(User user) {
+    this.user = user;
+  }
 
 }
