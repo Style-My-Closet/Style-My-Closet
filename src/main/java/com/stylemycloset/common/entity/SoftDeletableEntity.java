@@ -11,6 +11,18 @@ import lombok.Getter;
 public abstract class SoftDeletableEntity extends BaseTimeEntity {
 
   @Column(name = "deleted_at")
-  private Instant deleteAt;
+  private Instant deletedAt;
+
+  public boolean isSoftDeleted() {
+    return deletedAt != null;
+  }
+
+  public void softDelete() {
+    this.deletedAt = Instant.now();
+  }
+
+  public void restore() {
+    this.deletedAt = null;
+  }
 
 }

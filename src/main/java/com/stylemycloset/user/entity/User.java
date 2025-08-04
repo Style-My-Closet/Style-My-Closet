@@ -5,6 +5,7 @@ import com.stylemycloset.common.entity.SoftDeletableEntity;
 import com.stylemycloset.common.util.StringListJsonConverter;
 import jakarta.persistence.*;
 import com.stylemycloset.location.Location;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -14,7 +15,7 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends SoftDeletableEntity {
 
   @Id
@@ -57,5 +58,10 @@ public class User extends SoftDeletableEntity {
   @OneToOne
   @JoinColumn(name = "profile_id")
   private BinaryContent profileImage;
+
+  public User(String name, String email) {
+    this.name = name;
+    this.email = email;
+  }
 
 }

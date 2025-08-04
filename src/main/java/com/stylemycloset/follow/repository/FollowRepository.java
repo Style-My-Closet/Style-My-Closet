@@ -9,8 +9,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FollowRepository extends JpaRepository<Follow, Long> {
 
-  boolean existsByFollowerIdAndFolloweeId(Long followerId, Long followeeId);
-
   @Query("""
       SELECT COUNT(f) 
       FROM Follow f
@@ -25,6 +23,6 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
       """)
   long countFollowings(Long targetUserId);
 
-  Optional<Follow> findByFollowerIdAndFolloweeId(Long logInUserId, Long targetUserId);
+  Optional<Follow> findByFolloweeIdAndFollowerId(Long followeeId, Long followerId);
 
 }

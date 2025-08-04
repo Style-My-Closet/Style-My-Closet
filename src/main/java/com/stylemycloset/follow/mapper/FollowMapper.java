@@ -16,29 +16,25 @@ public class FollowMapper {
   private final BinaryContentStorage binaryContentStorage;
 
   public FollowResult toResult(Follow follow) {
-    FollowUserInfo followeeInfo = convertToFollowUserInfo(follow.getFollowee());
-    FollowUserInfo followerInfo = convertToFollowUserInfo(follow.getFollower());
+    User followee = follow.getFollowee();
+    User follower = follow.getFollower();
 
-    return FollowResult.from(follow, followeeInfo, followerInfo);
-  }
-
-  private FollowUserInfo convertToFollowUserInfo(User user) {
-    String profileImageURL = getProfileImageURL(user);
-
-    return FollowUserInfo.of(user, profileImageURL);
+    return FollowResult.from(
+        follow,
+        FollowUserInfo.of(followee, getProfileImageURL(followee)),
+        FollowUserInfo.of(follower, getProfileImageURL(follower))
+    );
   }
 
   private String getProfileImageURL(User user) {
-    UUID imageId = convertProfileImageId(user);
-
-    return binaryContentStorage.getUrl(imageId).toString();
-  }
-
-  private UUID convertProfileImageId(User user) {
     if (user.getProfileImage() == null) {
       return null;
     }
-    return user.getProfileImage().getId();
+    UUID imageId = user.getProfileImage()
+        .getId();
+
+    return binaryContentStorage.getUrl(imageId)
+        .toString();
   }
 
 }

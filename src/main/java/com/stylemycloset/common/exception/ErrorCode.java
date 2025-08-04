@@ -10,7 +10,11 @@ public enum ErrorCode {
 
   ERROR_FOLLOW_NOT_FOUND("팔로우 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
 
-  ERROR_BINARY_CONTENT_NOT_FOUND("해당 BinaryContent가 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+  ERROR_BINARY_CONTENT_NOT_FOUND("해당 BinaryContent가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+
+  ERROR_FOLLOW_SELF_FORBIDDEN("자기자신을 팔로우할 수 없습니다.", HttpStatus.FORBIDDEN),
+
+  ERROR_FOLLOW_ALREADY_EXIST("이미 팔로우한 유저입니다.", HttpStatus.BAD_REQUEST);
 
   private final String message;
   private final HttpStatus httpStatus;

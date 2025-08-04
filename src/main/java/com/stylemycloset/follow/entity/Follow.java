@@ -31,10 +31,16 @@ public class Follow extends SoftDeletableEntity {
   @Column(name = "followed_at", nullable = false)
   private Instant followedAt;
 
-  public Follow(User follower, User followee, Instant followedAt) {
+  public Follow(User followee, User follower) {
     this.follower = follower;
     this.followee = followee;
-    this.followedAt = followedAt;
+    this.followedAt = Instant.now();
+  }
+
+  @Override
+  public void restore() {
+    super.restore();
+    this.followedAt = Instant.now();
   }
 
 }
