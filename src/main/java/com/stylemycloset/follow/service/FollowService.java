@@ -19,4 +19,6 @@ public interface FollowService {
 
   void delete(Long followId);
 
+  void softDelete(Long followId);
+
 }

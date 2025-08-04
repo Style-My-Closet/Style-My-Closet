@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -64,6 +65,13 @@ public class FollowController {
   @DeleteMapping("/{followId}")
   public ResponseEntity<Void> delete(@PathVariable("followId") Long followId) {
     followService.delete(followId);
+    return ResponseEntity.noContent()
+        .build();
+  }
+
+  @PatchMapping("/{followId}/soft-delete")
+  public ResponseEntity<Void> softDelete(@PathVariable("followId") Long followId) {
+    followService.softDelete(followId);
     return ResponseEntity.noContent()
         .build();
   }

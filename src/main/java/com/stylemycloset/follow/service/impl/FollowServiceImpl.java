@@ -90,6 +90,12 @@ public class FollowServiceImpl implements FollowService {
 
   }
 
+  @Transactional
+  @Override
+  public void softDelete(Long followId) {
+
+  }
+
   private void validateSelfFollow(Long followeeId, Long followerId) {
     if (followeeId.equals(followerId)) {
       throw new FollowSelfForbiddenException(Map.of());
