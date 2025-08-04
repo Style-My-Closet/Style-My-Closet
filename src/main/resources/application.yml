@@ -46,3 +46,9 @@ style-my-closet:
       region: ${AWS_S3_REGION:region}
       bucket: ${AWS_S3_BUCKET:bucket}
       presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION:600}
+
+external:
+  market-index:
+    service-key: ${SERVICE_KEY:service-key}
+    base-url: https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0
+    num-of-rows: 100

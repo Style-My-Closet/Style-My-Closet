@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
 
+  ERROR_WEATHER_API("api 호출 오류", HttpStatus.INTERNAL_SERVER_ERROR),
+
   ERROR_S3_UPLOAD_INVALID_ARGUMENT("S3 업로드 요청에 유효하지 않은 매개변수가 들어왔습니다.", HttpStatus.NOT_FOUND),
 
   ERROR_FOLLOW_NOT_FOUND("팔로우 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
