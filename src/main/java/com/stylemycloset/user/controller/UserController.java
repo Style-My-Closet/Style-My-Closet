@@ -5,6 +5,7 @@ import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.dto.request.ChangePasswordRequest;
 import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
 import com.stylemycloset.user.dto.request.UserCreateRequest;
+import com.stylemycloset.user.dto.request.UserLockUpdateRequest;
 import com.stylemycloset.user.dto.request.UserPageRequest;
 import com.stylemycloset.user.dto.request.UserRoleUpdateRequest;
 import com.stylemycloset.user.dto.response.UserDtoCursorResonse;
@@ -60,8 +61,9 @@ public class UserController {
   }
 
   @PatchMapping("/{userId}/lock")
-  public ResponseEntity<Long> lockUser(@PathVariable Long userId) {
-    userService.lockUser(userId);
+  public ResponseEntity<Long> lockUser(@PathVariable Long userId,
+      @RequestBody UserLockUpdateRequest userLockUpdateRequest) {
+    userService.changeLockUser(userId, userLockUpdateRequest);
 
     return ResponseEntity.ok(userId);
   }

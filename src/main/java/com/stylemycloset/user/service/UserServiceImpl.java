@@ -1,15 +1,14 @@
 package com.stylemycloset.user.service;
 
-import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.user.dto.data.ProfileDto;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.dto.request.ChangePasswordRequest;
 import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
 import com.stylemycloset.user.dto.request.UserCreateRequest;
+import com.stylemycloset.user.dto.request.UserLockUpdateRequest;
 import com.stylemycloset.user.dto.request.UserPageRequest;
 import com.stylemycloset.user.dto.request.UserRoleUpdateRequest;
 import com.stylemycloset.user.dto.response.UserDtoCursorResonse;
-import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.exception.EmailDuplicateException;
 import com.stylemycloset.user.exception.UserNotFoundException;
@@ -17,11 +16,7 @@ import com.stylemycloset.user.mapper.UserMapper;
 import com.stylemycloset.user.repository.UserRepository;
 import java.time.Instant;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -67,12 +62,13 @@ public class UserServiceImpl implements UserService {
 
   @Transactional
   @Override
-  public void lockUser(Long userId) {
+  public void changeLockUser(Long userId, UserLockUpdateRequest updateRequest) {
     User user = userRepository.findById(userId)
         .orElseThrow(UserNotFoundException::new);
-
-    user.lockUser();
+    boolean locked = updateRequest.locked();
+    user.lockUser(locked);
   }
+
 
   @Transactional
   @Override
