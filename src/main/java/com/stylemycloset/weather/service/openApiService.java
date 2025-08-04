@@ -88,7 +88,7 @@ public class openApiService {
 
             } catch (Exception e) {
                 log.error("[실패] 페이지 {} 처리 중 예외 발생: {}", page, e.getMessage(), e);
-                throw new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("apiError", "api 호출 오류"));
+                // throw new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("apiError", "api 호출 오류"));
             }
         }
 
