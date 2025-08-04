@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class OpenApiService {
+public class ForecastApiService {
 
     private final WeatherApiFetcher apiFetcher;
     private final WeatherItemDeduplicator deduplicator;
