@@ -9,20 +9,40 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FollowRepository extends JpaRepository<Follow, Long> {
 
+  Optional<Follow> findByFolloweeIdAndFollowerId(Long followeeId, Long followerId);
+
   @Query("""
-      SELECT COUNT(f) 
+      SELECT COUNT(f)
       FROM Follow f
       WHERE f.follower.id = :targetUserId
+      AND f.deletedAt IS NULL
       """)
-  long countFollowers(Long targetUserId);
+  long countActiveFollowers(Long targetUserId);
 
   @Query("""
-      SELECT COUNT(f) 
+      SELECT COUNT(f)
       FROM Follow f
       WHERE f.followee.id = :targetUserId
+      AND f.deletedAt IS NULL
       """)
-  long countFollowings(Long targetUserId);
+  long countActiveFollowings(Long targetUserId);
 
-  Optional<Follow> findByFolloweeIdAndFollowerId(Long followeeId, Long followerId);
+  @Query("""
+      SELECT f
+      FROM Follow f
+      WHERE f.followee.id = :followeeId
+      AND f.follower.id = :followerId
+      AND f.deletedAt IS NULL
+      """)
+  Optional<Follow> findActiveByFolloweeIdAndFollowerId(Long followeeId, Long followerId);
+
+  @Query("""
+      SELECT COUNT(f) > 0
+      FROM Follow f
+      WHERE f.followee.id = :followeeId
+      AND f.follower.id = :followerId
+      AND f.deletedAt IS NULL
+           """)
+  boolean existsActiveByFolloweeIdAndFollowerId(Long followeeId, Long followerId);
 
 }

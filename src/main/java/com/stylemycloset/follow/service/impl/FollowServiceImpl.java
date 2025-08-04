@@ -63,19 +63,38 @@ public class FollowServiceImpl implements FollowService {
 
   @Transactional(readOnly = true)
   @Override
-  public FollowSummaryResult summaryFollowInfo(Long targetUserId, Long logInUserId) {
+  public FollowSummaryResult summaryFollow(Long followee, Long follower) {
+    long followersNumber = followRepository.countActiveFollowers(follower);
+    long followingsNumber = followRepository.countActiveFollowings(follower);
+    Follow userToTargetFollow = followRepository.findActiveByFolloweeIdAndFollowerId(
+            followee, follower)
+        .orElse(null);
+    boolean isFollowingMe = followRepository.existsActiveByFolloweeIdAndFollowerId(
+        followee, follower);
 
-    return null;
+    return FollowSummaryResult.of(
+        followee,
+        followersNumber,
+        followingsNumber,
+        userToTargetFollow,
+        isFollowingMe
+    );
   }
 
+  // SoftDelete 고려 필요
   @Transactional(readOnly = true)
   @Override
   public FollowListResponse<FollowResult> getFollowings(
       SearchFollowingsCondition followingsCondition
   ) {
+    followingsCondition.followerId();
+    // 팔로우(신청자)의 팔로잉 목록을 조회?
+    // 팔로우(주체)의 팔로잉 목록을 조회합니다.
+
     return null;
   }
 
+  // SoftDelete 고려 필요
   @Transactional(readOnly = true)
   @Override
   public FollowListResponse<FollowResult> getFollowers(

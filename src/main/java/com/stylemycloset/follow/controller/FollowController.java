@@ -35,12 +35,12 @@ public class FollowController {
 
   @GetMapping("/summary")
   public ResponseEntity<FollowSummaryResult> getFollowSummaryResult(
-      @RequestParam(value = "userId") Long targetUserId,
-      @AuthenticationPrincipal Long logInUserId // 시큐리티 구현시 추후 수정 예정
+      @RequestParam(value = "userId") Long followeeId,
+      @AuthenticationPrincipal Long followerId // 시큐리티 구현시 추후 수정 예정
   ) {
-    FollowSummaryResult followSummaryResult = followService.summaryFollowInfo(
-        targetUserId,
-        logInUserId
+    FollowSummaryResult followSummaryResult = followService.summaryFollow(
+        followeeId,
+        followerId
     );
     return ResponseEntity.ok(followSummaryResult);
   }

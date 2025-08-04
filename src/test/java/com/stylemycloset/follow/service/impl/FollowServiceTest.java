@@ -2,6 +2,7 @@ package com.stylemycloset.follow.service.impl;
 
 import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
 import com.stylemycloset.follow.dto.FollowResult;
+import com.stylemycloset.follow.dto.FollowSummaryResult;
 import com.stylemycloset.follow.dto.request.FollowCreateRequest;
 import com.stylemycloset.follow.entity.Follow;
 import com.stylemycloset.follow.exception.FollowAlreadyExist;
@@ -11,8 +12,10 @@ import com.stylemycloset.follow.service.FollowService;
 import com.stylemycloset.follow.service.UserRepository;
 import com.stylemycloset.testutil.IntegrationTestSupport;
 import com.stylemycloset.user.entity.User;
+import java.util.UUID;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -68,12 +71,12 @@ class FollowServiceTest extends IntegrationTestSupport {
         .isInstanceOf(FollowSelfForbiddenException.class);
   }
 
-  @DisplayName("A 유저가 B 유저를 팔로우할떄 B유저가 없으면, 팔로우 되지 않습니다.")
+  @DisplayName("A 유저가 B 유저를 팔로우할떄 B 유저가 없으면, 팔로우 되지 않습니다.")
   @Test
   void testBNotPresent() {
     // given
     User userA = userRepository.save(new User("a", "a"));
-    FollowCreateRequest followCreateRequest = new FollowCreateRequest(userA.getId(), userA.getId());
+    FollowCreateRequest followCreateRequest = new FollowCreateRequest(-1L, userA.getId());
 
     // when & then
     Assertions.assertThatThrownBy(() -> followService.startFollowing(followCreateRequest))
@@ -86,8 +89,8 @@ class FollowServiceTest extends IntegrationTestSupport {
     // given
     User userA = userRepository.save(new User("a", "a"));
     User userB = userRepository.save(new User("b", "b"));
-    followRepository.save(new Follow(userA, userB));
-    FollowCreateRequest followCreateRequest = new FollowCreateRequest(userA.getId(), userB.getId());
+    followRepository.save(new Follow(userB, userA));
+    FollowCreateRequest followCreateRequest = new FollowCreateRequest(userB.getId(), userA.getId());
 
     // when & then
     Assertions.assertThatThrownBy(() -> followService.startFollowing(followCreateRequest))
@@ -100,10 +103,10 @@ class FollowServiceTest extends IntegrationTestSupport {
     // given
     User userA = userRepository.save(new User("a", "a"));
     User userB = userRepository.save(new User("b", "b"));
-    Follow follow = followRepository.save(new Follow(userA, userB));
+    Follow follow = followRepository.save(new Follow(userB, userA));
     follow.softDelete();
     Follow updatedFollow = followRepository.save(follow);
-    FollowCreateRequest followCreateRequest = new FollowCreateRequest(userA.getId(), userB.getId());
+    FollowCreateRequest followCreateRequest = new FollowCreateRequest(userB.getId(), userA.getId());
 
     // when
     FollowResult followResult = followService.startFollowing(followCreateRequest);
@@ -114,24 +117,67 @@ class FollowServiceTest extends IntegrationTestSupport {
           .hasSize(1)
           .extracting(Follow::getDeletedAt)
           .containsOnlyNulls();
-      softly.assertThat(followResult.id()).isEqualTo(updatedFollow.getId());
+      softly.assertThat(followResult)
+          .extracting(
+              testFollowResult -> testFollowResult.followee().userId(),
+              testFollowResult -> testFollowResult.follower().userId(),
+              FollowResult::id
+          ).containsExactly(userB.getId(), userA.getId(), updatedFollow.getId());
     });
   }
 
+  @DisplayName("유저 A가 유저 B를 팔로우하면, 팔로우 요약 정보에 해당 팔로우 정보가 포함되어야 한다.")
   @Test
   void summaryFollowInfo() {
+    // given
+    User userA = userRepository.save(new User("a", "a"));
+    User userB = userRepository.save(new User("b", "b"));
+    Follow savedFollow = followRepository.save(new Follow(userB, userA));
+
+    // when
+    FollowSummaryResult followSummary = followService.summaryFollow(userB.getId(), userA.getId());
+
+    // then
+    Assertions.assertThat(followSummary)
+        .extracting(
+            FollowSummaryResult::followedByMe, FollowSummaryResult::followedByMeId,
+            FollowSummaryResult::followeeId, FollowSummaryResult::followerCount,
+            FollowSummaryResult::followingCount
+        ).containsExactly(true, savedFollow.getId(), userB.getId(), 1L, 0L);
+  }
+
+  @DisplayName("유저 A가 유저 B를 팔로우하지 않으면, 팔로우 요약 정보에 해당 팔로우 정보가 포함되어야 한다.")
+  @Test
+  void summaryFollow_NoneFollow() {
+    // given
+    User userA = userRepository.save(new User("a", "a"));
+    User userB = userRepository.save(new User("b", "b"));
+
+    // when
+    FollowSummaryResult followSummary = followService.summaryFollow(userB.getId(), userA.getId());
+
+    // then
+    Assertions.assertThat(followSummary)
+        .extracting(
+            FollowSummaryResult::followedByMe, FollowSummaryResult::followedByMeId,
+            FollowSummaryResult::followeeId, FollowSummaryResult::followerCount,
+            FollowSummaryResult::followingCount
+        ).containsExactly(false, null, userB.getId(), 0L, 0L);
   }
 
   @Test
   void getFollowings() {
+
   }
 
   @Test
   void getFollowers() {
+
   }
 
   @Test
   void delete() {
+
   }
 
 }
