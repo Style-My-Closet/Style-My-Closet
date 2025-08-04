@@ -2,6 +2,7 @@ package com.stylemycloset.user.entity;
 
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import com.stylemycloset.common.util.StringListJsonConverter;
+import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
 import com.stylemycloset.user.dto.request.UserCreateRequest;
 import jakarta.persistence.*;
 import com.stylemycloset.location.Location;
@@ -80,6 +81,21 @@ public class User extends SoftDeletableEntity {
 
   public void softDelete() {
     super.setDeleteAt(Instant.now());
+  }
+
+  public void updateProfile(ProfileUpdateRequest request) {
+    if (request.name() != null) {
+      this.name = request.name();
+    }
+    if (request.gender() != null) {
+      this.gender = request.gender();
+    }
+    if (request.birthDate() != null) {
+      this.birthDate = request.birthDate();
+    }
+    if (request.temperatureSensitivity() != null) {
+      this.temperatureSensitivity = request.temperatureSensitivity();
+    }
   }
 
 }
