@@ -12,7 +12,12 @@ import com.stylemycloset.cloth.dto.response.ClothUpdateResponseDto;
 import com.stylemycloset.cloth.entity.*;
 import com.stylemycloset.cloth.exception.ClothesException;
 import com.stylemycloset.cloth.exception.ClothingErrorCode;
-import com.stylemycloset.cloth.repository.*;
+import com.stylemycloset.cloth.repository.ClothRepository;
+import com.stylemycloset.cloth.repository.ClothingCategoryRepository;
+import com.stylemycloset.cloth.repository.ClosetRepository;
+import com.stylemycloset.cloth.repository.ClothingAttributeValueRepository;
+import com.stylemycloset.cloth.repository.ClothingAttributeRepository;
+import com.stylemycloset.cloth.repository.AttributeOptionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
@@ -45,7 +50,7 @@ public class ClothService {
     private final ConcurrentHashMap<Long, Object> userCacheLocks = new ConcurrentHashMap<>();
 
 
-    
+
     @Transactional(readOnly = true)
     public ClothListResponseDto getClothesWithCursor(Long userId, CursorDto cursorDto) {
         int limit = cursorDto.limit() != null ? Integer.parseInt(cursorDto.limit()) : 20;
@@ -53,7 +58,7 @@ public class ClothService {
         boolean isDescending = !"asc".equalsIgnoreCase(cursorDto.sortDirection());
         Long idAfter = cursorDto.idAfter() != null ? Long.valueOf(cursorDto.idAfter()) : null;
         boolean hasIdAfter = (idAfter != null);
-        
+
 
         List<Cloth> clothes = clothRepository.findWithCursorPagination(
                 userId, idAfter, limit + 1, isDescending, hasIdAfter);
@@ -70,12 +75,12 @@ public class ClothService {
 
 
         long totalCount = clothCountService.getUserClothCount(userId);
-        
+
 
         List<ClothItemDto> data = clothes.stream()
                 .map(ClothItemDto::new)
                 .toList();
-        
+
         return ClothListResponseDto.builder()
                 .data(data)
                 .nextCursor(lastId)
@@ -86,7 +91,7 @@ public class ClothService {
                 .sortDirection(isDescending ? SortDirection.DESCENDING : SortDirection.ASCENDING)
                 .build();
     }
-    
+
 
 
     @Transactional
@@ -94,9 +99,9 @@ public class ClothService {
         Closet closet = getClosetByUserId(userId);
         ClothingCategory category = getCategoryById(requestDto.getCategoryId());
         BinaryContent binaryContent = processImage(image, requestDto.getBinaryContent());
-        
+
         Cloth savedCloth = saveCloth(requestDto, closet, category, binaryContent);
-        
+
         createAttributeValues(requestDto.getAttributes(), savedCloth);
         if(TransactionSynchronizationManager.isActualTransactionActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -105,7 +110,6 @@ public class ClothService {
                     try {
                         incrementCount(userId);
                     } catch (Exception e) {
-                        log.warn("캐시 업데이트 실패");
                         evictUserClothCountCache(userId);
                     }
                 }
@@ -122,7 +126,7 @@ public class ClothService {
         updateCloth(cloth, requestDto, image);
         
         updateAttributeValues(clothId, requestDto.getAttributes());
-        
+
         Cloth updatedCloth = clothRepository.findByIdWithAttributes(clothId)
                 .orElseThrow(() -> new ClothesException(ClothingErrorCode.CLOTH_UPDATE_FAILED));
 
@@ -165,7 +169,6 @@ public class ClothService {
 
     //aop로 같은 트랜젝션에 묶이지 않음 만약 롤백된다면서 캐시도 같이 롤백해 줘야함
     private void incrementCount(Long userId) {
-        // 사용자별 락 객체 획득
         Object lock = userCacheLocks.computeIfAbsent(userId, k -> new Object());
         
         synchronized (lock) {
@@ -195,7 +198,6 @@ public class ClothService {
     }
 
     private void decrementClothCount(Long userId) {
-        // 사용자별 락 객체 획득
         Object lock = userCacheLocks.computeIfAbsent(userId, k -> new Object());
         
         synchronized (lock) {
