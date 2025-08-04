@@ -35,9 +35,7 @@ public class ClothService {
     private final ClothingCategoryRepository categoryRepository;
     private final ClosetRepository closetRepository;
     private final BinaryContentRepository binaryContentRepository;
-    private final ClothingAttributeValueRepository attributeValueRepository;
-    private final ClothingAttributeRepository attributeRepository;
-    private final AttributeOptionRepository attributeOptionRepository;
+
     private final CacheManager cacheManager;
     private final ClothCountService clothCountService;
 
@@ -97,7 +95,7 @@ public class ClothService {
 
         Cloth savedCloth = saveCloth(requestDto, closet, category, binaryContent);
 
-        createAttributeValues(requestDto.getAttributes(), savedCloth);
+
         if(TransactionSynchronizationManager.isActualTransactionActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
@@ -120,7 +118,7 @@ public class ClothService {
         
         updateCloth(cloth, requestDto, image);
         
-        updateAttributeValues(clothId, requestDto.getAttributes());
+
 
         Cloth updatedCloth = clothRepository.findByIdWithAttributes(clothId)
                 .orElseThrow(() -> new ClothesException(ClothingErrorCode.CLOTH_UPDATE_FAILED));
@@ -251,31 +249,7 @@ public class ClothService {
         return clothRepository.save(cloth);
     }
     
-    private void createAttributeValues(List<ClothCreateRequestDto.AttributeRequestDto> attributes, 
-                                     Cloth cloth) {
-        if (attributes == null || attributes.isEmpty()) {
-            return;
-        }
-        
-        List<ClothingAttributeValue> attributeValues = attributes.stream()
-                .map(attrDto -> createAttributeValue(attrDto, cloth))
-                .toList();
-        
-        attributeValueRepository.saveAll(attributeValues);
-    }
-    
-    private ClothingAttributeValue createAttributeValue(ClothCreateRequestDto.AttributeRequestDto attrDto, 
-                                                      Cloth cloth) {
-        ClothingAttribute definition = attributeRepository
-                .findById(attrDto.getDefinitionId())
-                .orElseThrow(() -> new ClothesException(ClothingErrorCode.INVALID_ATTRIBUTE));
-        
-        AttributeOption option = attributeOptionRepository
-                .findById(attrDto.getOptionId())
-                .orElseThrow(() -> new ClothesException(ClothingErrorCode.INVALID_ATTRIBUTE));
-        
-        return ClothingAttributeValue.createValue(cloth, definition, option);
-    }
+
     
     private void updateCloth(Cloth cloth, ClothCreateRequestDto requestDto, MultipartFile image) {
         if (requestDto.getName() != null) {
@@ -307,17 +281,5 @@ public class ClothService {
         throw new IllegalArgumentException("이미지 파일 또는 기존 이미지 ID가 필요합니다.");
     }
 
-    // 현재 삭제 후 생성인데 고민 중 일부만 고칠 건지
-    private void updateAttributeValues(Long clothId, List<ClothCreateRequestDto.AttributeRequestDto> attributes) {
-        if (attributes == null) {
-            return;
-        }
-        
-        attributeValueRepository.deleteByClothId(clothId);
-        
-        if (!attributes.isEmpty()) {
-            Cloth cloth = getClothById(clothId);
-            createAttributeValues(attributes, cloth);
-        }
-    }
+
 }
