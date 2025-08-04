@@ -38,9 +38,4 @@ public class ClothingCategory extends SoftDeletableEntity {
   @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
   private List<Cloth> clothes = new ArrayList<>();
 
-  public ClothingCategory(String name, List<Cloth> clothes) {
-    this.name = name;
-    this.clothes = clothes;
-  }
-
 }

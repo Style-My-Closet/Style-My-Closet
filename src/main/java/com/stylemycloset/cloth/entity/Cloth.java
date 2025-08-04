@@ -41,5 +41,6 @@ public class Cloth extends SoftDeletableEntity {
   private ClothingCategory category;
 
   @OneToMany(mappedBy = "cloth", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @Builder.Default
   private List<ClothingAttributeValue> attributeValues = new ArrayList<>();
 }

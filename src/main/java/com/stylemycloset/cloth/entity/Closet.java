@@ -38,6 +38,7 @@ public class Closet extends SoftDeletableEntity {
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
+  @Builder.Default
   @OneToMany(mappedBy = "closet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<Cloth> clothes = new ArrayList<>();
 
