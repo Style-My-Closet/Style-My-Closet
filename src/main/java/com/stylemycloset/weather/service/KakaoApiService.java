@@ -30,7 +30,7 @@ public class KakaoApiService {
     @Value("${external.kakao.base-url}")
     private String baseUrl;
 
-    public Location createLocation(double latitude, double longitude) {
+    public Location createLocation(double longitude, double latitude) {
         JsonNode documents = fetchDocumentsFromKakao(latitude, longitude);
         Location location = buildLocationFromJson(documents);
         return locationRepository.save(location);
@@ -38,13 +38,12 @@ public class KakaoApiService {
 
     private JsonNode fetchDocumentsFromKakao(double latitude, double longitude) {
         try {
-            String apiUrl = String.format("%s?x=%f&y=%f", baseUrl, latitude, longitude);
+            String apiUrl = String.format("%s?x=%f&y=%f", baseUrl, longitude, latitude);
             URI uri = new URI(apiUrl);
 
             HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
             connection.setRequestMethod("GET");
-            connection.setRequestProperty("Accept", "application/json");
-            connection.setRequestProperty("Authorization", restApiKey);
+            connection.setRequestProperty("Authorization", "KakaoAK "+restApiKey);
 
             int status = connection.getResponseCode();
             if (status != HttpURLConnection.HTTP_OK) {
@@ -72,12 +71,11 @@ public class KakaoApiService {
         Integer x = doc.path("x").asInt(); // 경도
         Integer y = doc.path("y").asInt(); // 위도
 
-        JsonNode address = doc.path("address");
 
         List<String> locationNames = List.of(
-            address.path("region_1depth_name").asText(),
-            address.path("region_2depth_name").asText(),
-            address.path("region_3depth_name").asText()
+            doc.path("region_1depth_name").asText(),
+            doc.path("region_2depth_name").asText(),
+            doc.path("region_3depth_name").asText()
         );
 
         return Location.builder()
