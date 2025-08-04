@@ -8,6 +8,7 @@ import com.stylemycloset.user.dto.request.UserLockUpdateRequest;
 import jakarta.persistence.*;
 import com.stylemycloset.location.Location;
 import java.time.Instant;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -18,6 +19,7 @@ import java.util.List;
 @Table(name = "users")
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 public class User extends SoftDeletableEntity {
 
   @Id
@@ -100,5 +102,10 @@ public class User extends SoftDeletableEntity {
       this.temperatureSensitivity = request.temperatureSensitivity();
     }
   }
+
+  public void setId(Long id) {// 테스트 때문에 넣었습니다.
+    this.id = id;
+  }
+
 
 }

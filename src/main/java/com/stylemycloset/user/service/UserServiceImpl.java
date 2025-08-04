@@ -81,7 +81,8 @@ public class UserServiceImpl implements UserService {
 
   @Transactional
   @Override
-  public ProfileDto updateProfile(Long userId, ProfileUpdateRequest request, MultipartFile image) {
+  public ProfileDto updateProfile(Long userId, ProfileUpdateRequest request,
+      MultipartFile image) {//이미지 구현은 나중에 binarycontent생기면 할예정
     User user = userRepository.findById(userId)
         .orElseThrow(UserNotFoundException::new);
 
