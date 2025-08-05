@@ -1,15 +1,14 @@
 package com.stylemycloset.cloth.controller;
 
-import com.stylemycloset.cloth.auth.CustomUserDetails;
 import com.stylemycloset.cloth.dto.ClothCreateRequestDto;
 import com.stylemycloset.cloth.dto.ClothResponseDto;
+import com.stylemycloset.cloth.dto.ClothUpdateRequestDto;
 import com.stylemycloset.cloth.dto.CursorDto;
 import com.stylemycloset.cloth.dto.response.ClothListResponseDto;
 import com.stylemycloset.cloth.dto.response.ClothUpdateResponseDto;
 import com.stylemycloset.cloth.service.ClothService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,21 +20,19 @@ public class ClothingController {
     private final ClothService clothService;
 
     @GetMapping
-    public ResponseEntity<ClothListResponseDto> getClothes(
-            CursorDto cursorDto,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        
-        ClothListResponseDto response = clothService.getClothesWithCursor(userDetails.getUserId(), cursorDto);
+    public ResponseEntity<ClothListResponseDto> getClothes(CursorDto cursorDto) {
+        // 임시로 userId를 1L로 설정
+        ClothListResponseDto response = clothService.getClothesWithCursor(1L, cursorDto);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping
     public ResponseEntity<ClothResponseDto> createCloth(
             @RequestPart("request") ClothCreateRequestDto request,
-            @RequestPart(value = "image", required = false) MultipartFile image,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @RequestPart(value = "image", required = false) MultipartFile image) {
 
-        ClothResponseDto response = clothService.createCloth(request, userDetails.getUserId(), image);
+        // 임시로 userId를 1L로 설정
+        ClothResponseDto response = clothService.createCloth(request, 1L, image);
         return ResponseEntity.ok(response);
     }
 
@@ -48,7 +45,7 @@ public class ClothingController {
     @PatchMapping("/{clothesId}")
     public ResponseEntity<ClothUpdateResponseDto> updateCloth(
             @PathVariable Long clothesId,
-            @RequestPart("request") ClothCreateRequestDto request,
+            @RequestPart("request") ClothUpdateRequestDto request,
             @RequestPart(value = "image", required = false) MultipartFile image) {
         
         ClothUpdateResponseDto response = clothService.updateCloth(clothesId, request, image);

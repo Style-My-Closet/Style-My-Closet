@@ -35,8 +35,7 @@ public class ClothRepositoryImpl implements ClothRepositoryCustom {
                 .leftJoin(cloth.category, clothingCategory).fetchJoin()
                 .leftJoin(cloth.closet, closet).fetchJoin()
                 .leftJoin(cloth.binaryContent, binaryContent).fetchJoin()
-                .where(cloth.id.eq(clothId)
-                    .and(cloth.deleteAt.isNull()))
+                .where(cloth.id.eq(clothId))
                 .fetchOne();
         
         return Optional.ofNullable(result);
@@ -55,8 +54,7 @@ public class ClothRepositoryImpl implements ClothRepositoryCustom {
                 .leftJoin(cloth.category, clothingCategory).fetchJoin()
                 .leftJoin(cloth.closet, closet).fetchJoin()
                 .leftJoin(cloth.binaryContent, binaryContent).fetchJoin()
-                .where(cloth.deleteAt.isNull()
-                    .and(cloth.closet.user.id.eq(userId)));
+                .where(cloth.closet.user.id.eq(userId));
 
         if (hasIdAfter) {
             if (isDescending) {
@@ -80,8 +78,7 @@ public class ClothRepositoryImpl implements ClothRepositoryCustom {
         var query = factory
                 .select(cloth.count())
                 .from(cloth)
-                .where(cloth.deleteAt.isNull()
-                    .and(cloth.closet.user.id.eq(userId)))
+                .where(cloth.closet.user.id.eq(userId))
                 .fetchOne();
 
         return Optional.ofNullable(query).orElse(0L);
