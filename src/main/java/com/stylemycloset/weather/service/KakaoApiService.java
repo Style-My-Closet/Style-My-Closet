@@ -6,6 +6,7 @@ import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.location.Location;
 import com.stylemycloset.location.LocationRepository;
+import com.stylemycloset.weather.dto.LocationInfo;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -43,7 +44,7 @@ public class KakaoApiService {
 
             HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
             connection.setRequestMethod("GET");
-            connection.setRequestProperty("Authorization", "KakaoAK "+restApiKey);
+            connection.setRequestProperty("Authorization", "KakaoAK " + restApiKey);
 
             int status = connection.getResponseCode();
             if (status != HttpURLConnection.HTTP_OK) {
@@ -62,15 +63,21 @@ public class KakaoApiService {
     }
 
     private Location buildLocationFromJson(JsonNode documentsNode) {
+        JsonNode document = extractValidDocument(documentsNode);
+        LocationInfo locationInfo = parseLocationInfo(document);
+        return buildLocationFromInfo(locationInfo);
+    }
+
+    private JsonNode extractValidDocument(JsonNode documentsNode) {
         if (documentsNode == null || !documentsNode.isArray() || documentsNode.isEmpty()) {
             throw new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("document", "응답 데이터 없음"));
         }
+        return documentsNode.get(0);
+    }
 
-        JsonNode doc = documentsNode.get(0);
-
-        Integer x = doc.path("x").asInt(); // 경도
-        Integer y = doc.path("y").asInt(); // 위도
-
+    private LocationInfo parseLocationInfo(JsonNode doc) {
+        double x = doc.path("x").asDouble(); // 경도
+        double y = doc.path("y").asDouble(); // 위도
 
         List<String> locationNames = List.of(
             doc.path("region_1depth_name").asText(),
@@ -78,12 +85,17 @@ public class KakaoApiService {
             doc.path("region_3depth_name").asText()
         );
 
+        return new LocationInfo(x, y, locationNames);
+    }
+
+    private Location buildLocationFromInfo(LocationInfo info) {
         return Location.builder()
-            .x(x)
-            .y(y)
-            .latitude(y.doubleValue())
-            .longitude(x.doubleValue())
-            .locationNames(locationNames)
+            .x((int) info.x())
+            .y((int)info.y())
+            .latitude(info.y())
+            .longitude(info.x())
+            .locationNames(info.locationNames())
             .build();
     }
+
 }

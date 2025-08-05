@@ -1,5 +1,7 @@
 package com.stylemycloset.weather.service;
 
+import com.stylemycloset.common.exception.ErrorCode;
+import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.location.Location;
 import com.stylemycloset.location.LocationRepository;
 import com.stylemycloset.weather.dto.WeatherAPILocation;
@@ -9,6 +11,7 @@ import com.stylemycloset.weather.mapper.LocationMapper;
 import com.stylemycloset.weather.mapper.WeatherMapper;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +34,8 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     public WeatherAPILocation getLocation(Double latitude, Double longitude) {
-        Location location = locationRepository.findByLatitudeAndLongitude(latitude,longitude).orElseThrow();
+        Location location = locationRepository.findByLatitudeAndLongitude(latitude,longitude).orElseThrow(
+            ()->  new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("weather", "weather")  ));
         return locationMapper.toDto(location);
     }
 }
