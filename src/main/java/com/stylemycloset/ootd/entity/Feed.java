@@ -18,8 +18,6 @@ import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
@@ -29,8 +27,6 @@ import org.hibernate.annotations.Where;
 @Table(name = "feeds")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
 @SQLDelete(sql = "UPDATE feeds SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 @Where(clause = "deleted_at IS NULL")
 public class Feed extends SoftDeletableEntity {
@@ -51,8 +47,16 @@ public class Feed extends SoftDeletableEntity {
   @Column(columnDefinition = "TEXT", nullable = false)
   private String content;
 
-  @Builder.Default
   @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<FeedClothes> feedClothes = new ArrayList<>();
 
+  private Feed(User author, Weather weather, String content) {
+    this.author = author;
+    this.weather = weather;
+    this.content = content;
+  }
+
+  public static Feed createFeed(User author, Weather weather, String content) {
+    return new Feed(author, weather, content);
+  }
 }

@@ -55,15 +55,11 @@ public class FeedServiceImpl implements FeedService {
           Map.of("requestedIds", request.clothesIds()));
     }
 
-    Feed newFeed = Feed.builder()
-        .author(author)
-        .weather(weather)
-        .content(request.content())
-        .build();
+    Feed newFeed = Feed.createFeed(author, weather, request.content());
     feedRepository.save(newFeed);
 
     List<FeedClothes> feedClothesList = clothesList.stream()
-        .map(cloth -> FeedClothes.builder().feed(newFeed).clothes(cloth).build())
+        .map(cloth -> FeedClothes.createFeedClothes(newFeed, cloth))
         .collect(Collectors.toList());
     feedClothesRepository.saveAll(feedClothesList);
 
@@ -117,7 +113,7 @@ public class FeedServiceImpl implements FeedService {
               cloth.getId(),
               cloth.getName(),
               null, // TODO: Cloth 엔티티에 imageUrl 필드가 있다면 추가 (binaryContent 사용)
-              ClothesType.valueOf(cloth.getCategory().getName().toUpperCase()),
+              ClothesType.valueOf(cloth.getCategory().getName().name()),
               attributes
           );
         })

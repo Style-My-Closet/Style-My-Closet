@@ -22,9 +22,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "feed_ootd_clothes", uniqueConstraints = @UniqueConstraint(columnNames = {"feed_id",
     "clothes_id"}))
 @Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class FeedClothes extends CreatedAtEntity {
 
   @Id
@@ -39,5 +37,14 @@ public class FeedClothes extends CreatedAtEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "clothes_id", nullable = false)
   private Cloth clothes;
+
+  private FeedClothes(Feed feed, Cloth clothes) {
+    this.feed = feed;
+    this.clothes = clothes;
+  }
+
+  public static FeedClothes createFeedClothes(Feed feed, Cloth clothes) {
+    return new FeedClothes(feed, clothes);
+  }
 
 }

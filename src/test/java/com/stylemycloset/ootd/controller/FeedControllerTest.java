@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.cloth.entity.Closet;
 import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingCategory;
+import com.stylemycloset.cloth.entity.ClothingCategoryType;
 import com.stylemycloset.cloth.repository.ClosetRepository;
 import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.cloth.repository.ClothingCategoryRepository;
@@ -17,9 +18,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +32,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
 public class FeedControllerTest extends IntegrationTestSupport {
@@ -56,28 +56,24 @@ public class FeedControllerTest extends IntegrationTestSupport {
   @BeforeEach
   void setUp() {
 
-    testUser = userRepository.save(User.builder()
-        .name("test")
-        .email("test@test.com")
-        .role(Role.USER)
-        .build());
+    testUser = new User();
+    ReflectionTestUtils.setField(testUser, "name", "test");
+    ReflectionTestUtils.setField(testUser, "email", "test@test.com");
+    ReflectionTestUtils.setField(testUser, "password", "password");
+    ReflectionTestUtils.setField(testUser, "role", Role.USER);
+    ReflectionTestUtils.setField(testUser, "locked", false);
+    userRepository.save(testUser);
 
-    Closet closet = closetRepository.save(Closet.builder().user(testUser).build());
+    Closet closet = new Closet(testUser);
+    ReflectionTestUtils.setField(closet, "user", testUser);
+    closetRepository.save(closet);
 
-    ClothingCategory category = categoryRepository.save(ClothingCategory.builder().name("TOP").build());
+    ClothingCategory category = new ClothingCategory(ClothingCategoryType.TOP);
+    categoryRepository.save(category);
 
-    // ✅ closet(closet)을 사용하여 올바른 관계를 설정합니다.
-    testCloth1 = clothRepository.save(Cloth.builder()
-        .name("옷1")
-        .category(category)
-        .closet(closet)
-        .build());
+    testCloth1 = clothRepository.save(Cloth.createCloth("옷1", closet, category, null));
 
-    testCloth2 = clothRepository.save(Cloth.builder()
-        .name("옷2")
-        .category(category)
-        .closet(closet)
-        .build());
+    testCloth2 = clothRepository.save(Cloth.createCloth("옷2", closet, category, null));
   }
 
   @Test

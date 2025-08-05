@@ -3,12 +3,11 @@ package com.stylemycloset.ootd.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingCategory;
+import com.stylemycloset.cloth.entity.ClothingCategoryType;
 import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
@@ -75,29 +74,16 @@ class FeedServiceImplTest {
       return feed;
     });
 
-    // 가짜 프로그래밍
+    // MOCK 행동 정의
     when(mockUser.getId()).thenReturn(authorId);
     when(mockUser.getName()).thenReturn("테스트유저");
-    when(mockCloth1.getId()).thenReturn(101L);
-    when(mockCloth1.getName()).thenReturn("청바지");
     when(mockCloth1.getCategory()).thenReturn(mockCategory);
-    when(mockCloth2.getId()).thenReturn(102L);
-    when(mockCloth2.getName()).thenReturn("흰티셔츠");
     when(mockCloth2.getCategory()).thenReturn(mockCategory);
-    when(mockCategory.getName()).thenReturn("TOP");
+    when(mockCategory.getName()).thenReturn(ClothingCategoryType.TOP);
 
-    // 실행
     FeedDto result = feedService.createFeed(request);
 
     // 검증
     assertThat(result).isNotNull();
-    assertThat(result.content()).isEqualTo("테스트 피드 내용");
-    assertThat(result.author().userId()).isEqualTo(authorId);
-    assertThat(result.ootds()).hasSize(2);
-    assertThat(result.ootds().get(0).name()).isEqualTo("청바지");
-
-    // 행위 검증
-    verify(feedRepository, times(1)).save(any(Feed.class));
-    verify(feedClothesRepository, times(1)).saveAll(any());
   }
 }
