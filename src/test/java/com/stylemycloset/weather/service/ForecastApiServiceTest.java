@@ -24,6 +24,7 @@ import com.stylemycloset.weather.util.WeatherItemDeduplicator;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,7 +33,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-class OpenApiServiceTest {
+@DisplayName("forecast")
+class ForecastApiServiceTest {
 
     @Mock
     private WeatherRepository weatherRepository;
@@ -50,7 +52,7 @@ class OpenApiServiceTest {
     @Mock private HumidityProcessor humidProcessor;
 
     @InjectMocks
-    private OpenApiService openApiService;
+    private ForecastApiService forecastApiService;
 
     private final String baseDate = "20250801";
     private final String baseTime = "0200";
@@ -124,14 +126,14 @@ class OpenApiServiceTest {
 
         // processors 리스트를 OpenApiService에 반영
         List<WeatherCategoryProcessor> processors = List.of(tmpProcessor, humidProcessor);
-        ReflectionTestUtils.setField(openApiService, "processors", processors);
+        ReflectionTestUtils.setField(forecastApiService, "processors", processors);
 
     }
 
     @Test
     void fetchData_shouldSaveWeatherAndLocation() {
         // when
-        openApiService.fetchData(baseDate, baseTime, location);
+        forecastApiService.fetchData(baseDate, baseTime, location);
 
         // then
         verify(weatherRepository).save(any(Weather.class));
