@@ -1,5 +1,6 @@
 package com.stylemycloset.weather.controller;
 
+import com.stylemycloset.weather.dto.WeatherAPILocation;
 import com.stylemycloset.weather.dto.WeatherDto;
 import com.stylemycloset.weather.service.WeatherService;
 import com.stylemycloset.weather.service.WeatherServiceImpl;
@@ -25,5 +26,14 @@ public class WeatherController {
     ) {
         List<WeatherDto> weathers = weatherService.getWeatherByCoordinates(latitude, longitude);
         return ResponseEntity.ok(weathers);
+    }
+
+    @GetMapping("/location")
+    public ResponseEntity<WeatherAPILocation> getWeatherLocation(
+        @RequestParam double latitude,
+        @RequestParam double longitude
+    ){
+        WeatherAPILocation location = weatherService.getLocation(latitude,longitude);
+        return ResponseEntity.ok(location);
     }
 }

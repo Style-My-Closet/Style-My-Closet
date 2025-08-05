@@ -23,7 +23,6 @@ import org.hibernate.annotations.Type;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Builder
 @Table(name = "locations")
 public class Location extends BaseTimeEntity {
 
@@ -48,6 +47,7 @@ public class Location extends BaseTimeEntity {
   @Column(name = "location_names", columnDefinition = "json", nullable = false)
   private List<String> locationNames;
 
+  @Builder
   public Location(Double latitude, Double longitude, Integer x, Integer y,
       List<String> locationNames) {
     this.latitude = latitude;
