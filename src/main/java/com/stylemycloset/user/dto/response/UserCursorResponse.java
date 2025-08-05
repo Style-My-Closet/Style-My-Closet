@@ -3,7 +3,7 @@ package com.stylemycloset.user.dto.response;
 import com.stylemycloset.user.dto.data.UserDto;
 import java.util.List;
 
-public record UserDtoCursorResonse(
+public record UserCursorResponse(
     List<UserDto> data,
     String nextCursor,
     Long nextIdAfter,

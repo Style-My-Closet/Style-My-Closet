@@ -8,7 +8,7 @@ import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.dto.request.UserLockUpdateRequest;
 import com.stylemycloset.user.dto.request.UserPageRequest;
 import com.stylemycloset.user.dto.request.UserRoleUpdateRequest;
-import com.stylemycloset.user.dto.response.UserDtoCursorResonse;
+import com.stylemycloset.user.dto.response.UserCursorResponse;
 import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ public class UserController {
   }
 
   @GetMapping("")
-  public ResponseEntity<UserDtoCursorResonse> getUsers(
+  public ResponseEntity<UserCursorResponse> getUsers(
       @RequestParam(required = false) String cursor,
       @RequestParam(required = false) Long idAfter,
       @RequestParam(defaultValue = "10") int limit,

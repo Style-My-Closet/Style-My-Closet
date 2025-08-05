@@ -8,7 +8,7 @@ import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.dto.request.UserLockUpdateRequest;
 import com.stylemycloset.user.dto.request.UserPageRequest;
 import com.stylemycloset.user.dto.request.UserRoleUpdateRequest;
-import com.stylemycloset.user.dto.response.UserDtoCursorResonse;
+import com.stylemycloset.user.dto.response.UserCursorResponse;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.exception.EmailDuplicateException;
 import com.stylemycloset.user.exception.UserNotFoundException;
@@ -100,7 +100,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public UserDtoCursorResonse getUser(UserPageRequest request) {
+  public UserCursorResponse getUser(UserPageRequest request) {
     List<User> users = userRepository.findUsersByCursor(request);
 
     boolean hasNext = users.size() > request.limit();
@@ -132,7 +132,7 @@ public class UserServiceImpl implements UserService {
       totalCount = (int) userRepository.countByFilter(request);
     }
 
-    return new UserDtoCursorResonse(
+    return new UserCursorResponse(
         userDtos,
         nextCursor,
         nextIdAfter,

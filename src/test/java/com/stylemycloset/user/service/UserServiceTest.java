@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
-import com.stylemycloset.testutil.IntegrationTestSupport;
 import com.stylemycloset.user.dto.data.ProfileDto;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.dto.request.ChangePasswordRequest;
@@ -14,7 +13,7 @@ import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.dto.request.UserLockUpdateRequest;
 import com.stylemycloset.user.dto.request.UserPageRequest;
 import com.stylemycloset.user.dto.request.UserRoleUpdateRequest;
-import com.stylemycloset.user.dto.response.UserDtoCursorResonse;
+import com.stylemycloset.user.dto.response.UserCursorResponse;
 import com.stylemycloset.user.entity.Gender;
 import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.entity.User;
@@ -25,14 +24,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.annotation.Profile;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
@@ -209,7 +206,7 @@ public class UserServiceTest {
           });
 
       //when
-      UserDtoCursorResonse response = userService.getUser(request);
+      UserCursorResponse response = userService.getUser(request);
 
       //then
       assertTrue(response.hasNext());
@@ -246,7 +243,7 @@ public class UserServiceTest {
           });
 
       //when
-      UserDtoCursorResonse response = userService.getUser(request);
+      UserCursorResponse response = userService.getUser(request);
 
       //then
       assertFalse(response.hasNext());

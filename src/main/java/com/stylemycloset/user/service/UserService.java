@@ -8,10 +8,7 @@ import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.dto.request.UserLockUpdateRequest;
 import com.stylemycloset.user.dto.request.UserPageRequest;
 import com.stylemycloset.user.dto.request.UserRoleUpdateRequest;
-import com.stylemycloset.user.dto.response.UserDtoCursorResonse;
-import com.stylemycloset.user.entity.Role;
-import java.awt.Cursor;
-import org.springframework.transaction.annotation.Transactional;
+import com.stylemycloset.user.dto.response.UserCursorResponse;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
@@ -30,5 +27,5 @@ public interface UserService {
 
   ProfileDto getProfile(Long userId);
 
-  UserDtoCursorResonse getUser(UserPageRequest request);
+  UserCursorResponse getUser(UserPageRequest request);
 }
