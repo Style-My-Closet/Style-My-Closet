@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.stylemycloset.testutil.IntegrationTestSupport;
 import com.stylemycloset.user.dto.data.ProfileDto;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.dto.request.ChangePasswordRequest;
@@ -45,41 +46,15 @@ public class UserServiceTest {
   @Mock
   private UserMapper userMapper;
 
-  private User testUser;
-  private UserDto testUserDto;
-  private ProfileDto testProfileDto;
   private final UserCreateRequest testUserCreateRequest = new UserCreateRequest("tester",
       "test@naver.com", "testtest123!");
-
-  @BeforeEach
-  void setUp() {
-    testUser = new User(testUserCreateRequest);
-
-    testUserDto = new UserDto(
-        testUser.getId(),
-        testUser.getCreatedAt(),
-        testUser.getEmail(),
-        testUser.getName(),
-        testUser.getRole(),
-        List.of("google"),
-        false
-    );
-
-    testProfileDto = new ProfileDto(
-        testUser.getId(),
-        testUser.getName(),
-        testUser.getGender(),
-        testUser.getBirthDate(),
-        testUser.getLocation(),
-        testUser.getTemperatureSensitivity(),
-        null
-    );
-  }
 
   @Test
   @DisplayName("유저 생성 테스트")
   public void CreateUserTest() throws Exception {
     //given
+    User testUser = createTestUser(testUserCreateRequest);
+    UserDto testUserDto = createTestUserDto(testUser);
     given(userRepository.existsByEmail(testUser.getEmail())).willReturn(false);
     given(userRepository.save(any(User.class))).willReturn(testUser);
     given(userMapper.UsertoUserDto(testUser)).willReturn(testUserDto);
@@ -96,6 +71,8 @@ public class UserServiceTest {
   public void UpdateUserTest() throws Exception {
     //given
     UserRoleUpdateRequest request = new UserRoleUpdateRequest(Role.ADMIN);
+    User testUser = createTestUser(testUserCreateRequest);
+    UserDto testUserDto = createTestUserDto(testUser);
     final Long userId = 1L;
 
     given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
@@ -115,6 +92,7 @@ public class UserServiceTest {
   public void changePasswordTest() throws Exception {
     //given
     final Long userId = 1L;
+    User testUser = createTestUser(testUserCreateRequest);
     ChangePasswordRequest request = new ChangePasswordRequest("test123!");
     given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
 
@@ -129,6 +107,7 @@ public class UserServiceTest {
   public void lockUserTest() throws Exception {
     //given
     final Long userId = 1L;
+    User testUser = createTestUser(testUserCreateRequest);
     boolean newLocked = true;
     UserLockUpdateRequest request = new UserLockUpdateRequest(newLocked);
     given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
@@ -145,6 +124,7 @@ public class UserServiceTest {
   public void deleteUserTest() throws Exception {
     //given
     final Long userId = 1L;
+    User testUser = createTestUser(testUserCreateRequest);
     given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
     assertNull(testUser.getDeleteAt());
 
@@ -160,6 +140,8 @@ public class UserServiceTest {
   public void updatedProfileTest() throws Exception {
     //given
     final Long userId = 1L;
+    User testUser = createTestUser(testUserCreateRequest);
+    ProfileDto testProfileDto = createTestProfileDto(testUser);
     ProfileUpdateRequest request = new ProfileUpdateRequest(
         "tester", Gender.MALE, LocalDate.of(2000, 10, 5), null, 3);
     given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
@@ -183,6 +165,8 @@ public class UserServiceTest {
   public void getProfileTest() throws Exception {
     //given
     final Long userId = 1L;
+    User testUser = createTestUser(testUserCreateRequest);
+    ProfileDto testProfileDto = createTestProfileDto(testUser);
     given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
     given(userMapper.UsertoProfileDto(testUser)).willReturn(testProfileDto);
 
@@ -274,6 +258,42 @@ public class UserServiceTest {
 
     }
 
+  }
+
+  //헬퍼 메소드
+  private User createTestUser(UserCreateRequest request) {
+    return new User(request);
+  }
+
+  private User createTestUserWithIdAndName(Long id, String name, String email) {
+    UserCreateRequest request = new UserCreateRequest(name, email, "test123!");
+    User user = new User(request);
+    user.setId(id); // ID를 강제로 설정 (테스트 목적)
+    return user;
+  }
+
+  private UserDto createTestUserDto(User user) {
+    return new UserDto(
+        user.getId(),
+        user.getCreatedAt(),
+        user.getEmail(),
+        user.getName(),
+        user.getRole(),
+        List.of("google"), // 예시 값
+        false
+    );
+  }
+
+  private ProfileDto createTestProfileDto(User user) {
+    return new ProfileDto(
+        user.getId(),
+        user.getName(),
+        user.getGender(),
+        user.getBirthDate(),
+        user.getLocation(),
+        user.getTemperatureSensitivity(),
+        null
+    );
   }
 
 
