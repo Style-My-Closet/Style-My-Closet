@@ -41,6 +41,15 @@ public class FeedServiceImpl implements FeedService {
   private final ClothRepository clothRepository;
   private final WeatherRepository weatherRepository;
 
+  /**
+   * 피드 생성 요청을 받아 새로운 피드를 생성하고, 관련 의류 및 날씨 정보를 연결한 후 피드 DTO로 반환합니다.
+   *
+   * 요청된 작성자, 의류, 날씨 정보를 검증하며, 존재하지 않는 경우 각각 USER_NOT_FOUND, CLOTHES_NOT_FOUND, WEATHER_NOT_FOUND 예외를 발생시킵니다.
+   *
+   * @param request 피드 생성에 필요한 작성자, 의류, 날씨, 내용 정보를 담은 요청 객체
+   * @return 생성된 피드의 정보를 담은 FeedDto 객체
+   * @throws StyleMyClosetException 작성자, 의류, 또는 날씨 정보가 존재하지 않을 경우 발생
+   */
   @Override
   public FeedDto createFeed(FeedCreateRequest request) {
     User author = userRepository.findById(request.authorId())
@@ -70,6 +79,13 @@ public class FeedServiceImpl implements FeedService {
     return mapToFeedResponse(newFeed, clothesList);
   }
 
+  /**
+   * 주어진 weatherId로 Weather 엔티티를 조회하며, weatherId가 null이면 null을 반환합니다.
+   *
+   * @param weatherId 조회할 Weather의 ID, null일 수 있음
+   * @return 해당 ID의 Weather 엔티티 또는 weatherId가 null인 경우 null
+   * @throws StyleMyClosetException weatherId가 null이 아니고, 해당 Weather 엔티티가 존재하지 않을 때 발생
+   */
   private Weather findWeatherOrNull(Long weatherId) {
     if (weatherId == null) {
       return null;
@@ -79,6 +95,13 @@ public class FeedServiceImpl implements FeedService {
             Map.of("weatherId", weatherId)));
   }
 
+  /**
+   * Feed 및 관련 의류 목록을 FeedDto로 매핑합니다.
+   *
+   * @param feed       매핑할 피드 엔티티
+   * @param clothesList 피드에 포함된 의류 엔티티 목록
+   * @return 피드 정보, 작성자, OOTD 아이템 목록 등이 포함된 FeedDto 객체
+   */
   private FeedDto mapToFeedResponse(Feed feed, List<Cloth> clothesList) {
     AuthorDto authorDto = new AuthorDto(
         feed.getAuthor().getId(),

@@ -43,6 +43,13 @@ public class openApiService {
     @Value("${external.market-index.num-of-rows:100}")
     private int numOfRows;
 
+    /****
+     * 외부 기상 예보 API에서 지정된 날짜, 시간, 위치에 대한 데이터를 페이지 단위로 조회하여 중복을 제거한 후 처리합니다.
+     *
+     * 각 페이지별로 API를 호출하여 예보 데이터를 수집하고, 중복 항목은 건너뜁니다. 모든 데이터를 수집한 후, 중복이 제거된 항목들을 한 번에 처리합니다.
+     *
+     * 예외 발생 시 내부 서버 오류 코드와 함께 커스텀 예외를 발생시킵니다.
+     */
     public void fetchData(String baseDate, String baseTime, Location location) {
         Set<String> seenKeys = new HashSet<>();
         int totalPages = (int) Math.ceil((double) 100 / numOfRows); // TODO: 총 개수 동적으로 바꾸기
