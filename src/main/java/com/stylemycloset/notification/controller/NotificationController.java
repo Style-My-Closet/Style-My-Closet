@@ -3,6 +3,7 @@ package com.stylemycloset.notification.controller;
 import com.stylemycloset.notification.dto.NotificationDtoCursorResponse;
 import com.stylemycloset.notification.dto.NotificationFindAllRequest;
 import com.stylemycloset.notification.service.NotificationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,7 +33,7 @@ public class NotificationController {
   public ResponseEntity<NotificationDtoCursorResponse> findAllByReceiverId(
       // UserDetails의 userId로 대체 예정.
       @PathVariable long userId,
-      NotificationFindAllRequest request
+      @Valid NotificationFindAllRequest request
   ) {
     NotificationDtoCursorResponse res = notificationService.findAll(userId, request);
     return ResponseEntity.ok().body(res);
