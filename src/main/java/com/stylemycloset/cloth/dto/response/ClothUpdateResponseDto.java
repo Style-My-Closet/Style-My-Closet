@@ -25,7 +25,7 @@ public record ClothUpdateResponseDto(
                 cloth.getId().toString(),
                 cloth.getCloset().getUser().getId().toString(),
                 cloth.getName(),
-                cloth.getBinaryContent().getImageUrl(),
+                cloth.getBinaryContent() != null ? cloth.getBinaryContent().getImageUrl() : null,
                 cloth.getCategory().getName(),
                 attributest
         );

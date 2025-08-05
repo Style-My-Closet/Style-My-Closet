@@ -21,7 +21,7 @@ public class ClothResponseDto {
         this.clothId = cloth.getId();
         this.ownerId = cloth.getCloset().getUser().getId();
         this.name = cloth.getName();
-        this.imageUrl = cloth.getBinaryContent().getImageUrl();
+        this.imageUrl = cloth.getBinaryContent() != null ? cloth.getBinaryContent().getImageUrl() : null;
         this.type = cloth.getCategory().getName();
 
         this.attributeList = cloth.getAttributeValues()

@@ -1,5 +1,6 @@
 package com.stylemycloset.cloth.dto.response;
 
+import com.stylemycloset.cloth.dto.ClothesAttributeDefDto;
 import com.stylemycloset.cloth.dto.SortDirection;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class AttributeListResponseDto {
-    private List<AttributeResponseDto> data;
+    private List<ClothesAttributeDefDto> data;
     private String nextCursor;
     private String nextIdAfter;
     private boolean hasNext;

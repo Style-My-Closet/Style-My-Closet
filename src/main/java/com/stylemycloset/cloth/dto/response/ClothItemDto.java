@@ -28,7 +28,7 @@ public class ClothItemDto {
         this.id = cloth.getId().toString();
         this.ownerId = cloth.getCloset().getUser().getId().toString();
         this.name = cloth.getName();
-        this.imageUrl = cloth.getBinaryContent().getImageUrl();
+        this.imageUrl = cloth.getBinaryContent() != null ? cloth.getBinaryContent().getImageUrl() : null;
         this.type= cloth.getCategory().getName();
         this.attributes = attributest;
     }
