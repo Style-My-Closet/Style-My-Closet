@@ -4,9 +4,9 @@ import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingCategory;
 import com.stylemycloset.cloth.entity.ClothingCategoryType;
 import com.stylemycloset.cloth.repository.ClothRepository;
-import com.stylemycloset.common.dto.CursorResponse;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
+import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.repo.FeedClothesRepository;
 import com.stylemycloset.ootd.repo.FeedRepository;
@@ -104,9 +104,6 @@ class FeedServiceImplTest {
     }
   }
 
-  // ✅ =============================================================
-  // ✅ 여기에 '피드 목록 조회' 단위 테스트가 새로 추가되었어요!
-  // ✅ =============================================================
   @Nested
   @DisplayName("피드 목록 조회")
   class GetFeeds {
@@ -121,15 +118,14 @@ class FeedServiceImplTest {
       // Repository가 반환할 '가짜' 엔티티 목록 생성
       Feed mockFeed = mock(Feed.class);
       User mockUser = mock(User.class);
-      when(mockFeed.getAuthor()).thenReturn(mockUser); // ✅ Feed가 User를 반환하도록 설정
+      when(mockFeed.getAuthor()).thenReturn(mockUser);
       List<Feed> fakeFeeds = List.of(mockFeed);
 
-      // 🧠 "findByConditions 메서드가 호출되면, 우리가 만든 가짜 목록을 돌려줘!" 라고 설정
       when(feedRepository.findByConditions(cursorId, null, null, null, pageable))
           .thenReturn(fakeFeeds);
 
       // when (실행)
-      CursorResponse<FeedDto> result = feedService.getFeeds(cursorId, null, null, null, pageable);
+      FeedDtoCursorResponse result = feedService.getFeeds(cursorId, null, null, null, pageable);
 
       // then (검증)
       assertThat(result).isNotNull();

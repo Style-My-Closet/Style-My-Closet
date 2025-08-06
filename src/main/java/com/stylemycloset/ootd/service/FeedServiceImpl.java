@@ -1,22 +1,22 @@
 package com.stylemycloset.ootd.service;
 
-import com.stylemycloset.ootd.dto.ClothesAttributeWithDefDto; // 나중에 import 변경 예정
+import com.stylemycloset.cloth.repository.ClothRepository;
+import com.stylemycloset.ootd.dto.AuthorDto;
 import com.stylemycloset.cloth.entity.Cloth;
-import com.stylemycloset.cloth.repository.ClothRepository; // 나중에 import 변경 예정
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
+import com.stylemycloset.ootd.dto.ClothesAttributeWithDefDto;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
 import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
-import com.stylemycloset.ootd.dto.OotdItemDto; // 나중에 import 변경 예정
+import com.stylemycloset.ootd.dto.OotdItemDto;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.FeedClothes;
 import com.stylemycloset.ootd.repo.FeedClothesRepository;
 import com.stylemycloset.ootd.repo.FeedRepository;
-import com.stylemycloset.ootd.repo.UserRepository; // 나중에 import 변경 예정
-import com.stylemycloset.ootd.tempEnum.ClothesType; // 나중에 import 변경 예정
-import com.stylemycloset.ootd.dto.AuthorDto; // 나중에 import 변경 예정
+import com.stylemycloset.ootd.tempEnum.ClothesType;
 import com.stylemycloset.user.entity.User;
+import com.stylemycloset.user.repository.UserRepository;
 import com.stylemycloset.weather.dto.PrecipitationDto;
 import com.stylemycloset.weather.dto.TemperatureDto;
 import com.stylemycloset.weather.dto.WeatherSummaryDto;
@@ -58,11 +58,12 @@ public class FeedServiceImpl implements FeedService {
     }
 
     Feed newFeed = Feed.createFeed(author, weather, request.content());
-    feedRepository.save(newFeed);
 
     List<FeedClothes> feedClothesList = clothesList.stream()
         .map(cloth -> FeedClothes.createFeedClothes(newFeed, cloth))
         .collect(Collectors.toList());
+
+    feedRepository.save(newFeed);
     feedClothesRepository.saveAll(feedClothesList);
 
     return mapToFeedResponse(newFeed);
@@ -101,7 +102,7 @@ public class FeedServiceImpl implements FeedService {
 
   private FeedDto mapToFeedResponse(Feed feed) {
     List<Cloth> clothesList = feed.getFeedClothes().stream()
-        .map(feedClothes -> feedClothes.getClothes())
+        .map(FeedClothes::getClothes)
         .collect(Collectors.toList());
 
     AuthorDto authorDto = toAuthorDto(feed.getAuthor());
