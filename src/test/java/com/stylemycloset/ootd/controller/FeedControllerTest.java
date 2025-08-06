@@ -1,5 +1,11 @@
 package com.stylemycloset.ootd.controller;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.cloth.entity.Closet;
 import com.stylemycloset.cloth.entity.Cloth;
@@ -10,28 +16,23 @@ import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.cloth.repository.ClothingCategoryRepository;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.testutil.IntegrationTestSupport;
-import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.entity.Role;
-import com.stylemycloset.ootd.repo.UserRepository;
+import com.stylemycloset.user.entity.User;
+import com.stylemycloset.user.repository.UserRepository;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+@SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
 public class FeedControllerTest extends IntegrationTestSupport {

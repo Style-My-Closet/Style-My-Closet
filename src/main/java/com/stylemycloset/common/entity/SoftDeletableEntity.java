@@ -15,4 +15,5 @@ public abstract class SoftDeletableEntity extends BaseTimeEntity {
   @Column(name = "deleted_at")
   private Instant deleteAt;
 
+
 }
