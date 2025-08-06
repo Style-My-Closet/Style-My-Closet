@@ -22,10 +22,10 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequiredArgsConstructor
 public class SseServiceImpl implements SseService {
 
+  private static final long DEFAULT_TIMEOUT = 30L * 60 * 1000;
   private final SseRepository sseRepository;
 
   private final ConcurrentHashMap<Long, List<SseInfo>> userEvents = new ConcurrentHashMap<>();
-  private static final long DEFAULT_TIMEOUT = 30L * 60 * 1000;
   private final AtomicLong eventIdSequence = new AtomicLong();
 
   public SseEmitter connect(Long userId, String eventId, String lastEventId) {
