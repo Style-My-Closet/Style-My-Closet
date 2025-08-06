@@ -12,7 +12,7 @@ public enum ErrorCode {
   INTERNAL_SERVER_ERROR("서버 내부 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
   ERROR_CODE("오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
-  // User 에러
+  // User
   EMAIL_DUPLICATED("이메일이 중복 되었습니다.", HttpStatus.CONFLICT),
   USER_NOT_FOUND("유저의 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
@@ -21,9 +21,6 @@ public enum ErrorCode {
 
   // Weather
   WEATHER_NOT_FOUND("날씨 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
-
-
-
 
   private final String message;
   private final HttpStatus httpStatus;

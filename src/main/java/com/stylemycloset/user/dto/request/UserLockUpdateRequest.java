@@ -4,3 +4,4 @@ public record UserLockUpdateRequest(
         boolean locked
 ) {
 }
+
