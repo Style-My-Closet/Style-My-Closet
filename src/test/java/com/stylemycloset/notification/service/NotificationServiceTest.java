@@ -15,7 +15,7 @@ import com.stylemycloset.notification.repository.NotificationQueryRepository;
 import com.stylemycloset.notification.repository.NotificationRepository;
 import com.stylemycloset.notification.service.impl.NotificationServiceImpl;
 import com.stylemycloset.testutil.IntegrationTestSupport;
-import com.stylemycloset.user.dto.UserCreateRequest;
+import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.entity.User;
 import java.time.Instant;
 import java.util.List;
