@@ -1,7 +1,9 @@
 package com.stylemycloset.sse.service.impl;
 
+import com.stylemycloset.notification.dto.NotificationDto;
 import com.stylemycloset.sse.dto.SseInfo;
 import com.stylemycloset.sse.repository.SseRepository;
+import com.stylemycloset.sse.service.SseSender;
 import com.stylemycloset.sse.service.SseService;
 import java.io.IOException;
 import java.util.List;
@@ -9,6 +11,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -18,10 +23,14 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequiredArgsConstructor
 public class SseServiceImpl implements SseService {
 
-  private static final long DEFAULT_TIMEOUT = 30L * 60 * 1000;
   private final SseRepository sseRepository;
-  private final ConcurrentHashMap<Long, List<SseInfo>> userEvents = new ConcurrentHashMap<>();
+  private final SseSender sseSender;
 
+  private final ConcurrentHashMap<Long, List<SseInfo>> userEvents = new ConcurrentHashMap<>();
+  private static final long DEFAULT_TIMEOUT = 30L * 60 * 1000;
+  private static final String EVENT_NAME = "notifications";
+
+  @Override
   public SseEmitter connect(Long userId, String eventId, String lastEventId) {
 
     SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
@@ -33,7 +42,7 @@ public class SseServiceImpl implements SseService {
 
     sendToClient(userId, emitter, eventId, "connect", "Sse Connected");
 
-    if (lastEventId != null && !lastEventId.isEmpty()) {
+    if(lastEventId != null &&  !lastEventId.isEmpty()) {
       try {
         long lastId = Long.parseLong(lastEventId);
         List<SseInfo> missedInfo = userEvents.getOrDefault(userId, new CopyOnWriteArrayList<>())
@@ -46,7 +55,7 @@ public class SseServiceImpl implements SseService {
         for (SseInfo info : missedInfo) {
           sendToClient(userId, emitter, String.valueOf(info.id()), info.name(), info.data());
         }
-      } catch (NumberFormatException e) {
+      } catch(NumberFormatException e) {
         log.warn("유효하지 않는 lastEventId 형식 : {}", lastEventId);
       }
     }
@@ -54,22 +63,46 @@ public class SseServiceImpl implements SseService {
     return emitter;
   }
 
-  private void sendToClient(Long userId, SseEmitter emitter, String eventId, String eventName,
-      Object data) {
-    try {
+  @Retryable(
+      retryFor = IOException.class,
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000, multiplier = 2)
+  )
+  private void sendToClient(Long userId, SseEmitter emitter, String eventId, String eventName, Object data) {
+    try{
       emitter.send(SseEmitter.event()
           .id(eventId)
           .name(eventName)
           .data(data));
       log.debug("[{}]의 {} SSE 이벤트 수신 완료 (eventId: {})", userId, eventName, eventId);
-    } catch (IOException e) {
+    } catch (IOException e){
       log.warn("[{}]의 {} SSE 이벤트 실패 (eventId: {})", userId, eventName, eventId, e);
       sseRepository.delete(userId, emitter);
     }
   }
 
+  @Override
+  @Async("sseTaskExecutor")
+  public void sendNotification(NotificationDto notificationDto) {
+    Long receiverId = notificationDto.receiverId();
+    List<SseEmitter> sseEmitters = sseRepository.findByUserId(receiverId);
+    if(sseEmitters.isEmpty()) {
+      log.info("SSE 연결이 없어 알림 전송 실패 : userId={}, notificationId={}",
+          receiverId, notificationDto.id());
+      return;
+    }
+
+    long eventId = notificationDto.createdAt().toEpochMilli();
+    SseInfo sseInfo = new SseInfo(eventId, EVENT_NAME, notificationDto, System.currentTimeMillis());
+    userEvents.computeIfAbsent(receiverId, k -> new CopyOnWriteArrayList<>()).add(sseInfo);
+
+    for(SseEmitter sseEmitter : sseEmitters) {
+      sseSender.sendToClientAsync(receiverId, sseEmitter, String.valueOf(eventId), EVENT_NAME, notificationDto);
+    }
+  }
+
   @Scheduled(fixedRate = 2 * 60 * 1000)
-  private void cleanUpSseEmitter() {
+  public void cleanUpSseEmitter() {
     sseRepository.getAllEmittersReadOnly()
         .forEach((userId, emitters) ->
             emitters.forEach(emitter -> {
@@ -83,13 +116,11 @@ public class SseServiceImpl implements SseService {
   }
 
   @Scheduled(fixedRate = 60 * 60 * 1000)
-  private void cleanUpSseInfos() {
+  public void cleanUpSseInfos() {
     long timeout = System.currentTimeMillis() - (60 * 60 * 1000);
     userEvents.forEach((userId, events) -> {
       events.removeIf(event -> event.createdAt() < timeout);
-      if (events.isEmpty()) {
-        userEvents.remove(userId);
-      }
+      if(events.isEmpty()) userEvents.remove(userId);
     });
   }
 

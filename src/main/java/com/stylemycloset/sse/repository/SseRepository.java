@@ -32,4 +32,8 @@ public class SseRepository {
             entry -> Collections.unmodifiableList(entry.getValue())
         ));
   }
+
+  public List<SseEmitter> findByUserId(Long userId) {
+    return userEmitters.containsKey(userId) ? userEmitters.get(userId) : Collections.emptyList();
+  }
 }
