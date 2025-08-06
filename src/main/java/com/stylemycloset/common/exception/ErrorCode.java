@@ -13,7 +13,8 @@ public enum ErrorCode {
   ERROR_CODE("오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
   // User
-  USER_NOT_FOUND("해당 사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+  EMAIL_DUPLICATED("이메일이 중복 되었습니다.", HttpStatus.CONFLICT),
+  USER_NOT_FOUND("유저의 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
   // Clothes
   CLOTHES_NOT_FOUND("일부 의상 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
