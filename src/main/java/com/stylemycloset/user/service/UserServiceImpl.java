@@ -1,5 +1,6 @@
 package com.stylemycloset.user.service;
 
+import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.user.dto.data.ProfileDto;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.dto.request.ChangePasswordRequest;
@@ -17,6 +18,7 @@ import com.stylemycloset.user.repository.UserRepository;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,6 +43,7 @@ public class UserServiceImpl implements UserService {
     return userMapper.UsertoUserDto(savedUser);
   }
 
+  @PreAuthorize("hasRole('ADMIN')")
   @Transactional
   @Override
   public UserDto updateRole(Long userId, UserRoleUpdateRequest updateRequest) {
@@ -60,6 +63,7 @@ public class UserServiceImpl implements UserService {
     user.changePassword(request.password());
   }
 
+  @PreAuthorize("hasRole('ADMIN')")
   @Transactional
   @Override
   public void changeLockUser(Long userId, UserLockUpdateRequest updateRequest) {
