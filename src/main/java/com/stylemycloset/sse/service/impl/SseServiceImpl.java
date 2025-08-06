@@ -1,12 +1,16 @@
 package com.stylemycloset.sse.service.impl;
 
+import com.stylemycloset.common.exception.ErrorCode;
+import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.sse.dto.SseInfo;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.SseService;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,6 +26,7 @@ public class SseServiceImpl implements SseService {
 
   private final ConcurrentHashMap<Long, List<SseInfo>> userEvents = new ConcurrentHashMap<>();
   private static final long DEFAULT_TIMEOUT = 30L * 60 * 1000;
+  private final AtomicLong eventIdSequence = new AtomicLong();
 
   public SseEmitter connect(Long userId, String eventId, String lastEventId) {
 
@@ -89,6 +94,26 @@ public class SseServiceImpl implements SseService {
       events.removeIf(event -> event.createdAt() < timeout);
       if(events.isEmpty()) userEvents.remove(userId);
     });
+  }
+
+
+  @Override
+  public void sendWeatherAlert(Long weatherId, String message) {
+    List<SseEmitter> emitters = sseRepository.get(weatherId);
+    if (emitters == null || emitters.isEmpty()) return;
+
+    long eventId = eventIdSequence.incrementAndGet();
+
+    for (SseEmitter emitter : emitters) {
+      Long userId = sseRepository.getUserIdByEmitter(emitter).orElseThrow(
+          ()->new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("userId","userId"))
+      );
+
+      SseInfo info = new SseInfo(eventId, "weather-alert", message, System.currentTimeMillis());
+      userEvents.computeIfAbsent(userId, id -> new CopyOnWriteArrayList<>()).add(info);
+
+      sendToClient(userId, emitter, String.valueOf(eventId), info.name(), info.data());
+    }
   }
 
 }
