@@ -147,7 +147,7 @@ public class NotificationServiceTest extends IntegrationTestSupport {
     given(notificationRepository.countByReceiverId(1)).willReturn(3L);
 
     // when
-    NotificationDtoCursorResponse result = notificationService.findAll(1,  request);
+    NotificationDtoCursorResponse result = notificationService.findAllByCursor(1,  request);
 
     // then
     assertThat(result.data().size()).isEqualTo(2);

@@ -35,7 +35,7 @@ public class NotificationController {
       @PathVariable long userId,
       @Valid NotificationFindAllRequest request
   ) {
-    NotificationDtoCursorResponse res = notificationService.findAll(userId, request);
+    NotificationDtoCursorResponse res = notificationService.findAllByCursor(userId, request);
     return ResponseEntity.ok().body(res);
   }
 }
