@@ -9,6 +9,7 @@ jobs:
   test:
     name: CI - Run Tests and Upload Coverage
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
@@ -20,7 +21,13 @@ jobs:
           distribution: 'corretto'
           cache: gradle
 
-      - name:  Run tests
+      # ✅ Docker 데몬 활성화 단계
+      - name: Start Docker daemon
+        run: |
+          sudo systemctl start docker
+          docker info
+
+      - name: Run tests
         run: ./gradlew test
 
       - name: Upload test report on failure
@@ -34,3 +41,4 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           files: build/reports/jacoco/test/jacocoTestReport.xml
+
