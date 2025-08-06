@@ -77,8 +77,6 @@ public class WeatherServiceTest {
 
         // when
         List<WeatherDto> result = weatherService.getWeatherByCoordinates(37.5665, 126.9780);
-            //weatherService.getWeatherByCoordinates(37.5665, 126.9780);
-
         // then
         assertEquals(1, result.size());
         assertEquals(23.0, result.get(0).temperature().getCurrent());
