@@ -11,10 +11,9 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
 import java.time.LocalDate;
 import java.util.List;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "users")
@@ -107,6 +106,4 @@ public class User extends SoftDeletableEntity {
   public void setId(Long id) {// 테스트 때문에 넣었습니다.
     this.id = id;
   }
-
-
 }

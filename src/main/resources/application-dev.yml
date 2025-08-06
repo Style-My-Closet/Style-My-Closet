@@ -14,4 +14,4 @@ server:
 
 logging:
   level:
-    com.com.stylemycloset: debug
+    com.stylemycloset: debug
