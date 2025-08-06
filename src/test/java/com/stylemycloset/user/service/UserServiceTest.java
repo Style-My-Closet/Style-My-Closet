@@ -262,13 +262,6 @@ public class UserServiceTest {
     return new User(request);
   }
 
-  private User createTestUserWithIdAndName(Long id, String name, String email) {
-    UserCreateRequest request = new UserCreateRequest(name, email, "test123!");
-    User user = new User(request);
-    user.setId(id); // ID를 강제로 설정 (테스트 목적)
-    return user;
-  }
-
   private UserDto createTestUserDto(User user) {
     return new UserDto(
         user.getId(),
@@ -276,7 +269,7 @@ public class UserServiceTest {
         user.getEmail(),
         user.getName(),
         user.getRole(),
-        List.of("google"), // 예시 값
+        List.of("google"),
         false
     );
   }
