@@ -16,5 +16,5 @@ public interface NotificationService {
 
   void delete(long receiverId, long notificationId);
 
-  NotificationDtoCursorResponse findAll(long userId, NotificationFindAllRequest request);
+  NotificationDtoCursorResponse findAllByCursor(long userId, NotificationFindAllRequest request);
 }

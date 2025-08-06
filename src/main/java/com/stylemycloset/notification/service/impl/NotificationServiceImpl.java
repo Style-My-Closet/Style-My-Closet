@@ -9,6 +9,7 @@ import com.stylemycloset.notification.repository.NotificationQueryRepository;
 import com.stylemycloset.notification.repository.NotificationRepository;
 import com.stylemycloset.notification.service.NotificationService;
 import com.stylemycloset.user.entity.User;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -67,7 +68,7 @@ public class NotificationServiceImpl implements NotificationService {
   @Override
   @Transactional(readOnly = true)
   // @PreAuthorize("principal.userDto.id == #userId")
-  public NotificationDtoCursorResponse findAll(long userId, NotificationFindAllRequest request) {
+  public NotificationDtoCursorResponse findAllByCursor(long userId, NotificationFindAllRequest request) {
     List<Notification> notifications = notificationQueryRepository.findAllByCursor(request, userId);
     long totalCount = notificationRepository.countByReceiverId(userId);
 
@@ -79,21 +80,18 @@ public class NotificationServiceImpl implements NotificationService {
         .map(NotificationDto::from)
         .toList();
 
+    Instant nextCursor = null;
+    Long nextId = 0L;
+
     if(hasNext) {
       NotificationDto lastDto = data.getLast();
-
-      return NotificationDtoCursorResponse.of(
-          data,
-          lastDto.createdAt(),
-          lastDto.id(),
-          hasNext,
-          totalCount
-      );
+      nextCursor = lastDto.createdAt();
+      nextId = lastDto.id();
     }
     return NotificationDtoCursorResponse.of(
         data,
-        null,
-        0L,
+        nextCursor,
+        nextId,
         hasNext,
         totalCount
     );
