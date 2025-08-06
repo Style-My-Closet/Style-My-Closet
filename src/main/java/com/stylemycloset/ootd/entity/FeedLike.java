@@ -2,13 +2,23 @@ package com.stylemycloset.ootd.entity;
 
 import com.stylemycloset.common.entity.CreatedAtEntity;
 import com.stylemycloset.user.entity.User;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 
 @Entity
-@Table(name = "feed_likes")
+@Table(name = "feed_likes", uniqueConstraints = @UniqueConstraint(name = "uk_feed_like_user_feed",
+    columnNames = {"user_id", "feed_id"}))
 @Getter
 @NoArgsConstructor
 public class FeedLike extends CreatedAtEntity {

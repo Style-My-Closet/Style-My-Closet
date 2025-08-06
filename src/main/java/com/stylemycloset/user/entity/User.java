@@ -106,6 +106,5 @@ public class User extends SoftDeletableEntity {
   public void setId(Long id) {// 테스트 때문에 넣었습니다.
     this.id = id;
   }
-
-
 }
+
