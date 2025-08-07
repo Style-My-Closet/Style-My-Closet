@@ -1,4 +1,4 @@
-package com.stylemycloset.notification.event;
+package com.stylemycloset.notification.event.domain;
 
 public record NewClothAttributeEvent(
     Long clothAttributeId,

@@ -1,4 +1,4 @@
-package com.stylemycloset.notification.event;
+package com.stylemycloset.notification.event.domain;
 
 import com.stylemycloset.user.entity.User;
 
