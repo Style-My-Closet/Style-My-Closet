@@ -8,6 +8,7 @@ import com.stylemycloset.ootd.dto.AuthorDto;
 import com.stylemycloset.ootd.dto.ClothesAttributeWithDefDto;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
+import com.stylemycloset.weather.dto.*;
 import com.stylemycloset.ootd.dto.OotdItemDto;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.FeedClothes;

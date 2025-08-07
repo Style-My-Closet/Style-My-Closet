@@ -6,6 +6,7 @@ import java.util.UUID;
 import lombok.*; // Lombok 어노테이션
 import java.time.LocalDateTime; // 시간 관련
 import com.stylemycloset.common.entity.CreatedAtEntity;
+import org.springframework.data.annotation.CreatedDate;
 
 @Entity
 @Table(name = "weather")
@@ -21,9 +22,11 @@ public class Weather extends CreatedAtEntity {
   private Long id;
 
   @Column(name = "forecasted_at", nullable = false)
+  @CreatedDate
   private LocalDateTime forecastedAt;
 
   @Column(name = "forecast_at", nullable = false)
+  @CreatedDate
   private LocalDateTime forecastAt;
 
   //forecastedAt: 예보가 생성된 시점 (기상청이 예보 발표한 시점)
@@ -69,13 +72,10 @@ public class Weather extends CreatedAtEntity {
   //알림이 발생했다면 그 타입 (예: 비, 폭우, 고온, 강풍 등)
 
   @Builder
-  public Weather(LocalDateTime forecastedAt, LocalDateTime forecastAt,
-                 Location location, SkyStatus skyStatus,
+  public Weather( Location location, SkyStatus skyStatus,
                  Precipitation precipitation, Temperature temperature,
                  Humidity humidity, WindSpeed windSpeed,
                  Boolean isAlertTriggered, AlertType alertType) {
-    this.forecastedAt = forecastedAt;
-    this.forecastAt = forecastAt;
     this.location = location;
     this.skyStatus = skyStatus;
     this.precipitation = precipitation;
@@ -91,7 +91,7 @@ public class Weather extends CreatedAtEntity {
   }
 
   public enum AlertType {
-    NONE, RAIN, HEAVY_RAIN, HIGH_TEMP, LOW_TEMP, STRONG_WIND
+    NONE, RAIN, HEAVY_RAIN,SNOW_RAIN ,SNOW, SHOWER,HIGH_TEMP, LOW_TEMP, STRONG_WIND
   }
 
 }

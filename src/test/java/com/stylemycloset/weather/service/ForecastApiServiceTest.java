@@ -113,7 +113,7 @@ class ForecastApiServiceTest {
             String value = invocation.getArgument(1);
             ctx.temperature = new Temperature(Double.parseDouble(value), null, null, null);
             return null;
-        }).when(tmpProcessor).process(any(), anyString());
+        }).when(tmpProcessor).process(any(), "TMP",anyString());
 
         // REH processor 설정
         when(humidProcessor.supports("REH")).thenReturn(true);
@@ -122,7 +122,7 @@ class ForecastApiServiceTest {
             String value = invocation.getArgument(1);
             ctx.humidity = new Humidity(Double.parseDouble(value), null);
             return null;
-        }).when(humidProcessor).process(any(), anyString());
+        }).when(humidProcessor).process(any(),"TMP", anyString());
 
         // processors 리스트를 OpenApiService에 반영
         List<WeatherCategoryProcessor> processors = List.of(tmpProcessor, humidProcessor);
