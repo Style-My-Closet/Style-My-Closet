@@ -86,7 +86,7 @@ public class SseServiceImpl implements SseService {
           .id(eventId)
           .name(eventName)
           .data(data));
-      log.debug("[{}]의 {} 비동기 SSE 이벤트 수신 완료 (eventId: {})", userId, eventName, eventId);
+      log.debug("[{}]의 {} SSE 이벤트 수신 완료 (eventId: {})", userId, eventName, eventId);
     } catch (IOException e){
       throw new SseSendFailureException(userId, eventId);
     }

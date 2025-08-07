@@ -1,4 +1,4 @@
-package com.stylemycloset.notification;
+package com.stylemycloset.notification.util;
 
 import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.entity.User;

@@ -1,23 +1,22 @@
 package com.stylemycloset.notification.event.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
-import com.stylemycloset.notification.TestUserFactory;
 import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.notification.event.domain.RoleChangedEvent;
 import com.stylemycloset.notification.repository.NotificationRepository;
+import com.stylemycloset.notification.util.NotificationStubHelper;
+import com.stylemycloset.notification.util.TestUserFactory;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
 import com.stylemycloset.testutil.IntegrationTestSupport;
 import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -58,13 +57,7 @@ public class RoleChangedNotificationEventListenerIntegrationTest extends Integra
     SseEmitter emitter = sseService.connect(user.getId(), now, null);
 
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-    given(notificationRepository.save(any(Notification.class)))
-        .willAnswer(invocation -> {
-          Notification n = invocation.getArgument(0);
-          ReflectionTestUtils.setField(n, "id", 1L);
-          ReflectionTestUtils.setField(n, "createdAt", Instant.now());
-          return n;
-        });
+    NotificationStubHelper.stubSave(notificationRepository);
     given(sseRepository.findByUserId(user.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
 
     RoleChangedEvent roleChangedEvent = new RoleChangedEvent(user.getId(), Role.ADMIN);

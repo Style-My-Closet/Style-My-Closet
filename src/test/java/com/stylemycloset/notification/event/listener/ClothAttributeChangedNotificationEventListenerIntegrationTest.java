@@ -1,31 +1,27 @@
 package com.stylemycloset.notification.event.listener;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
-import com.stylemycloset.notification.TestUserFactory;
-import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.event.domain.ClothAttributeChangedEvent;
 import com.stylemycloset.notification.repository.NotificationRepository;
+import com.stylemycloset.notification.util.NotificationStubHelper;
+import com.stylemycloset.notification.util.TestUserFactory;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
 import com.stylemycloset.testutil.IntegrationTestSupport;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
-import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 public class ClothAttributeChangedNotificationEventListenerIntegrationTest extends
@@ -58,20 +54,8 @@ public class ClothAttributeChangedNotificationEventListenerIntegrationTest exten
     SseEmitter emitter = sseService.connect(ChangedUser1.getId(), now, null);
     SseEmitter emitter2 = sseService.connect(ChangedUser2.getId(), now, null);
 
-    AtomicLong idGenerator = new AtomicLong();
-
     given(userRepository.findByLockedFalseAndDeleteAtIsNull()).willReturn(users);
-    given(notificationRepository.saveAll(anyList()))
-        .willAnswer(invocation -> {
-          List<Notification> notifications = invocation.getArgument(0);
-          Instant createdAt = Instant.now();
-
-          for(Notification notification : notifications) {
-            ReflectionTestUtils.setField(notification, "id", idGenerator.getAndIncrement());
-            ReflectionTestUtils.setField(notification, "createdAt", createdAt);
-          }
-          return notifications;
-        });
+    NotificationStubHelper.stubSaveAll(notificationRepository);
     given(sseRepository.findByUserId(ChangedUser1.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
     given(sseRepository.findByUserId(ChangedUser2.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter2)));
 
