@@ -12,7 +12,9 @@ import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
 import com.stylemycloset.ootd.dto.OotdItemDto;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.FeedClothes;
+import com.stylemycloset.ootd.entity.FeedLike;
 import com.stylemycloset.ootd.repo.FeedClothesRepository;
+import com.stylemycloset.ootd.repo.FeedLikeRepository;
 import com.stylemycloset.ootd.repo.FeedRepository;
 import com.stylemycloset.ootd.tempEnum.ClothesType;
 import com.stylemycloset.user.entity.User;
@@ -42,8 +44,10 @@ public class FeedServiceImpl implements FeedService {
   private final UserRepository userRepository;
   private final ClothRepository clothRepository;
   private final WeatherRepository weatherRepository;
+  private final FeedLikeRepository feedLikeRepository;
 
   @Override
+  @Transactional
   public FeedDto createFeed(FeedCreateRequest request) {
     User author = userRepository.findById(request.authorId())
         .orElseThrow(() -> new StyleMyClosetException(ErrorCode.USER_NOT_FOUND,
@@ -64,13 +68,15 @@ public class FeedServiceImpl implements FeedService {
         .collect(Collectors.toList());
 
     feedRepository.save(newFeed);
-    feedClothesRepository.saveAll(feedClothesList);
 
-    return mapToFeedResponse(newFeed);
+    return mapToFeedResponse(newFeed, author);
   }
 
   @Override
   public FeedDtoCursorResponse getFeeds(Long cursorId, String keywordLike, Weather.SkyStatus skyStatus, Long authorId, Pageable pageable) {
+    // TODO: 이 메서드에도 현재 로그인한 유저 ID를 파라미터로 받아와야 likedByMe를 계산
+    User currentUser = null;
+
     List<Feed> feeds = feedRepository.findByConditions(cursorId, keywordLike, skyStatus, authorId, pageable);
 
     boolean hasNext = feeds.size() > pageable.getPageSize();
@@ -84,11 +90,45 @@ public class FeedServiceImpl implements FeedService {
     }
 
     List<FeedDto> feedDtos = feeds.stream()
-        .map(this::mapToFeedResponse)
+        .map(feed -> mapToFeedResponse(feed, currentUser))
         .collect(Collectors.toList());
 
     return new FeedDtoCursorResponse(
         feedDtos, nextCursor, nextCursor, hasNext, 0L, "createdAt", "DESCENDING");
+  }
+
+  @Override
+  @Transactional
+  public FeedDto likeFeed(Long userId, Long feedId) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new StyleMyClosetException(ErrorCode.USER_NOT_FOUND,
+            Map.of("userId", userId)));
+    Feed feed = feedRepository.findById(feedId)
+        .orElseThrow(() -> new StyleMyClosetException(ErrorCode.FEED_NOT_FOUND,
+            Map.of("feedId", feedId)));
+
+    feedLikeRepository.findByUserAndFeed(user, feed).ifPresent(like -> {
+      throw new StyleMyClosetException(ErrorCode.ALREADY_LIKED_FEED, Map.of("feedId", feedId));
+    });
+
+    FeedLike newLike = FeedLike.createFeedLike(user, feed);
+    feedLikeRepository.save(newLike);
+
+    return mapToFeedResponse(feed, user);
+  }
+
+  @Override
+  @Transactional
+  public void unlikeFeed(Long userId, Long feedId) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new StyleMyClosetException(ErrorCode.USER_NOT_FOUND,
+            Map.of("userId", userId)));
+    Feed feed = feedRepository.findById(feedId)
+        .orElseThrow(() -> new StyleMyClosetException(ErrorCode.FEED_NOT_FOUND,
+            Map.of("feedId", feedId)));
+
+    feedLikeRepository.findByUserAndFeed(user, feed)
+        .ifPresent(feedLike -> feedLikeRepository.delete(feedLike));
   }
 
   private Weather findWeatherOrNull(Long weatherId) {
@@ -100,7 +140,7 @@ public class FeedServiceImpl implements FeedService {
             Map.of("weatherId", weatherId)));
   }
 
-  private FeedDto mapToFeedResponse(Feed feed) {
+  private FeedDto mapToFeedResponse(Feed feed, User currentUser) {
     List<Cloth> clothesList = feed.getFeedClothes().stream()
         .map(FeedClothes::getClothes)
         .collect(Collectors.toList());
@@ -108,6 +148,9 @@ public class FeedServiceImpl implements FeedService {
     AuthorDto authorDto = toAuthorDto(feed.getAuthor());
     WeatherSummaryDto weatherDto = toWeatherSummaryDto(feed.getWeather());
     List<OotdItemDto> ootdItemDtos = toOotdItemDtoList(clothesList);
+
+    long likeCount = feedLikeRepository.countByFeed(feed);
+    boolean likedByMe = (currentUser != null) && feedLikeRepository.existsByUserAndFeed(currentUser, feed);
 
     return new FeedDto(
         feed.getId(),
@@ -117,9 +160,9 @@ public class FeedServiceImpl implements FeedService {
         weatherDto,
         ootdItemDtos,
         feed.getContent(),
-        0L, // TODO: 좋아요 수 계산 로직 추가 필요
+        likeCount,
         0,  // TODO: 댓글 수 계산 로직 추가 필요
-        false // TODO: 내가 좋아요 눌렀는지 확인하는 로직 추가 필요
+        likedByMe
     );
   }
 
@@ -141,6 +184,7 @@ public class FeedServiceImpl implements FeedService {
         weather.getTemperature().getMin(),
         weather.getTemperature().getMax()
     );
+
     return new WeatherSummaryDto(weather.getId(), weather.getSkyStatus(), precipitationDto, temperatureDto);
   }
 

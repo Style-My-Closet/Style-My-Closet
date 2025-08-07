@@ -11,7 +11,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,5 +47,20 @@ public class FeedController {
   ) {
     FeedDtoCursorResponse response = feedService.getFeeds(cursorId, keywordLike, skyStatusEqual, authorIdEqual, pageable);
     return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/{feedId}/like")
+  public ResponseEntity<FeedDto> likeFeed(@PathVariable Long feedId) {
+    // TODO: 실제로는 스프링 시큐리티에서 로그인한 사용자 ID를 가져와함
+    Long currentUserId = 1L;
+    FeedDto responseDto = feedService.likeFeed(currentUserId, feedId);
+    return ResponseEntity.ok(responseDto);
+  }
+
+  @DeleteMapping("/{feedId}/like")
+  public ResponseEntity<Void> unlikeFeed(@PathVariable Long feedId) {
+    Long currentUserId = 1L;
+    feedService.unlikeFeed(currentUserId, feedId);
+    return ResponseEntity.noContent().build();
   }
 }
