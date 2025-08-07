@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +33,7 @@ public class ForecastApiService {
     private final LocationRepository locationRepository;
     private final List<WeatherCategoryProcessor> processors;
 
-    public void fetchData(Location location) {
+    public Weather fetchData(Location location) {
 
         LocalDateTime now = LocalDateTime.now();
         List<String> forecastTime = DateTimeUtils.toBaseDateAndTime(now);
@@ -63,8 +64,8 @@ public class ForecastApiService {
             log.info("Weather built: {}", latestWeather);
         }
 
-        weatherRepository.save(Optional.ofNullable(latestWeather).orElseThrow(() ->
-            new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("location", location))));
-        locationRepository.save(latestWeather.getLocation());
+        locationRepository.save(Objects.requireNonNull(latestWeather).getLocation());
+        return latestWeather;
+
     }
 }
