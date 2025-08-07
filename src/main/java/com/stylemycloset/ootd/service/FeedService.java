@@ -12,4 +12,7 @@ public interface FeedService {
 
   FeedDtoCursorResponse getFeeds(Long cursorId, String keywordLike, SkyStatus skyStatus,
       Long authorId, Pageable pageable);
+
+  FeedDto likeFeed(Long userId, Long feedId); // 좋아요
+  void unlikeFeed(Long userId, Long feedId); // 좋아요 취소
 }
