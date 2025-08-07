@@ -30,7 +30,7 @@ public class SseServiceImpl implements SseService {
 
   private final ConcurrentHashMap<Long, List<SseInfo>> userEvents = new ConcurrentHashMap<>();
   private static final long DEFAULT_TIMEOUT = 30L * 60 * 1000;
-  private static final int MAX_EVENT_COUNT = 50;
+  private static final int MAX_EVENT_COUNT = 30;
   private static final int MAX_EMITTER_COUNT = 3;
   private static final String EVENT_NAME = "notifications";
 
@@ -40,7 +40,7 @@ public class SseServiceImpl implements SseService {
 
     CopyOnWriteArrayList<SseEmitter> emitters = sseRepository.findByUserId(userId);
 
-    if(emitters.size() >= MAX_EVENT_COUNT) {
+    if(emitters.size() >= MAX_EMITTER_COUNT) {
       SseEmitter removed = emitters.removeFirst();
       removed.complete();
       log.info("최대 emitter 수를 초과하여 오래된 emitter 제거됨 : userId={}, size={}", userId, emitters.size());
