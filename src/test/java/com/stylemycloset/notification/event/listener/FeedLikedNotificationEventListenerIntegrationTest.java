@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
+import com.stylemycloset.notification.TestUserFactory;
 import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.notification.event.domain.FeedLikedEvent;
@@ -15,7 +16,6 @@ import com.stylemycloset.ootd.repo.FeedRepository;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
 import com.stylemycloset.testutil.IntegrationTestSupport;
-import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import java.time.Instant;
@@ -55,12 +55,8 @@ public class FeedLikedNotificationEventListenerIntegrationTest extends Integrati
   @Test
   void handleFeedLikeEvent_sendSseMessage() throws Exception {
     // given
-    UserCreateRequest request = new UserCreateRequest("name", "test@test.email", "test");
-    UserCreateRequest request2 = new UserCreateRequest("likeUsername", "test@test.email", "test");
-    User user = new User(request);
-    User likeUser = new User(request2);
-    ReflectionTestUtils.setField(user, "id", 6L);
-    ReflectionTestUtils.setField(likeUser, "id", 66L);
+    User user = TestUserFactory.createUser("name", "test@test.email", 6L);
+    User likeUser = TestUserFactory.createUser("likeUsername", "test@test.email", 66L);
 
     Feed feed = Feed.createFeed(user, null, "피드 내용");
     ReflectionTestUtils.setField(feed, "id", 6L);

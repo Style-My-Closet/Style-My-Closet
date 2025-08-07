@@ -6,13 +6,13 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
+import com.stylemycloset.notification.TestUserFactory;
 import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.event.domain.NewClothAttributeEvent;
 import com.stylemycloset.notification.repository.NotificationRepository;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
 import com.stylemycloset.testutil.IntegrationTestSupport;
-import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import java.time.Instant;
@@ -45,19 +45,12 @@ public class NewClothAttributeNotificationEventListenerIntegrationTest extends I
   @Mock
   SseRepository sseRepository;
 
-  User createUser(String name, String email, Long id) {
-    UserCreateRequest request = new UserCreateRequest(name, email, "test");
-    User user = new User(request);
-    ReflectionTestUtils.setField(user, "id", id);
-    return user;
-  }
-
   @DisplayName("의상 속성 추가 이벤트가 호출되면 알림을 생성하고 SSE로 전송 후 로그를 띄운다")
   @Test
   void handleNewClothAttributeEvent_sendSseMessage() throws Exception {
     // given
-    User insertUser1 = createUser("insertTest1", "insertTest1@test.test", 2L);
-    User insertUser2 = createUser("insertTest2", "insertTest2@test.test", 3L);
+    User insertUser1 = TestUserFactory.createUser("insertTest1", "insertTest1@test.test", 2L);
+    User insertUser2 = TestUserFactory.createUser("insertTest2", "insertTest2@test.test", 3L);
     Set<User> users = Set.of(insertUser1, insertUser2);
 
     String now = String.valueOf(System.currentTimeMillis());

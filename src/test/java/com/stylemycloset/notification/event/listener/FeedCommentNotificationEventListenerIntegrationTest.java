@@ -6,14 +6,16 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
+import com.stylemycloset.notification.TestUserFactory;
 import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.notification.event.domain.FeedCommentEvent;
 import com.stylemycloset.notification.repository.NotificationRepository;
+import com.stylemycloset.ootd.entity.Feed;
+import com.stylemycloset.ootd.repo.FeedRepository;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
 import com.stylemycloset.testutil.IntegrationTestSupport;
-import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import java.time.Instant;
@@ -40,6 +42,9 @@ public class FeedCommentNotificationEventListenerIntegrationTest extends Integra
   @MockitoBean
   UserRepository userRepository;
 
+  @MockitoBean
+  FeedRepository feedRepository;
+
   @Autowired
   SseServiceImpl sseService;
 
@@ -50,14 +55,17 @@ public class FeedCommentNotificationEventListenerIntegrationTest extends Integra
   @Test
   void handleCommentEvent_sendSseMessage() throws Exception {
     // given
-    UserCreateRequest request = new UserCreateRequest("name", "test@test.email", "test");
-    User user = new User(request);
-    ReflectionTestUtils.setField(user, "id", 7L);
+    User user = TestUserFactory.createUser("name", "test@test.email", 7L);
+    User commentUser = TestUserFactory.createUser("commentUsername", "test@test.email", 77L);
+
+    Feed feed = Feed.createFeed(user, null, "피드 내용");
+    ReflectionTestUtils.setField(feed, "id", 7L);
 
     String now = String.valueOf(System.currentTimeMillis());
     SseEmitter emitter = sseService.connect(user.getId(), now, null);
 
-    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+    given(feedRepository.findWithUserById(feed.getId())).willReturn(Optional.of(feed));
+    given(userRepository.findById(commentUser.getId())).willReturn(Optional.of(commentUser));
     given(notificationRepository.save(any(Notification.class)))
         .willAnswer(invocation -> {
           Notification n = invocation.getArgument(0);
@@ -67,7 +75,7 @@ public class FeedCommentNotificationEventListenerIntegrationTest extends Integra
         });
     given(sseRepository.findByUserId(user.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
 
-    FeedCommentEvent event = new FeedCommentEvent(1L, "user2", "피드 좋아요 테스트", user.getId());
+    FeedCommentEvent event = new FeedCommentEvent(7L, 77L);
 
     // when
     listener.handler(event);
@@ -79,7 +87,7 @@ public class FeedCommentNotificationEventListenerIntegrationTest extends Integra
 
       Notification saved = captor.getValue();
       assertThat(saved.getReceiver()).isEqualTo(user);
-      assertThat(saved.getTitle()).isEqualTo("user2님이 댓글을 달았어요.");
+      assertThat(saved.getTitle()).isEqualTo("commentUsername님이 댓글을 달았어요.");
       assertThat(saved.getLevel()).isEqualTo(NotificationLevel.INFO);
     });
   }

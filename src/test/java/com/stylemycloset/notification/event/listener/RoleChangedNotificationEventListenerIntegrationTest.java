@@ -6,25 +6,21 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
+import com.stylemycloset.notification.TestUserFactory;
 import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.notification.event.domain.RoleChangedEvent;
 import com.stylemycloset.notification.repository.NotificationRepository;
-import com.stylemycloset.sse.dto.SseInfo;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
 import com.stylemycloset.testutil.IntegrationTestSupport;
-import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -51,33 +47,11 @@ public class RoleChangedNotificationEventListenerIntegrationTest extends Integra
   @Mock
   SseRepository sseRepository;
 
-  @BeforeEach
-  void setUp() {
-    cleanupSseService();
-  }
-
-  @AfterEach
-  void tearDown() {
-    cleanupSseService();
-  }
-
-  void cleanupSseService() {
-    @SuppressWarnings("unchecked")
-    Map<Long, List<SseInfo>> events =
-        (Map<Long, List<SseInfo>>)
-            ReflectionTestUtils.getField(sseService, "userEvents");
-    if (events != null) {
-      events.clear();
-    }
-  }
-
   @DisplayName("권한 변경 이벤트 시 알림 저장하고 SSE 전송")
   @Test
   void handler_createsAndSendsNotification() {
     // given
-    UserCreateRequest request = new UserCreateRequest("name", "test@test.email", "test");
-    User user = new User(request);
-    ReflectionTestUtils.setField(user, "id", 1L);
+    User user = TestUserFactory.createUser("name", "test@test.email", 1L);
     ReflectionTestUtils.setField(user, "role", Role.USER);
 
     String now = String.valueOf(System.currentTimeMillis());
