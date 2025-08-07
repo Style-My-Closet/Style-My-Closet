@@ -29,17 +29,21 @@ public class FeedLikedNotificationEventListener {
   @Async("eventTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handler(FeedLikedEvent event) {
-    log.info("피드 좋아요 이벤트 호출 - feedId={}, likedByUsername={}", event.feedId(), event.likedByUsername());
+    try {
+      log.info("피드 좋아요 이벤트 호출 - feedId={}, likedByUsername={}", event.feedId(),
+          event.likedByUsername());
 
-    User receiver = userRepository.findById(event.receiverId())
-        .orElseThrow(UserNotFoundException::new);
+      User receiver = userRepository.findById(event.receiverId())
+          .orElseThrow(UserNotFoundException::new);
 
-    String title = String.format(FEED_LIKED, event.likedByUsername());
-    NotificationDto notificationDto =
-        notificationService.create(receiver, title, event.feedContent(), NotificationLevel.INFO);
+      String title = String.format(FEED_LIKED, event.likedByUsername());
+      NotificationDto notificationDto =
+          notificationService.create(receiver, title, event.feedContent(), NotificationLevel.INFO);
 
-    sseService.sendNotification(notificationDto);
-    log.info("피드 좋아요 이벤트 완료 - notificationId={}", notificationDto.id());
-
+      sseService.sendNotification(notificationDto);
+      log.info("피드 좋아요 이벤트 완료 - notificationId={}", notificationDto.id());
+    } catch (Exception e) {
+      log.error("피드 좋아요 이벤트 처리 중 예외 발생 - receiverId={}", event.receiverId(), e);
+    }
   }
 }

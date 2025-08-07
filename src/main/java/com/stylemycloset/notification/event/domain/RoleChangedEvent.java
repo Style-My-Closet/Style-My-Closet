@@ -4,7 +4,7 @@ import com.stylemycloset.user.entity.Role;
 
 public record RoleChangedEvent (
     Long receiverId,
-    Role changedRole
+    Role previousRole
 ) {
 
 }

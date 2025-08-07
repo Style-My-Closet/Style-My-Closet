@@ -29,16 +29,22 @@ public class FeedCommentNotificationEventListener {
   @Async("eventTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handler(FeedCommentEvent event) {
-    log.info("피드 댓글 이벤트 호출 - feedId={}, commentAuthorUsername={}", event.feedId(), event.commentAuthorUsername());
+    try {
+      log.info("피드 댓글 이벤트 호출 - feedId={}, commentAuthorUsername={}", event.feedId(),
+          event.commentAuthorUsername());
 
-    User receiver = userRepository.findById(event.receiverId())
-        .orElseThrow(UserNotFoundException::new);
+      User receiver = userRepository.findById(event.receiverId())
+          .orElseThrow(UserNotFoundException::new);
 
-    String title = String.format(NEW_COMMENT, event.commentAuthorUsername());
-    NotificationDto notificationDto =
-        notificationService.create(receiver, title, event.commentContent(), NotificationLevel.INFO);
+      String title = String.format(NEW_COMMENT, event.commentAuthorUsername());
+      NotificationDto notificationDto =
+          notificationService.create(receiver, title, event.commentContent(),
+              NotificationLevel.INFO);
 
-    sseService.sendNotification(notificationDto);
-    log.info("피드 댓글 이벤트 완료 - notificationId={}", notificationDto.id());
+      sseService.sendNotification(notificationDto);
+      log.info("피드 댓글 이벤트 완료 - notificationId={}", notificationDto.id());
+    } catch (Exception e) {
+      log.error("피드 댓글 이벤트 처리 중 예외 발생 - receiverId={}", event.receiverId(), e);
+    }
   }
 }

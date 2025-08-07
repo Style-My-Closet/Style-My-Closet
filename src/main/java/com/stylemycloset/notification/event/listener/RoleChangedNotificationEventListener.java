@@ -30,14 +30,21 @@ public class RoleChangedNotificationEventListener {
   @Async("eventTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handler(RoleChangedEvent event) {
-    User receiver = userRepository.findById(event.receiverId())
-        .orElseThrow(UserNotFoundException::new);
-    log.info("사용자 권한 변경 이벤트 호출 - UserId={}, updatedRole={} ", receiver.getId(), receiver.getRole());
+    try {
+      User receiver = userRepository.findById(event.receiverId())
+          .orElseThrow(UserNotFoundException::new);
+      log.info("사용자 권한 변경 이벤트 호출 - UserId={}, updatedRole={} ", receiver.getId(),
+          receiver.getRole());
 
-    String content = String.format(ROLE_CHANGED_CONTENT, receiver.getRole(), event.changedRole());
-    NotificationDto notificationDto = notificationService.create(receiver, ROLE_CHANGED, content, NotificationLevel.INFO);
+      String content = String.format(ROLE_CHANGED_CONTENT, event.previousRole(),
+          receiver.getRole());
+      NotificationDto notificationDto = notificationService.create(receiver, ROLE_CHANGED, content,
+          NotificationLevel.INFO);
 
-    sseService.sendNotification(notificationDto);
-    log.info("사용자 권한 변경 이벤트 완료 - notificationId={}", notificationDto.id());
+      sseService.sendNotification(notificationDto);
+      log.info("사용자 권한 변경 이벤트 완료 - notificationId={}", notificationDto.id());
+    } catch (Exception e) {
+      log.error("사용자 권한 이벤트 처리 중 예외 발생 - receiverId={}", event.receiverId(), e);
+    }
   }
 }

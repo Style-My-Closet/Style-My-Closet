@@ -31,17 +31,22 @@ public class NewClothAttributeNotificationEventListener {
   @Async("eventTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handler(NewClothAttributeEvent event) {
-    Set<User > receivers = userRepository.findByLockedFalseAndDeleteAtIsNull();
-    log.info("의상 속성 추가 이벤트 호출 - ClothingAttributeId={}, Receiver Size={}",
-        event.clothAttributeId(), receivers.size());
+    try {
+      Set<User> receivers = userRepository.findByLockedFalseAndDeleteAtIsNull();
+      log.info("의상 속성 추가 이벤트 호출 - ClothingAttributeId={}, Receiver Size={}",
+          event.clothAttributeId(), receivers.size());
 
-    String content = String.format(NEW_CLOTH_ATTRIBUTE_CONTENT, event.attributeName());
-    List<NotificationDto> notificationDtoList =
-        notificationService.createAll(receivers, NEW_CLOTH_ATTRIBUTE, content, NotificationLevel.INFO);
+      String content = String.format(NEW_CLOTH_ATTRIBUTE_CONTENT, event.attributeName());
+      List<NotificationDto> notificationDtoList =
+          notificationService.createAll(receivers, NEW_CLOTH_ATTRIBUTE, content,
+              NotificationLevel.INFO);
 
-    for(NotificationDto notificationDto : notificationDtoList){
-      sseService.sendNotification(notificationDto);
+      for (NotificationDto notificationDto : notificationDtoList) {
+        sseService.sendNotification(notificationDto);
+      }
+      log.info("의상 속성 추가 이벤트 완료 - notification Size={}", notificationDtoList.size());
+    } catch (Exception e) {
+      log.error("피드 좋아요 이벤트 처리 중 예외 발생 - clothAttributeId={}", event.clothAttributeId(), e);
     }
-    log.info("의상 속성 추가 이벤트 완료 - notification Size={}", notificationDtoList.size());
   }
 }

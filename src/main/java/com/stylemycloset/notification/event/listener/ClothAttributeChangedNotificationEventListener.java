@@ -31,17 +31,22 @@ public class ClothAttributeChangedNotificationEventListener  {
   @Async("eventTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handler(ClothAttributeChangedEvent event) {
-    Set<User> receivers = userRepository.findByLockedFalseAndDeleteAtIsNull();
-    log.info("의상 속성 변경 이벤트 호출 - ClothingAttributeId={}, Receiver Size={}",
-        event.clothAttributeId(), receivers.size());
+    try {
+      Set<User> receivers = userRepository.findByLockedFalseAndDeleteAtIsNull();
+      log.info("의상 속성 변경 이벤트 호출 - ClothingAttributeId={}, Receiver Size={}",
+          event.clothAttributeId(), receivers.size());
 
-    String content = String.format(CLOTH_ATTRIBUTE_CHANGED_CONTENT, event.changedAttributeName());
-    List<NotificationDto> notificationDtoList =
-        notificationService.createAll(receivers, CLOTH_ATTRIBUTE_CHANGED, content, NotificationLevel.INFO);
+      String content = String.format(CLOTH_ATTRIBUTE_CHANGED_CONTENT, event.changedAttributeName());
+      List<NotificationDto> notificationDtoList =
+          notificationService.createAll(receivers, CLOTH_ATTRIBUTE_CHANGED, content,
+              NotificationLevel.INFO);
 
-    for(NotificationDto notificationDto : notificationDtoList){
-      sseService.sendNotification(notificationDto);
+      for (NotificationDto notificationDto : notificationDtoList) {
+        sseService.sendNotification(notificationDto);
+      }
+      log.info("의상 속성 변경 이벤트 완료 - notification Size={}", notificationDtoList.size());
+    } catch (Exception e) {
+      log.error("의상 속성 변경 이벤트 처리 중 예외 발생 - clothingAttributeId={}", event.clothAttributeId(), e);
     }
-    log.info("의상 속성 변경 이벤트 완료 - notification Size={}", notificationDtoList.size());
   }
 }
