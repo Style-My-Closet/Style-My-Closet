@@ -46,7 +46,7 @@ public class NewClothAttributeNotificationEventListener {
       }
       log.info("의상 속성 추가 이벤트 완료 - notification Size={}", notificationDtoList.size());
     } catch (Exception e) {
-      log.error("피드 좋아요 이벤트 처리 중 예외 발생 - clothAttributeId={}", event.clothAttributeId(), e);
+      log.error("의상 속성 추가 이벤트 처리 중 예외 발생 - clothAttributeId={}", event.clothAttributeId(), e);
     }
   }
 }
