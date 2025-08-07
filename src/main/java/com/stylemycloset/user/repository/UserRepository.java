@@ -1,10 +1,9 @@
 package com.stylemycloset.user.repository;
 
 import com.stylemycloset.user.entity.User;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long>, UserRepositoryCustom {
 
@@ -12,4 +11,6 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
 
 
   Set<User> findByLockedFalseAndDeleteAtIsNull();
+
+  Optional<User> findByEmail(String email);
 }

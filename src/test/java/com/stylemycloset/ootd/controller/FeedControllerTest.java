@@ -71,14 +71,13 @@ public class FeedControllerTest extends IntegrationTestSupport {
 
     testUser = new User();
     ReflectionTestUtils.setField(testUser, "name", "test");
-    ReflectionTestUtils.setField(testUser, "email", "test@test.com");
+    ReflectionTestUtils.setField(testUser, "email", "user");
     ReflectionTestUtils.setField(testUser, "password", "password");
     ReflectionTestUtils.setField(testUser, "role", Role.USER);
     ReflectionTestUtils.setField(testUser, "locked", false);
     userRepository.save(testUser);
 
     Closet closet = new Closet(testUser);
-    ReflectionTestUtils.setField(closet, "user", testUser);
     closetRepository.save(closet);
 
     ClothingCategory category = new ClothingCategory(ClothingCategoryType.TOP);
