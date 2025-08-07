@@ -10,6 +10,8 @@ import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.notification.event.domain.FeedLikedEvent;
 import com.stylemycloset.notification.repository.NotificationRepository;
+import com.stylemycloset.ootd.entity.Feed;
+import com.stylemycloset.ootd.repo.FeedRepository;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
 import com.stylemycloset.testutil.IntegrationTestSupport;
@@ -40,6 +42,9 @@ public class FeedLikedNotificationEventListenerIntegrationTest extends Integrati
   @MockitoBean
   UserRepository userRepository;
 
+  @MockitoBean
+  FeedRepository feedRepository;
+
   @Autowired
   SseServiceImpl sseService;
 
@@ -51,13 +56,20 @@ public class FeedLikedNotificationEventListenerIntegrationTest extends Integrati
   void handleFeedLikeEvent_sendSseMessage() throws Exception {
     // given
     UserCreateRequest request = new UserCreateRequest("name", "test@test.email", "test");
+    UserCreateRequest request2 = new UserCreateRequest("likeUsername", "test@test.email", "test");
     User user = new User(request);
+    User likeUser = new User(request2);
     ReflectionTestUtils.setField(user, "id", 6L);
+    ReflectionTestUtils.setField(likeUser, "id", 66L);
+
+    Feed feed = Feed.createFeed(user, null, "피드 내용");
+    ReflectionTestUtils.setField(feed, "id", 6L);
 
     String now = String.valueOf(System.currentTimeMillis());
     SseEmitter emitter = sseService.connect(user.getId(), now, null);
 
-    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+    given(feedRepository.findWithUserById(feed.getId())).willReturn(Optional.of(feed));
+    given(userRepository.findById(likeUser.getId())).willReturn(Optional.of(likeUser));
     given(notificationRepository.save(any(Notification.class)))
         .willAnswer(invocation -> {
           Notification n = invocation.getArgument(0);
@@ -67,7 +79,7 @@ public class FeedLikedNotificationEventListenerIntegrationTest extends Integrati
         });
     given(sseRepository.findByUserId(user.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
 
-    FeedLikedEvent event = new FeedLikedEvent(1L, "피드 좋아요 테스트", user.getId(), "user2");
+    FeedLikedEvent event = new FeedLikedEvent(6L, 66L);
 
     // when
     listener.handler(event);
@@ -79,7 +91,7 @@ public class FeedLikedNotificationEventListenerIntegrationTest extends Integrati
 
       Notification saved = captor.getValue();
       assertThat(saved.getReceiver()).isEqualTo(user);
-      assertThat(saved.getTitle()).isEqualTo("user2님이 내 피드를 좋아합니다.");
+      assertThat(saved.getTitle()).isEqualTo("likeUsername님이 내 피드를 좋아합니다.");
       assertThat(saved.getLevel()).isEqualTo(NotificationLevel.INFO);
     });
   }
