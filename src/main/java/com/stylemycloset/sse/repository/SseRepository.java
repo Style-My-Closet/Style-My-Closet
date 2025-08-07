@@ -33,7 +33,7 @@ public class SseRepository {
         ));
   }
 
-  public List<SseEmitter> findByUserId(Long userId) {
-    return userEmitters.containsKey(userId) ? userEmitters.get(userId) : Collections.emptyList();
+  public CopyOnWriteArrayList<SseEmitter> findByUserId(Long userId) {
+    return userEmitters.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>());
   }
 }

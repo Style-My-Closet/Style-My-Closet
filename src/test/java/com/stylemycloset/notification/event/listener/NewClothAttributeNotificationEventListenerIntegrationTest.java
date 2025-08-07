@@ -18,6 +18,7 @@ import com.stylemycloset.user.repository.UserRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -77,8 +78,8 @@ public class NewClothAttributeNotificationEventListenerIntegrationTest extends I
           }
           return notifications;
         });
-    given(sseRepository.findByUserId(insertUser1.getId())).willReturn(List.of(emitter));
-    given(sseRepository.findByUserId(insertUser2.getId())).willReturn(List.of(emitter2));
+    given(sseRepository.findByUserId(insertUser1.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
+    given(sseRepository.findByUserId(insertUser2.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter2)));
 
     NewClothAttributeEvent event = new NewClothAttributeEvent(1L, "속성 추가");
 

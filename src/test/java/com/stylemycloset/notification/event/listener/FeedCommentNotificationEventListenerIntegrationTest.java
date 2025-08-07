@@ -19,6 +19,7 @@ import com.stylemycloset.user.repository.UserRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -64,7 +65,7 @@ public class FeedCommentNotificationEventListenerIntegrationTest extends Integra
           ReflectionTestUtils.setField(n, "createdAt", Instant.now());
           return n;
         });
-    given(sseRepository.findByUserId(user.getId())).willReturn(List.of(emitter));
+    given(sseRepository.findByUserId(user.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
 
     FeedCommentEvent event = new FeedCommentEvent(1L, "user2", "피드 좋아요 테스트", user.getId());
 
