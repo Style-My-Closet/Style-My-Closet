@@ -133,7 +133,7 @@ class ForecastApiServiceTest {
     @Test
     void fetchData_shouldSaveWeatherAndLocation() {
         // when
-        forecastApiService.fetchData(baseDate, baseTime, location);
+        forecastApiService.fetchData(location);
 
         // then
         verify(weatherRepository).save(any(Weather.class));

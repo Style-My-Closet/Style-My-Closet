@@ -8,9 +8,11 @@ import com.stylemycloset.location.LocationRepository;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.processor.WeatherCategoryProcessor;
 import com.stylemycloset.weather.repository.WeatherRepository;
+import com.stylemycloset.weather.util.DateTimeUtils;
 import com.stylemycloset.weather.util.WeatherApiFetcher;
 import com.stylemycloset.weather.util.WeatherBuilderHelper;
 import com.stylemycloset.weather.util.WeatherItemDeduplicator;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +32,13 @@ public class ForecastApiService {
     private final LocationRepository locationRepository;
     private final List<WeatherCategoryProcessor> processors;
 
-    public void fetchData(String baseDate, String baseTime, Location location) {
+    public void fetchData(Location location) {
+
+        LocalDateTime now = LocalDateTime.now();
+        List<String> forecastTime = DateTimeUtils.toBaseDateAndTime(now);
+        String baseDate = forecastTime.get(0);
+        String baseTime = forecastTime.get(1);
+
         List<JsonNode> rawItems = apiFetcher.fetchAllPages(baseDate, baseTime, location);
         List<JsonNode> deduplicatedItems = deduplicator.deduplicate(rawItems);
         Map<String, WeatherBuilderHelper> builders = new HashMap<>();
