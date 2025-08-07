@@ -1,5 +1,6 @@
 package com.stylemycloset.common.config;
 
+import com.stylemycloset.weather.batch.WeatherFetchTasklet;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
@@ -22,23 +23,23 @@ public class BatchConfig {
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
+    private final WeatherFetchTasklet weatherFetchTasklet;
 
     @Bean
-    public Job exampleJob() {
-        return new JobBuilder("exampleJob", jobRepository)
-            .start(exampleStep())
+    public Job weatherJob(JobRepository jobRepository, Step weatherFetchStep) {
+        return new JobBuilder("weatherJob", jobRepository)
+            .start(weatherFetchStep)
             .build();
     }
 
+
     @Bean
-    public Step exampleStep() {
-        return new StepBuilder("exampleStep", jobRepository)
-            .tasklet((contribution, chunkContext) -> {
-                System.out.println("Hello, Spring Batch 5");
-                return RepeatStatus.FINISHED;
-            }, transactionManager)
+    public Step weatherFetchStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("weatherFetchStep", jobRepository)
+            .tasklet(weatherFetchTasklet, transactionManager)
             .build();
     }
+
 
     @Bean
     public ItemReader<String> simpleReader() {

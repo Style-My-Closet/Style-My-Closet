@@ -24,6 +24,7 @@ public class WeatherController {
         @RequestParam double latitude,
         @RequestParam double longitude
     ) {
+        weatherService.checkWeather(latitude, longitude);
         List<WeatherDto> weathers = weatherService.getWeatherByCoordinates(latitude, longitude);
         return ResponseEntity.ok(weathers);
     }
