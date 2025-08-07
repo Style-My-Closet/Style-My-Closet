@@ -25,6 +25,7 @@ spring:
     init:
       mode: never
 
+
 logging:
   level:
     root: info

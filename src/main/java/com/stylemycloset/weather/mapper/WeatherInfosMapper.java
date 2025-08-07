@@ -16,7 +16,7 @@ public class WeatherInfosMapper {
     public static PrecipitationDto toDto(Precipitation entity) {
 
         return new PrecipitationDto(
-            entity.getType(),
+            entity.getAlertType(),
             entity.getAmount(),
             entity.getProbability()
         );

@@ -2,6 +2,7 @@ package com.stylemycloset.weather.batch;
 
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
+import com.stylemycloset.location.Location;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import com.stylemycloset.weather.service.ForecastApiService;
@@ -29,7 +30,12 @@ public class WeatherFetchTasklet implements Tasklet {
         double lat = 37.5665;    // 예시 좌표 (서울)
         double lon = 126.9780;
 
-        Weather weather = forecastApiService.fetchData(kakaoApiService.createLocation(lon,lat));
+        Location location = kakaoApiService.createLocation(lon,lat);
+
+        Optional.ofNullable(location)
+            .orElseThrow(() -> new StyleMyClosetException(ErrorCode.ERROR_CODE,Map.of("location 없음","null")));
+        Weather weather = forecastApiService.fetchData
+            (location);
 
         weatherRepository.save(Optional.ofNullable(weather).orElseThrow(() ->
             new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("weather", "latestWeather"))));
