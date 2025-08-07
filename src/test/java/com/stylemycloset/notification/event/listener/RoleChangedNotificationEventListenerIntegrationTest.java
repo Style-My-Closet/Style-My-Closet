@@ -21,6 +21,7 @@ import com.stylemycloset.user.repository.UserRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -81,6 +82,7 @@ public class RoleChangedNotificationEventListenerIntegrationTest extends Integra
     String now = String.valueOf(System.currentTimeMillis());
     SseEmitter emitter = sseService.connect(user.getId(), now, null);
 
+    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
     given(notificationRepository.save(any(Notification.class)))
         .willAnswer(invocation -> {
           Notification n = invocation.getArgument(0);
@@ -90,7 +92,7 @@ public class RoleChangedNotificationEventListenerIntegrationTest extends Integra
         });
     given(sseRepository.findByUserId(user.getId())).willReturn(List.of(emitter));
 
-    RoleChangedEvent roleChangedEvent = new RoleChangedEvent(user, Role.ADMIN);
+    RoleChangedEvent roleChangedEvent = new RoleChangedEvent(user.getId(), Role.ADMIN);
 
     // when
     listener.handler(roleChangedEvent);

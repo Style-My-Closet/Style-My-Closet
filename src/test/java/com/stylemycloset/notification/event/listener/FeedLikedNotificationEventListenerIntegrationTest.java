@@ -18,6 +18,7 @@ import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -55,6 +56,7 @@ public class FeedLikedNotificationEventListenerIntegrationTest extends Integrati
     String now = String.valueOf(System.currentTimeMillis());
     SseEmitter emitter = sseService.connect(user.getId(), now, null);
 
+    given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
     given(notificationRepository.save(any(Notification.class)))
         .willAnswer(invocation -> {
           Notification n = invocation.getArgument(0);
@@ -64,7 +66,7 @@ public class FeedLikedNotificationEventListenerIntegrationTest extends Integrati
         });
     given(sseRepository.findByUserId(user.getId())).willReturn(List.of(emitter));
 
-    FeedLikedEvent event = new FeedLikedEvent(1L, "피드 좋아요 테스트", user, "user2");
+    FeedLikedEvent event = new FeedLikedEvent(1L, "피드 좋아요 테스트", user.getId(), "user2");
 
     // when
     listener.handler(event);
