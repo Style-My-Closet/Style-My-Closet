@@ -11,14 +11,11 @@ import com.stylemycloset.testutil.IntegrationTestSupport;
 import java.io.IOException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-@ExtendWith(MockitoExtension.class)
 public class SseSenderUnitTest extends IntegrationTestSupport {
   @Autowired
   SseSender sseSender;
@@ -45,7 +42,7 @@ public class SseSenderUnitTest extends IntegrationTestSupport {
     await().untilAsserted(() -> verify(emitter).send(any(SseEmitter.SseEventBuilder.class)));
   }
 
-  @DisplayName("sendToClient가 실패하면 예외를 발생시키고 delete()를 호출한다.")
+  @DisplayName("sendToClient가 IOException으로 실패하면 재시도 후 delete()를 호출한다")
   @Test
   void sendToClientAsync_ioException() throws Exception {
     // given

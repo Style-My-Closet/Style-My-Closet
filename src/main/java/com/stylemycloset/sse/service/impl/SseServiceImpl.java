@@ -2,6 +2,7 @@ package com.stylemycloset.sse.service.impl;
 
 import com.stylemycloset.notification.dto.NotificationDto;
 import com.stylemycloset.sse.dto.SseInfo;
+import com.stylemycloset.sse.exception.SseSendFailureException;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.SseSender;
 import com.stylemycloset.sse.service.SseService;
@@ -12,6 +13,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -64,7 +66,7 @@ public class SseServiceImpl implements SseService {
   }
 
   @Retryable(
-      retryFor = IOException.class,
+      retryFor = SseSendFailureException.class,
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000, multiplier = 2)
   )
@@ -74,11 +76,16 @@ public class SseServiceImpl implements SseService {
           .id(eventId)
           .name(eventName)
           .data(data));
-      log.debug("[{}]의 {} SSE 이벤트 수신 완료 (eventId: {})", userId, eventName, eventId);
+      log.debug("[{}]의 {} 비동기 SSE 이벤트 수신 완료 (eventId: {})", userId, eventName, eventId);
     } catch (IOException e){
-      log.warn("[{}]의 {} SSE 이벤트 실패 (eventId: {})", userId, eventName, eventId, e);
-      sseRepository.delete(userId, emitter);
+      throw new SseSendFailureException(userId, eventId);
     }
+  }
+
+  @Recover
+  public void recover(SseSendFailureException e, Long userId, SseEmitter emitter, String eventId, String eventName, Object data) {
+    log.warn("[{}]의 {} SSE 이벤트 재시도 모두 실패 (eventId: {})", userId, eventName, eventId, e);
+    sseRepository.delete(userId, emitter);
   }
 
   @Override
