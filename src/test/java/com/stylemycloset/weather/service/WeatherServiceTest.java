@@ -19,6 +19,7 @@ import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.entity.Weather.AlertType;
 import com.stylemycloset.weather.entity.WindSpeed;
 import com.stylemycloset.weather.mapper.LocationMapper;
+import com.stylemycloset.weather.mapper.WeatherInfosMapper;
 import com.stylemycloset.weather.mapper.WeatherMapper;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import java.time.Instant;
@@ -61,7 +62,7 @@ public class WeatherServiceTest {
     void testGetWeatherByCoordinates() {
         // given
         Humidity humidity = new Humidity(65.0, 3.0);
-        Precipitation precipitation = new Precipitation("RAIN", 2.0, 70.0);
+        Precipitation precipitation = new Precipitation(AlertType.RAIN, 2.0, 70.0);
         Temperature temperature = new Temperature(23.0, -1.0, 20.0, 25.0);
         WindSpeed windSpeed = new WindSpeed(5.5, 1.2);
 
@@ -94,18 +95,18 @@ public class WeatherServiceTest {
             weather.getForecastAt(),
             weather.getLocation(),
             weather.getSkyStatus(),
-            weather.getPrecipitation(),
-            weather.getHumidity(),
-            weather.getTemperature(),
-            weather.getWindSpeed()
+            WeatherInfosMapper.toDto(weather.getPrecipitation()) ,
+            WeatherInfosMapper.toDto(weather.getHumidity()) ,
+            WeatherInfosMapper.toDto(weather.getTemperature()) ,
+            WeatherInfosMapper.toDto(weather.getWindSpeed())
         ));
 
         // when
         List<WeatherDto> result = weatherService.getWeatherByCoordinates(37.5665, 126.9780);
         // then
         assertEquals(1, result.size());
-        assertEquals(23.0, result.get(0).temperature().getCurrent());
-        assertEquals("RAIN", result.get(0).precipitation().getType());
+        assertEquals(23.0, result.get(0).temperature().current());
+        assertEquals("RAIN", result.get(0).precipitation().type());
     }
 
     @Test
