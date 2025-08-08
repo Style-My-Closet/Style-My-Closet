@@ -80,6 +80,7 @@ dependencies {
     testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
 
     implementation 'org.springframework.boot:spring-boot-starter-batch'
+    runtimeOnly 'org.postgresql:postgresql'
 }
 
 test {

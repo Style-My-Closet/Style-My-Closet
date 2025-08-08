@@ -29,7 +29,11 @@ public class Location extends BaseTimeEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "locations_seq_gen")
-  @SequenceGenerator(name = "locations_seq_gen", sequenceName = "locations_id_seq", allocationSize = 1)
+  @SequenceGenerator(
+      name = "locations_seq_gen",
+      sequenceName = "locations_id_seq", // 스키마 명까지 명시
+      allocationSize = 1
+  )
   private Long id;
 
   @Column(nullable = false)

@@ -1,18 +1,24 @@
 package com.stylemycloset.weather.processor;
 
 import com.stylemycloset.weather.entity.Temperature;
+import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import com.stylemycloset.weather.util.WeatherBuilderHelperContext;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class TmpProcessor implements WeatherCategoryProcessor {
 
     private static final Set<String> SUPPORTED = Set.of("TMP", "TMN", "TMX");
-    WeatherRepository repository;
+    private final WeatherRepository repository;
 
     @Override
     public boolean supports(String category) {
@@ -29,11 +35,22 @@ public class TmpProcessor implements WeatherCategoryProcessor {
 
 
         // 기존 값 유지, 해당 위치에만 값을 채운 Temperature 생성
-        double current = oldTemp.getCurrent();
-        Double yesterday =  repository.findWeathersByForecastedAtYesterday
-            (startOfYesterday,endOfYesterday).getFirst().getTemperature().getCurrent();
-        Double min = oldTemp.getMin();
-        Double max = oldTemp.getMax();
+        double current =0.0;
+
+        List<Weather> weathers = repository.findWeathersByForecastedAtYesterday(startOfYesterday, endOfYesterday);
+
+
+        double yesterday;
+        if (weathers.isEmpty()) {
+            yesterday = 0;
+        } else {
+            // 예시: weathers에서 어떤 값을 계산
+            // (실제 계산 로직에 맞게 수정하세요)
+            yesterday = weathers.getFirst().getTemperature().getCurrent();
+        }
+
+        double min = 0.0;
+        double max = 0.0;
 
         switch (category) {
             case "TMP" -> current = parsedValue;
