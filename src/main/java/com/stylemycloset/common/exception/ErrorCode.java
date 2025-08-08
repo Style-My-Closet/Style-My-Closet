@@ -1,7 +1,6 @@
 package com.stylemycloset.common.exception;
 
 import lombok.Getter;
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties.Http;
 import org.springframework.http.HttpStatus;
 
 @Getter
@@ -20,7 +19,10 @@ public enum ErrorCode {
   CLOTHES_NOT_FOUND("일부 의상 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
   // Weather
-  WEATHER_NOT_FOUND("날씨 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+  WEATHER_NOT_FOUND("날씨 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
+  // Sse
+  SSE_SEND_FAILURE("SSE 전송에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
   private final String message;
   private final HttpStatus httpStatus;
