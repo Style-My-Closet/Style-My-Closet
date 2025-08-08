@@ -80,7 +80,7 @@ public class SseServiceImpl implements SseService {
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000, multiplier = 2)
   )
-  private void sendToClient(Long userId, SseEmitter emitter, String eventId, String eventName, Object data) {
+  public void sendToClient(Long userId, SseEmitter emitter, String eventId, String eventName, Object data) {
     try{
       emitter.send(SseEmitter.event()
           .id(eventId)
