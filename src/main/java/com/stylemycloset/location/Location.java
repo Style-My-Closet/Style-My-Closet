@@ -2,6 +2,7 @@ package com.stylemycloset.location;
 
 
 import com.stylemycloset.common.entity.BaseTimeEntity;
+import com.stylemycloset.common.entity.CreatedAtEntity;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -42,6 +43,8 @@ public class Location extends BaseTimeEntity {
 
   @Column(nullable = false)
   private Integer y;
+
+
 
   @Type(value = JsonType.class)
   @Column(name = "location_names", columnDefinition = "json", nullable = false)
