@@ -6,5 +6,5 @@ public interface SseService {
 
   SseEmitter connect(Long userId, String eventId, String lastEventId);
 
-  void sendWeatherAlert(Long weatherId, String message);
+
 }

@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class WeatherAlertEventListener {
-    private final SseService sseService;
+    //private final SseService sseService;
 
 
     @EventListener
     public void onWeatherAlert(WeatherAlertEvent event) {
-        sseService.sendWeatherAlert(event.weatherId(), event.message());
+        //sseService.sendWeatherAlert(event.weatherId(), event.message());
     }
 }

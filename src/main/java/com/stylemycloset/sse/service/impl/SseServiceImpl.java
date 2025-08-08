@@ -97,23 +97,6 @@ public class SseServiceImpl implements SseService {
   }
 
 
-  @Override
-  public void sendWeatherAlert(Long weatherId, String message) {
-    List<SseEmitter> emitters = sseRepository.get(weatherId);
-    if (emitters == null || emitters.isEmpty()) return;
 
-    long eventId = eventIdSequence.incrementAndGet();
-
-    for (SseEmitter emitter : emitters) {
-      Long userId = sseRepository.getUserIdByEmitter(emitter).orElseThrow(
-          ()->new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("userId","userId"))
-      );
-
-      SseInfo info = new SseInfo(eventId, "weather-alert", message, System.currentTimeMillis());
-      userEvents.computeIfAbsent(userId, id -> new CopyOnWriteArrayList<>()).add(info);
-
-      sendToClient(userId, emitter, String.valueOf(eventId), info.name(), info.data());
-    }
-  }
 
 }

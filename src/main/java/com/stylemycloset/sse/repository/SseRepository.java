@@ -35,9 +35,6 @@ public class SseRepository {
         ));
   }
 
-  public List<SseEmitter> get(Long weatherId) {
-    return weatherEmitters.getOrDefault(weatherId, new CopyOnWriteArrayList<>());
-  }
 
   public Optional<Long> getUserIdByEmitter(SseEmitter emitter) {
     return userEmitters.entrySet().stream()
