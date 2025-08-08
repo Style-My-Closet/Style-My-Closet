@@ -75,7 +75,7 @@ public class WeatherServiceImpl implements WeatherService {
             }
 
             String message = messageBuilder.toString().trim();
-            eventPublisher.publishEvent(new WeatherAlertEvent(data.getId(), message));
+            //eventPublisher.publishEvent(new WeatherAlertEvent(data.getId(), message));
         }
     }
 
