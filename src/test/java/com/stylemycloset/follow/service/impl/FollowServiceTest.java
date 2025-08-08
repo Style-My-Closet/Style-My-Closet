@@ -9,7 +9,9 @@ import com.stylemycloset.follow.dto.request.SearchFollowersCondition;
 import com.stylemycloset.follow.dto.request.SearchFollowingsCondition;
 import com.stylemycloset.follow.entity.Follow;
 import com.stylemycloset.follow.entity.QFollow;
+import com.stylemycloset.follow.exception.ActiveFollowNotFoundException;
 import com.stylemycloset.follow.exception.FollowAlreadyExist;
+import com.stylemycloset.follow.exception.FollowNotFoundException;
 import com.stylemycloset.follow.exception.FollowSelfForbiddenException;
 import com.stylemycloset.follow.repository.FollowRepository;
 import com.stylemycloset.follow.service.FollowService;
@@ -240,9 +242,69 @@ class FollowServiceTest extends IntegrationTestSupport {
     });
   }
 
+  @DisplayName("팔로우 관계를 소프트 삭제하면, 삭제 상태로 표시되고 활성 상태 조회에서 제외된다")
   @Test
-  void delete() {
+  void softDelete_marksDeleted_and_excludedFromActiveSearch() {
+    // given
+    User followee = userRepository.save(new User("followee", "e"));
+    User follower = userRepository.save(new User("follower", "f"));
+    Follow follow = followRepository.save(new Follow(followee, follower));
 
+    // when
+    followService.softDelete(follow.getId());
+
+    // then
+    SoftAssertions.assertSoftly(softly -> {
+      softly.assertThat(followRepository.findById(follow.getId()))
+          .isPresent()
+          .get()
+          .satisfies(f -> {
+            softly.assertThat(f.isSoftDeleted()).isTrue();
+            softly.assertThat(f.getDeletedAt()).isNotNull();
+          });
+      softly.assertThat(followRepository.existsActiveByFolloweeIdAndFollowerId(followee.getId(),
+          follower.getId())).isFalse();
+    });
+  }
+
+  @DisplayName("이미 소프트 삭제된 팔로우 관계를 다시 소프트 삭제하면, 활성 관계를 찾지 못해 예외가 발생한다")
+  @Test
+  void softDelete_whenAlreadyDeleted_throwsActiveFollowNotFound() {
+    // given
+    User followee = userRepository.save(new User("followee", "e"));
+    User follower = userRepository.save(new User("follower", "f"));
+    Follow follow = followRepository.save(new Follow(followee, follower));
+    followService.softDelete(follow.getId());
+
+    // when & then
+    Assertions.assertThatThrownBy(() -> followService.softDelete(follow.getId()))
+        .isInstanceOf(ActiveFollowNotFoundException.class);
+  }
+
+  @DisplayName("하드 삭제를 수행하면, 해당 팔로우 엔티티는 완전히 제거된다")
+  @Test
+  void hardDelete_removesRow() {
+    // given
+    User followee = userRepository.save(new User("followee", "e"));
+    User follower = userRepository.save(new User("follower", "f"));
+    Follow follow = followRepository.save(new Follow(followee, follower));
+
+    // when
+    followService.hardDelete(follow.getId());
+
+    // then
+    Assertions.assertThat(followRepository.findById(follow.getId())).isEmpty();
+  }
+
+  @DisplayName("존재하지 않는 팔로우 ID로 하드 삭제를 시도하면, 존재 검증에 실패해 예외가 발생한다")
+  @Test
+  void hardDelete_whenNotExist_throwsFollowNotFound() {
+    // given
+    long notExistsId = Long.MAX_VALUE;
+
+    // when & then
+    Assertions.assertThatThrownBy(() -> followService.hardDelete(notExistsId))
+        .isInstanceOf(FollowNotFoundException.class);
   }
 
 }

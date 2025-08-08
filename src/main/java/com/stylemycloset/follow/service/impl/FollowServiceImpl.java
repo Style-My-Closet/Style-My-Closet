@@ -7,16 +7,16 @@ import com.stylemycloset.follow.dto.request.FollowCreateRequest;
 import com.stylemycloset.follow.dto.request.SearchFollowersCondition;
 import com.stylemycloset.follow.dto.request.SearchFollowingsCondition;
 import com.stylemycloset.follow.entity.Follow;
+import com.stylemycloset.follow.exception.ActiveFollowNotFoundException;
 import com.stylemycloset.follow.exception.FollowAlreadyExist;
+import com.stylemycloset.follow.exception.FollowNotFoundException;
 import com.stylemycloset.follow.exception.FollowSelfForbiddenException;
 import com.stylemycloset.follow.mapper.FollowMapper;
 import com.stylemycloset.follow.repository.FollowRepository;
 import com.stylemycloset.follow.service.FollowService;
 import com.stylemycloset.follow.service.UserRepository;
 import com.stylemycloset.user.entity.User;
-
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -109,11 +109,25 @@ public class FollowServiceImpl implements FollowService {
   @Transactional
   @Override
   public void softDelete(Long followId) {
+    Follow follow = followRepository.findActiveById(followId)
+        .orElseThrow(() -> new ActiveFollowNotFoundException(Map.of()));
+
+    follow.softDelete();
+    followRepository.save(follow);
   }
 
   @Transactional
   @Override
   public void hardDelete(Long followId) {
+    validateFollowExist(followId);
+    followRepository.deleteById(followId);
+  }
+
+  private void validateFollowExist(Long followId) {
+    if (followRepository.existsById(followId)) {
+      return;
+    }
+    throw new FollowNotFoundException(Map.of());
   }
 
   private void validateSelfFollow(Long followeeId, Long followerId) {

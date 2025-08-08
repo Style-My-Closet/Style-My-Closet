@@ -11,12 +11,12 @@ import org.springframework.stereotype.Repository;
 public interface FollowRepository extends JpaRepository<Follow, Long>, FollowRepositoryCustom {
 
   @Query("""
-    SELECT f
-    FROM Follow f
-    WHERE f.followee.id = :followeeId
+      SELECT f
+      FROM Follow f
+      WHERE f.followee.id = :followeeId
       AND f.follower.id = :followerId
       AND f.deletedAt IS NOT NULL
-""")
+      """)
   Optional<Follow> findSoftDeletedByFolloweeIdAndFollowerId(Long followeeId, Long followerId);
 
   @Query("""
@@ -50,7 +50,15 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, FollowRep
       WHERE f.followee.id = :followeeId
       AND f.follower.id = :followerId
       AND f.deletedAt IS NULL
-           """)
+      """)
   boolean existsActiveByFolloweeIdAndFollowerId(Long followeeId, Long followerId);
+
+  @Query("""
+      SELECT f 
+      FROM  Follow f
+      WHERE f.id = :followId
+      AND f.deletedAt IS NULL
+      """)
+  Optional<Follow> findActiveById(Long followId);
 
 }
