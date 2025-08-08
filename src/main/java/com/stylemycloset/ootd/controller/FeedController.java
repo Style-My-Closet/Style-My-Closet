@@ -4,6 +4,7 @@ import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
 import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
 import com.stylemycloset.ootd.dto.FeedSearchRequest;
+import com.stylemycloset.ootd.dto.FeedUpdateRequest;
 import com.stylemycloset.ootd.service.FeedService;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -64,5 +66,15 @@ public class FeedController {
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     feedService.toggleLike(user.getId(), feedId);
     return ResponseEntity.noContent().build();
+  }
+
+  @PatchMapping("/{feedId}")
+  public ResponseEntity<FeedDto> updateFeed(@PathVariable Long feedId, @Valid @RequestBody FeedUpdateRequest request, Authentication authentication) {
+    User user = userRepository.findByEmail(authentication.getName())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+    FeedDto responseDto = feedService.updateFeed(user.getId(), feedId, request);
+
+    return ResponseEntity.ok(responseDto);
   }
 }
