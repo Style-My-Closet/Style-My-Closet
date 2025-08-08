@@ -2,17 +2,14 @@ package com.stylemycloset.weather.util;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class DateTimeUtils {
 
     // 기상청 허용 base_time 목록 (시각만)
     private static final int[] ALLOWED_BASE_TIMES = {2, 5, 8, 11, 14, 17, 20, 23};
 
-    /**
-     * 현재 시간에 가장 가까운 과거 기준 기상청 base_time을 반환
-     * @param now LocalDateTime
-     * @return [baseDate(yyyyMMdd), baseTime(HHmm)]
-     */
+
     public static List<String> toBaseDateAndTime(LocalDateTime now) {
         // baseDate는 그냥 오늘 날짜 (yyyyMMdd)
         String baseDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
