@@ -17,7 +17,7 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, FollowRep
       AND f.follower.id = :followerId
       AND f.deletedAt IS NOT NULL
 """)
-  Optional<Follow> findDeletedByFolloweeIdAndFollowerId(Long followeeId, Long followerId);
+  Optional<Follow> findSoftDeletedByFolloweeIdAndFollowerId(Long followeeId, Long followerId);
 
   @Query("""
       SELECT COUNT(f)

@@ -16,7 +16,6 @@ import com.stylemycloset.follow.service.UserRepository;
 import com.stylemycloset.user.entity.User;
 
 import java.util.Map;
-import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
@@ -35,37 +34,20 @@ public class FollowServiceImpl implements FollowService {
   @Override
   public FollowResult startFollowing(FollowCreateRequest followCreateRequest) {
     validateSelfFollow(followCreateRequest.followeeId(), followCreateRequest.followerId());
+    validateFollowAlreadyExist(followCreateRequest.followeeId(), followCreateRequest.followerId());
     User follower = getUser(followCreateRequest.followerId());
     User followee = getUser(followCreateRequest.followeeId());
-    Optional<Follow> optionalFollow = followRepository.findDeletedByFolloweeIdAndFollowerId(
+
+    Follow follow = followRepository.findSoftDeletedByFolloweeIdAndFollowerId(
         followCreateRequest.followeeId(),
         followCreateRequest.followerId()
-    );
-
-    Follow follow = restoreOrCreateFollow(followee, follower, optionalFollow);
+    ).map(deletedFollow -> {
+      deletedFollow.restore();
+      return deletedFollow;
+    }).orElseGet(() -> new Follow(followee, follower));
     Follow savedFollow = followRepository.save(follow);
+
     return followMapper.toResult(savedFollow);
-  }
-
-  private User getUser(Long userId) {
-    return userRepository.findById(userId)
-        .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다. id=" + userId));
-  }
-
-  private Follow restoreOrCreateFollow(
-      User followee,
-      User follower,
-      Optional<Follow> optionalFollow
-  ) {
-    if (optionalFollow.isEmpty()) {
-      return new Follow(followee, follower);
-    }
-    Follow follow = optionalFollow.get();
-    if (follow.isSoftDeleted()) {
-      follow.restore();
-      return follow;
-    }
-    throw new FollowAlreadyExist(Map.of());
   }
 
   @Transactional(readOnly = true)
@@ -130,6 +112,17 @@ public class FollowServiceImpl implements FollowService {
     if (followeeId.equals(followerId)) {
       throw new FollowSelfForbiddenException(Map.of());
     }
+  }
+
+  private void validateFollowAlreadyExist(Long followeeId, Long followerId) {
+    if (followRepository.existsActiveByFolloweeIdAndFollowerId(followeeId, followerId)) {
+      throw new FollowAlreadyExist(Map.of());
+    }
+  }
+
+  private User getUser(Long userId) {
+    return userRepository.findById(userId)
+        .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다. id=" + userId));
   }
 
 }
