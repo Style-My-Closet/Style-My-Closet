@@ -1,11 +1,14 @@
 package com.stylemycloset.weather.entity;
 
 import com.stylemycloset.location.Location;
+import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import jakarta.persistence.*; // JPA 어노테이션 전반
-import java.util.UUID;
 import lombok.*; // Lombok 어노테이션
 import java.time.LocalDateTime; // 시간 관련
 import com.stylemycloset.common.entity.CreatedAtEntity;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 
 @Entity
@@ -14,6 +17,7 @@ import org.springframework.data.annotation.CreatedDate;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+
 public class Weather extends CreatedAtEntity {
 
   @Id
@@ -39,6 +43,7 @@ public class Weather extends CreatedAtEntity {
   /*위치 정보  */
 
   @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
   @Column(name = "sky_status", nullable = false)
   private SkyStatus skyStatus;
   // 하늘 상태 (맑음, 흐림 등)
