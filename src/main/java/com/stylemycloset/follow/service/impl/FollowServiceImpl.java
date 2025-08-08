@@ -14,9 +14,12 @@ import com.stylemycloset.follow.repository.FollowRepository;
 import com.stylemycloset.follow.service.FollowService;
 import com.stylemycloset.follow.service.UserRepository;
 import com.stylemycloset.user.entity.User;
+
 import java.util.Map;
 import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,9 +37,10 @@ public class FollowServiceImpl implements FollowService {
     validateSelfFollow(followCreateRequest.followeeId(), followCreateRequest.followerId());
     User follower = getUser(followCreateRequest.followerId());
     User followee = getUser(followCreateRequest.followeeId());
-    Optional<Follow> optionalFollow = followRepository.findByFolloweeIdAndFollowerId(
+    Optional<Follow> optionalFollow = followRepository.findDeletedByFolloweeIdAndFollowerId(
         followCreateRequest.followeeId(),
-        followCreateRequest.followerId());
+        followCreateRequest.followerId()
+    );
 
     Follow follow = restoreOrCreateFollow(followee, follower, optionalFollow);
     Follow savedFollow = followRepository.save(follow);
@@ -48,8 +52,11 @@ public class FollowServiceImpl implements FollowService {
         .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다. id=" + userId));
   }
 
-  private Follow restoreOrCreateFollow(User followee, User follower,
-      Optional<Follow> optionalFollow) {
+  private Follow restoreOrCreateFollow(
+      User followee,
+      User follower,
+      Optional<Follow> optionalFollow
+  ) {
     if (optionalFollow.isEmpty()) {
       return new Follow(followee, follower);
     }
@@ -81,38 +88,42 @@ public class FollowServiceImpl implements FollowService {
     );
   }
 
-  // SoftDelete 고려 필요
   @Transactional(readOnly = true)
   @Override
   public FollowListResponse<FollowResult> getFollowings(
       SearchFollowingsCondition followingsCondition
   ) {
-    followingsCondition.followerId();
-    // 팔로우(신청자)의 팔로잉 목록을 조회?
-    // 팔로우(주체)의 팔로잉 목록을 조회합니다.
+    Slice<Follow> followings = followRepository.findFollowingsByFollowerId(
+        followingsCondition.followerId(),
+        followingsCondition.cursor(),
+        followingsCondition.idAfter(),
+        followingsCondition.limit(),
+        followingsCondition.nameLike(),
+        followingsCondition.sortBy(),
+        followingsCondition.sortDirection()
+    );
 
-    return null;
+    return followMapper.toFollowResponse(followings);
   }
 
-  // SoftDelete 고려 필요
   @Transactional(readOnly = true)
   @Override
   public FollowListResponse<FollowResult> getFollowers(
       SearchFollowersCondition followersCondition
   ) {
+
+    // d.followee = :followeeId 인 팔로워를 봅니다.
     return null;
   }
 
   @Transactional
   @Override
-  public void delete(Long followId) {
-
+  public void softDelete(Long followId) {
   }
 
   @Transactional
   @Override
-  public void softDelete(Long followId) {
-
+  public void hardDelete(Long followId) {
   }
 
   private void validateSelfFollow(Long followeeId, Long followerId) {

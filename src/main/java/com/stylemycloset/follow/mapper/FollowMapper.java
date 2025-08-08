@@ -1,12 +1,18 @@
 package com.stylemycloset.follow.mapper;
 
 import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
+import com.stylemycloset.follow.dto.FollowListResponse;
+import com.stylemycloset.follow.dto.FollowListResponse.NextCursorInfo;
 import com.stylemycloset.follow.dto.FollowResult;
 import com.stylemycloset.follow.dto.FollowUserInfo;
 import com.stylemycloset.follow.entity.Follow;
+import com.stylemycloset.follow.repository.querydsl.cursor.CursorStrategy;
+import com.stylemycloset.follow.repository.querydsl.cursor.FollowCursorField;
 import com.stylemycloset.user.entity.User;
-import java.util.UUID;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -30,11 +36,43 @@ public class FollowMapper {
     if (user.getProfileImage() == null) {
       return null;
     }
-    UUID imageId = user.getProfileImage()
-        .getId();
-
-    return binaryContentStorage.getUrl(imageId)
+    return binaryContentStorage.getUrl(user.getProfileImage().getId())
         .toString();
+  }
+
+  public FollowListResponse<FollowResult> toFollowResponse(Slice<Follow> follows) {
+    List<FollowResult> followResults = follows.getContent()
+        .stream()
+        .map(this::toResult)
+        .toList();
+
+    Order order = follows.getPageable()
+        .getSort()
+        .iterator()
+        .next();
+    String sortBy = order.getProperty();
+
+    return FollowListResponse.from(
+        followResults,
+        extractNextCursorInfo(follows, sortBy),
+        follows.hasNext(),
+        null,
+        order.getProperty(),
+        order.getDirection().toString()
+    );
+  }
+
+  private NextCursorInfo extractNextCursorInfo(Slice<Follow> follows, String sortBy) {
+    if (!follows.hasNext() || follows.getContent().isEmpty()) {
+      return new NextCursorInfo(null, null);
+    }
+
+    Follow lastFollow = follows.getContent().get(follows.getContent().size() - 1);
+    CursorStrategy<?> cursorStrategy = FollowCursorField.resolveStrategy(sortBy);
+    String cursor = cursorStrategy.extract(lastFollow).toString();
+    String idAfter = lastFollow.getId().toString();
+
+    return new NextCursorInfo(cursor, idAfter);
   }
 
 }

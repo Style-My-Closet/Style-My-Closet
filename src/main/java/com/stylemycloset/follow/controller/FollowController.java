@@ -63,15 +63,15 @@ public class FollowController {
   }
 
   @DeleteMapping("/{followId}")
-  public ResponseEntity<Void> delete(@PathVariable("followId") Long followId) {
-    followService.delete(followId);
+  public ResponseEntity<Void> softDelete(@PathVariable("followId") Long followId) {
+    followService.softDelete(followId);
     return ResponseEntity.noContent()
         .build();
   }
 
-  @PatchMapping("/{followId}/soft-delete")
-  public ResponseEntity<Void> softDelete(@PathVariable("followId") Long followId) {
-    followService.softDelete(followId);
+  @DeleteMapping("/{followId}/hard-delete")
+  public ResponseEntity<Void> hardDelete(@PathVariable("followId") Long followId) {
+    followService.hardDelete(followId);
     return ResponseEntity.noContent()
         .build();
   }

@@ -5,7 +5,9 @@ public record SearchFollowingsCondition(
     String cursor,
     String idAfter,
     Integer limit,
-    String nameLike
+    String nameLike,
+    String sortBy,
+    String sortDirection
 ) {
 
 }

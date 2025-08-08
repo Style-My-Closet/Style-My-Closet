@@ -1,15 +1,23 @@
 package com.stylemycloset.follow.repository;
 
 import com.stylemycloset.follow.entity.Follow;
+import com.stylemycloset.follow.repository.querydsl.FollowRepositoryCustom;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface FollowRepository extends JpaRepository<Follow, Long> {
+public interface FollowRepository extends JpaRepository<Follow, Long>, FollowRepositoryCustom {
 
-  Optional<Follow> findByFolloweeIdAndFollowerId(Long followeeId, Long followerId);
+  @Query("""
+    SELECT f
+    FROM Follow f
+    WHERE f.followee.id = :followeeId
+      AND f.follower.id = :followerId
+      AND f.deletedAt IS NOT NULL
+""")
+  Optional<Follow> findDeletedByFolloweeIdAndFollowerId(Long followeeId, Long followerId);
 
   @Query("""
       SELECT COUNT(f)
@@ -23,7 +31,7 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
       SELECT COUNT(f)
       FROM Follow f
       WHERE f.followee.id = :targetUserId
-      AND f.deletedAt IS NULL
+       AND f.deletedAt IS NULL
       """)
   long countActiveFollowings(Long targetUserId);
 

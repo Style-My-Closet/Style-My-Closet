@@ -17,8 +17,8 @@ public interface FollowService {
 
   FollowListResponse<FollowResult> getFollowers(SearchFollowersCondition followersCondition);
 
-  void delete(Long followId);
-
   void softDelete(Long followId);
+
+  void hardDelete(Long followId);
 
 }
