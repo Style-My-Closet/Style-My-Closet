@@ -24,6 +24,9 @@ public class BinaryContentServiceImpl implements BinaryContentService {
   @Transactional
   @Override
   public BinaryContentResult createBinaryContent(BinaryContentRequest binaryContentRequest) {
+    if (binaryContentRequest == null) {
+      return null;
+    }
     BinaryContent binaryContent = new BinaryContent(
         binaryContentRequest.fileName(),
         binaryContentRequest.contentType(),
