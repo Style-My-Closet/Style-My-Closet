@@ -29,7 +29,6 @@ public class ForecastApiService {
 
     private final WeatherApiFetcher apiFetcher;
     private final WeatherItemDeduplicator deduplicator;
-    private final WeatherRepository weatherRepository;
     private final LocationRepository locationRepository;
     private final List<WeatherCategoryProcessor> processors;
 
