@@ -2,13 +2,14 @@ package com.stylemycloset.follow.repository;
 
 import com.stylemycloset.follow.entity.Follow;
 import com.stylemycloset.follow.entity.QFollow;
-import com.stylemycloset.follow.service.UserRepository;
-import com.stylemycloset.testutil.IntegrationTestSupport;
+import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.user.entity.User;
+import com.stylemycloset.user.repository.UserRepository;
 import java.util.List;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,8 +28,8 @@ class FollowRepositoryTest extends IntegrationTestSupport {
   @Autowired
   private FollowRepository followRepository;
 
-  @BeforeEach
-  void setUp() {
+  @AfterEach
+  void tearDown() {
     userRepository.deleteAllInBatch();
     followRepository.deleteAllInBatch();
   }
@@ -37,8 +38,8 @@ class FollowRepositoryTest extends IntegrationTestSupport {
   @Test
   void test_SoftDelete() {
     // given
-    User userA = userRepository.save(new User("a", "a"));
-    User userB = userRepository.save(new User("b", "b"));
+    User userA = userRepository.save(new User("a", "a", "p"));
+    User userB = userRepository.save(new User("b", "b", "p"));
     Follow follow = new Follow(userB, userA);
     follow.softDelete();
     Follow savedFollow = followRepository.save(follow);
@@ -62,9 +63,9 @@ class FollowRepositoryTest extends IntegrationTestSupport {
   @Test
   void defaultSortFieldAndDirection() {
     // given
-    User userA = userRepository.save(new User("a", "a"));
-    User userB = userRepository.save(new User("b", "b"));
-    User userC = userRepository.save(new User("c", "c"));
+    User userA = userRepository.save(new User("a", "a", "p"));
+    User userB = userRepository.save(new User("b", "b", "p"));
+    User userC = userRepository.save(new User("c", "c", "p"));
     Follow followAtoB = followRepository.save(new Follow(userB, userA));
     Follow followAtoC = followRepository.save(new Follow(userC, userA));
 
@@ -89,9 +90,9 @@ class FollowRepositoryTest extends IntegrationTestSupport {
   @MethodSource("resolveFollowFixedField")
   void sortFollowings_ByIdAndCreatedAt_ReturnsCorrectOrder(String sortBy) {
     // given
-    User userA = userRepository.save(new User("a", "a"));
-    User userB = userRepository.save(new User("b", "b"));
-    User userC = userRepository.save(new User("c", "c"));
+    User userA = userRepository.save(new User("a", "a", "p"));
+    User userB = userRepository.save(new User("b", "b", "p"));
+    User userC = userRepository.save(new User("c", "c", "p"));
     Follow followAtoB = followRepository.save(new Follow(userB, userA));
     Follow followAtoC = followRepository.save(new Follow(userC, userA));
 
@@ -125,10 +126,10 @@ class FollowRepositoryTest extends IntegrationTestSupport {
       boolean expectHasNext
   ) {
     // given
-    User userA = userRepository.save(new User("a", "a"));
-    User userB = userRepository.save(new User("bbb", "b"));
-    User userC = userRepository.save(new User("ccc", "c"));
-    User userD = userRepository.save(new User("abcd", "d"));
+    User userA = userRepository.save(new User("a", "a", "p"));
+    User userB = userRepository.save(new User("bbb", "b", "p"));
+    User userC = userRepository.save(new User("ccc", "c", "p"));
+    User userD = userRepository.save(new User("abcd", "d", "p"));
 
     followRepository.save(new Follow(userB, userA));
     followRepository.save(new Follow(userC, userA));
@@ -174,9 +175,9 @@ class FollowRepositoryTest extends IntegrationTestSupport {
   @MethodSource("resolveFollowUpdatableField")
   void sortFollowings_WithRestoredFollow_ThenOrderIsCorrect(String sortBy) {
     // given
-    User userA = userRepository.save(new User("a", "a"));
-    User userB = userRepository.save(new User("b", "b"));
-    User userC = userRepository.save(new User("c", "c"));
+    User userA = userRepository.save(new User("a", "a", "p"));
+    User userB = userRepository.save(new User("b", "b", "p"));
+    User userC = userRepository.save(new User("c", "c", "p"));
     Follow followAtoB = followRepository.save(new Follow(userB, userA));
     Follow followAtoC = followRepository.save(new Follow(userC, userA));
     followAtoB.softDelete();
@@ -206,9 +207,9 @@ class FollowRepositoryTest extends IntegrationTestSupport {
   @Test
   void test_SoftDelete_Follow() {
     // given
-    User userA = userRepository.save(new User("a", "a"));
-    User userB = userRepository.save(new User("b", "b"));
-    User userC = userRepository.save(new User("c", "c"));
+    User userA = userRepository.save(new User("a", "a", "p"));
+    User userB = userRepository.save(new User("b", "b", "p"));
+    User userC = userRepository.save(new User("c", "c", "p"));
     Follow followAtoB = followRepository.save(new Follow(userB, userA));
     Follow followAtoC = followRepository.save(new Follow(userC, userA));
 
@@ -236,9 +237,9 @@ class FollowRepositoryTest extends IntegrationTestSupport {
   @Test
   void test_SoftDelete_FollowerName() {
     // given
-    User userA = userRepository.save(new User("a", "a"));
-    User userB = userRepository.save(new User("b", "b"));
-    User userC = userRepository.save(new User("c", "c"));
+    User userA = userRepository.save(new User("a", "a", "p"));
+    User userB = userRepository.save(new User("b", "b", "p"));
+    User userC = userRepository.save(new User("c", "c", "p"));
     Follow followAtoB = followRepository.save(new Follow(userB, userA));
     Follow followAtoC = followRepository.save(new Follow(userC, userA));
 
@@ -265,9 +266,9 @@ class FollowRepositoryTest extends IntegrationTestSupport {
   @Test
   void defaultSortFollowers() {
     // given
-    User userA = userRepository.save(new User("followee", "e"));
-    User userB = userRepository.save(new User("f1", "f1"));
-    User userC = userRepository.save(new User("f2", "f2"));
+    User userA = userRepository.save(new User("followee", "e", "p"));
+    User userB = userRepository.save(new User("f1", "f1", "p"));
+    User userC = userRepository.save(new User("f2", "f2", "p"));
 
     Follow followBtoA = followRepository.save(new Follow(userA, userB));
     Follow followCtoA = followRepository.save(new Follow(userA, userC));

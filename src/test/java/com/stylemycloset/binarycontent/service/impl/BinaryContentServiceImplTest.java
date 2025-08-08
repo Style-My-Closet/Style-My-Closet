@@ -11,7 +11,7 @@ import com.stylemycloset.binarycontent.exception.BinaryContentNotFoundException;
 import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
 import com.stylemycloset.binarycontent.service.BinaryContentService;
 import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
-import com.stylemycloset.testutil.IntegrationTestSupport;
+import com.stylemycloset.IntegrationTestSupport;
 import java.util.List;
 import java.util.UUID;
 import org.assertj.core.api.Assertions;

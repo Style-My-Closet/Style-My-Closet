@@ -7,7 +7,7 @@ import com.stylemycloset.follow.dto.FollowResult;
 import com.stylemycloset.follow.dto.FollowSummaryResult;
 import com.stylemycloset.follow.dto.request.FollowCreateRequest;
 import com.stylemycloset.follow.service.FollowService;
-import com.stylemycloset.testutil.ControllerTestSupport;
+import com.stylemycloset.ControllerTestSupport;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

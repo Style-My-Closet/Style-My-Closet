@@ -15,11 +15,12 @@ import com.stylemycloset.follow.exception.FollowNotFoundException;
 import com.stylemycloset.follow.exception.FollowSelfForbiddenException;
 import com.stylemycloset.follow.repository.FollowRepository;
 import com.stylemycloset.follow.service.FollowService;
-import com.stylemycloset.follow.service.UserRepository;
-import com.stylemycloset.testutil.IntegrationTestSupport;
+import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.user.entity.User;
+import com.stylemycloset.user.repository.UserRepository;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,8 +39,8 @@ class FollowServiceTest extends IntegrationTestSupport {
   @MockitoBean
   private BinaryContentStorage binaryContentStorage;
 
-  @BeforeEach
-  void setUp() {
+  @AfterEach
+  void tearDown() {
     userRepository.deleteAllInBatch();
     followRepository.deleteAllInBatch();
   }
@@ -48,8 +49,8 @@ class FollowServiceTest extends IntegrationTestSupport {
   @Test
   void startFollowing() {
     // given
-    User userA = userRepository.save(new User("a", "a"));
-    User userB = userRepository.save(new User("b", "b"));
+    User userA = userRepository.save(new User("a", "a", "a"));
+    User userB = userRepository.save(new User("b", "b", "b"));
     FollowCreateRequest followCreateRequest = new FollowCreateRequest(userB.getId(), userA.getId());
 
     // when
@@ -67,7 +68,7 @@ class FollowServiceTest extends IntegrationTestSupport {
   @Test
   void testForbiddenBySelf() {
     // given
-    User userA = userRepository.save(new User("a", "a"));
+    User userA = userRepository.save(new User("a", "a", "a"));
     FollowCreateRequest followCreateRequest = new FollowCreateRequest(userA.getId(), userA.getId());
 
     // when & then
@@ -79,7 +80,7 @@ class FollowServiceTest extends IntegrationTestSupport {
   @Test
   void testBNotPresent() {
     // given
-    User userA = userRepository.save(new User("a", "a"));
+    User userA = userRepository.save(new User("a", "a", "a"));
     FollowCreateRequest followCreateRequest = new FollowCreateRequest(-1L, userA.getId());
 
     // when & then
@@ -91,8 +92,8 @@ class FollowServiceTest extends IntegrationTestSupport {
   @Test
   void testFollowAlreadyExist() {
     // given
-    User userA = userRepository.save(new User("a", "a"));
-    User userB = userRepository.save(new User("b", "b"));
+    User userA = userRepository.save(new User("a", "a", "a"));
+    User userB = userRepository.save(new User("b", "b", "b"));
     followRepository.save(new Follow(userB, userA));
     FollowCreateRequest followCreateRequest = new FollowCreateRequest(userB.getId(), userA.getId());
 
@@ -105,8 +106,8 @@ class FollowServiceTest extends IntegrationTestSupport {
   @Test
   void testFollowSoftDeleteRestore() {
     // given
-    User userA = userRepository.save(new User("a", "a"));
-    User userB = userRepository.save(new User("b", "b"));
+    User userA = userRepository.save(new User("a", "a", "a"));
+    User userB = userRepository.save(new User("b", "b", "b"));
     Follow follow = followRepository.save(new Follow(userB, userA));
     follow.softDelete();
     Follow updatedFollow = followRepository.save(follow);
@@ -134,8 +135,8 @@ class FollowServiceTest extends IntegrationTestSupport {
   @Test
   void summaryFollowInfo() {
     // given
-    User logInUser = userRepository.save(new User("a", "a"));
-    User targetUser = userRepository.save(new User("b", "b"));
+    User logInUser = userRepository.save(new User("a", "a", "a"));
+    User targetUser = userRepository.save(new User("b", "b", "b"));
     Follow savedFollow = followRepository.save(new Follow(targetUser, logInUser));
 
     // when
@@ -155,8 +156,8 @@ class FollowServiceTest extends IntegrationTestSupport {
   @Test
   void summaryFollow_NoneFollow() {
     // given
-    User logInUser = userRepository.save(new User("a", "a"));
-    User targetUser = userRepository.save(new User("b", "b"));
+    User logInUser = userRepository.save(new User("a", "a", "a"));
+    User targetUser = userRepository.save(new User("b", "b", "b"));
 
     // when
     FollowSummaryResult followSummary = followService.summaryFollow(
@@ -177,9 +178,9 @@ class FollowServiceTest extends IntegrationTestSupport {
   @Test
   void cursorPagination_nextPage_noOverlap() {
     // given
-    User userA = userRepository.save(new User("a", "a"));
-    User userB = userRepository.save(new User("b", "b"));
-    User userC = userRepository.save(new User("c", "c"));
+    User userA = userRepository.save(new User("a", "a", "a"));
+    User userB = userRepository.save(new User("b", "b", "b"));
+    User userC = userRepository.save(new User("c", "c", "c"));
     Follow followAtoB = followRepository.save(new Follow(userB, userA));
     Follow followAtoC = followRepository.save(new Follow(userC, userA));
 
@@ -213,9 +214,9 @@ class FollowServiceTest extends IntegrationTestSupport {
   @Test
   void cursorPagination_followers_nextPage_noOverlap() {
     // given
-    User userA = userRepository.save(new User("a", "a"));
-    User userB = userRepository.save(new User("b", "b"));
-    User userC = userRepository.save(new User("c", "c"));
+    User userA = userRepository.save(new User("a", "a", "a"));
+    User userB = userRepository.save(new User("b", "b", "b"));
+    User userC = userRepository.save(new User("c", "c", "c"));
     Follow followBtoA = followRepository.save(new Follow(userA, userB));
     Follow followCtoA = followRepository.save(new Follow(userA, userC));
 
@@ -250,8 +251,8 @@ class FollowServiceTest extends IntegrationTestSupport {
   @Test
   void softDelete_marksDeleted_and_excludedFromActiveSearch() {
     // given
-    User followee = userRepository.save(new User("followee", "e"));
-    User follower = userRepository.save(new User("follower", "f"));
+    User followee = userRepository.save(new User("followee", "e", "p"));
+    User follower = userRepository.save(new User("follower", "f","p"));
     Follow follow = followRepository.save(new Follow(followee, follower));
 
     // when
@@ -275,8 +276,8 @@ class FollowServiceTest extends IntegrationTestSupport {
   @Test
   void softDelete_whenAlreadyDeleted_throwsActiveFollowNotFound() {
     // given
-    User followee = userRepository.save(new User("followee", "e"));
-    User follower = userRepository.save(new User("follower", "f"));
+    User followee = userRepository.save(new User("followee", "e", "p"));
+    User follower = userRepository.save(new User("follower", "f", "p"));
     Follow follow = followRepository.save(new Follow(followee, follower));
     followService.softDelete(follow.getId());
 
@@ -289,8 +290,8 @@ class FollowServiceTest extends IntegrationTestSupport {
   @Test
   void hardDelete_removesRow() {
     // given
-    User followee = userRepository.save(new User("followee", "e"));
-    User follower = userRepository.save(new User("follower", "f"));
+    User followee = userRepository.save(new User("followee", "e", "p"));
+    User follower = userRepository.save(new User("follower", "f", "p"));
     Follow follow = followRepository.save(new Follow(followee, follower));
 
     // when

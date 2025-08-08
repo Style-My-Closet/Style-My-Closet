@@ -4,6 +4,7 @@ import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -38,4 +39,56 @@ public class Cloth extends SoftDeletableEntity {
 
   @OneToMany(mappedBy = "cloth", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<ClothingAttributeValue> attributeValues = new ArrayList<>();
+
+  @Builder
+  public Cloth(String name, Closet closet, ClothingCategory category, BinaryContent binaryContent) {
+    this.name = name;
+    this.closet = closet;
+    this.category = category;
+    this.binaryContent = binaryContent;
+  }
+
+  public static Cloth createCloth(String name, Closet closet, ClothingCategory category, BinaryContent binaryContent) {
+    Cloth cloth = Cloth.builder()
+        .name(name)
+        .closet(closet)
+        .category(category)
+        .binaryContent(binaryContent)
+        .build();
+
+    // 양방향 관계 자동 동기화
+    if (closet != null) {
+      closet.getClothes().add(cloth);
+    }
+
+    return cloth;
+  }
+
+  // 속성값 추가
+  public void addAttributeValue(ClothingAttribute attribute, AttributeOption option) {
+    ClothingAttributeValue.createValue(this, attribute, option);
+  }
+
+  // 속성값 제거
+  public void removeAttributeValue(ClothingAttribute attribute) {
+    this.attributeValues.removeIf(value -> value.getAttribute().equals(attribute));
+  }
+
+  public void updateName(String name) {
+    if (name != null && !name.trim().isEmpty()) {
+      this.name = name;
+    }
+  }
+
+  public void updateCategory(ClothingCategory category) {
+    if (category != null) {
+      this.category = category;
+    }
+  }
+
+  public void updateBinaryContent(BinaryContent binaryContent) {
+    if (binaryContent != null) {
+      this.binaryContent = binaryContent;
+    }
+  }
 }

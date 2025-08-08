@@ -23,13 +23,16 @@ import org.hibernate.annotations.Type;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Builder
 @Table(name = "locations")
 public class Location extends BaseTimeEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "locations_seq_gen")
-  @SequenceGenerator(name = "locations_seq_gen", sequenceName = "locations_id_seq", allocationSize = 1)
+  @SequenceGenerator(
+      name = "locations_seq_gen",
+      sequenceName = "public.locations_id_seq", // 스키마 명까지 명시
+      allocationSize = 1
+  )
   private Long id;
 
   @Column(nullable = false)
@@ -48,6 +51,7 @@ public class Location extends BaseTimeEntity {
   @Column(name = "location_names", columnDefinition = "json", nullable = false)
   private List<String> locationNames;
 
+  @Builder
   public Location(Double latitude, Double longitude, Integer x, Integer y,
       List<String> locationNames) {
     this.latitude = latitude;

@@ -1,12 +1,11 @@
 package com.stylemycloset.binarycontent.storage.s3;
 
 import static com.stylemycloset.common.filter.LogMdcKeys.REQUEST_ID;
-import static org.junit.jupiter.api.Assertions.*;
 
 import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
 import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
 import com.stylemycloset.binarycontent.storage.s3.exception.S3UploadArgumentException;
-import com.stylemycloset.testutil.IntegrationTestSupport;
+import com.stylemycloset.IntegrationTestSupport;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -14,14 +13,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import org.assertj.core.api.Assertions;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.client.RestTemplate;
 
