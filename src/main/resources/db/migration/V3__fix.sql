@@ -1,0 +1,8 @@
+ALTER TABLE comment_likes
+    ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE;
+
+ALTER TABLE comment_likes
+    ADD COLUMN deleted_at TIMESTAMP WITH TIME ZONE;
+
+ALTER TABLE users
+    ALTER COLUMN password TYPE VARCHAR(60);
