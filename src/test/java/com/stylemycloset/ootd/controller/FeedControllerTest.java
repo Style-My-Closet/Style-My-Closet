@@ -270,4 +270,45 @@ public class FeedControllerTest extends IntegrationTestSupport {
           .andExpect(status().isNotFound());
     }
   }
+
+  @Nested
+  @DisplayName("피드 수정 API")
+  class FeedUpdateApi {
+
+    @Test
+    @DisplayName("자신이 작성한 피드의 내용을 수정하면 200 OK와 함께 피드 정보를 반환한다.")
+    @WithMockUser
+    void updateFeed_Success() throws Exception {
+      Feed myFeed = feedRepository.save(Feed.createFeed(testUser, null, "수정 전 피드 내용"));
+      FeedUpdateRequest request = new FeedUpdateRequest("수정 후 새로운 피드 내용");
+      String requestJson = objectMapper.writeValueAsString(request);
+
+      mockMvc.perform(patch("/api/feeds/{feedId}", myFeed.getId())
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(requestJson)
+              .with(csrf()))
+          .andDo(print())
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.id").value(myFeed.getId()))
+          .andExpect(jsonPath("$.content").value("수정 후 새로운 피드 내용"));
+    }
+
+    @Test
+    @DisplayName("피드 내용을 비워서 수정 요청하면 400 Bad Request 상태를 반환한다")
+    @WithMockUser
+    void updateFeed_Fail_InvalidRequest() throws Exception {
+      // given
+      Feed myFeed = feedRepository.save(Feed.createFeed(testUser, null, "원래 내용"));
+      FeedUpdateRequest request = new FeedUpdateRequest(" "); // 공백 문자열
+      String requestJson = objectMapper.writeValueAsString(request);
+
+      // when & then
+      mockMvc.perform(patch("/api/feeds/{feedId}", myFeed.getId())
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(requestJson)
+              .with(csrf()))
+          .andDo(print())
+          .andExpect(status().isBadRequest());
+    }
+  }
 }
