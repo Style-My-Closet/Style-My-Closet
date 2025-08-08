@@ -130,16 +130,17 @@ class FollowServiceTest extends IntegrationTestSupport {
     });
   }
 
-  @DisplayName("유저 A가 유저 B를 팔로우하면, 팔로우 요약 정보에 해당 팔로우 정보가 포함되어야 한다")
+  @DisplayName("로그인 유저가 다른 유저의 팔로우 요약 정보를 조회하면 팔로우 여부가 포함된다")
   @Test
   void summaryFollowInfo() {
     // given
-    User userA = userRepository.save(new User("a", "a"));
-    User userB = userRepository.save(new User("b", "b"));
-    Follow savedFollow = followRepository.save(new Follow(userB, userA));
+    User logInUser = userRepository.save(new User("a", "a"));
+    User targetUser = userRepository.save(new User("b", "b"));
+    Follow savedFollow = followRepository.save(new Follow(targetUser, logInUser));
 
     // when
-    FollowSummaryResult followSummary = followService.summaryFollow(userB.getId(), userA.getId());
+    FollowSummaryResult followSummary = followService.summaryFollow(targetUser.getId(),
+        logInUser.getId());
 
     // then
     Assertions.assertThat(followSummary)
@@ -147,18 +148,21 @@ class FollowServiceTest extends IntegrationTestSupport {
             FollowSummaryResult::followedByMe, FollowSummaryResult::followedByMeId,
             FollowSummaryResult::followeeId, FollowSummaryResult::followerCount,
             FollowSummaryResult::followingCount
-        ).containsExactly(true, savedFollow.getId(), userB.getId(), 1L, 0L);
+        ).containsExactly(true, savedFollow.getId(), targetUser.getId(), 0L, 1L);
   }
 
-  @DisplayName("유저 A가 유저 B를 팔로우하지 않으면, 팔로우 요약 정보에 해당 팔로우 정보가 포함되어야 한다")
+  @DisplayName("로그인 유저가 다른 유저의 팔로우 요약 정보를 조회하면 팔로우 여부가 포함된다(팔로우 정보가 없을떄)")
   @Test
   void summaryFollow_NoneFollow() {
     // given
-    User userA = userRepository.save(new User("a", "a"));
-    User userB = userRepository.save(new User("b", "b"));
+    User logInUser = userRepository.save(new User("a", "a"));
+    User targetUser = userRepository.save(new User("b", "b"));
 
     // when
-    FollowSummaryResult followSummary = followService.summaryFollow(userB.getId(), userA.getId());
+    FollowSummaryResult followSummary = followService.summaryFollow(
+        targetUser.getId(),
+        logInUser.getId()
+    );
 
     // then
     Assertions.assertThat(followSummary)
@@ -166,7 +170,7 @@ class FollowServiceTest extends IntegrationTestSupport {
             FollowSummaryResult::followedByMe, FollowSummaryResult::followedByMeId,
             FollowSummaryResult::followeeId, FollowSummaryResult::followerCount,
             FollowSummaryResult::followingCount
-        ).containsExactly(false, null, userB.getId(), 0L, 0L);
+        ).containsExactly(false, null, targetUser.getId(), 0L, 0L);
   }
 
   @DisplayName("사용자가 팔로워의 팔로잉 목록을 첫 페이지 이후로 조회하면, 중복 없이 이어서 조회된다")
