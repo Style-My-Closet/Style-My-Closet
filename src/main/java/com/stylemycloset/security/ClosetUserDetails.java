@@ -1,0 +1,51 @@
+package com.stylemycloset.security;
+
+import com.stylemycloset.user.dto.data.UserDto;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+@Getter
+@RequiredArgsConstructor
+public class ClosetUserDetails implements UserDetails {
+
+  private final UserDto userDto;
+  private final String password;
+
+  @Override
+  public Collection<? extends GrantedAuthority> getAuthorities() {
+    return List.of(new SimpleGrantedAuthority("ROLE_".concat(userDto.role().name())));
+  }
+
+  @Override
+  public String getPassword() {
+    return password;
+  }
+
+  @Override
+  public String getUsername() {
+    return userDto.name();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ClosetUserDetails that)) {
+      return false;
+    }
+    return userDto.name().equals(that.userDto.name());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(userDto.name());
+  }
+
+}
