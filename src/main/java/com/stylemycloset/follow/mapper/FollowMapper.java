@@ -41,15 +41,8 @@ public class FollowMapper {
   }
 
   public FollowListResponse<FollowResult> toFollowResponse(Slice<Follow> follows) {
-    List<FollowResult> followResults = follows.getContent()
-        .stream()
-        .map(this::toResult)
-        .toList();
-
-    Order order = follows.getPageable()
-        .getSort()
-        .iterator()
-        .next();
+    List<FollowResult> followResults = getFollowResults(follows);
+    Order order = getOrder(follows);
     String sortBy = order.getProperty();
 
     return FollowListResponse.from(
@@ -60,6 +53,20 @@ public class FollowMapper {
         order.getProperty(),
         order.getDirection().toString()
     );
+  }
+
+  private Order getOrder(Slice<Follow> follows) {
+    return follows.getPageable()
+        .getSort()
+        .iterator()
+        .next();
+  }
+
+  private List<FollowResult> getFollowResults(Slice<Follow> follows) {
+    return follows.getContent()
+        .stream()
+        .map(this::toResult)
+        .toList();
   }
 
   private NextCursorInfo extractNextCursorInfo(Slice<Follow> follows, String sortBy) {

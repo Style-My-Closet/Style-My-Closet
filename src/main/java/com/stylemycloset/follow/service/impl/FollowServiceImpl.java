@@ -93,9 +93,17 @@ public class FollowServiceImpl implements FollowService {
   public FollowListResponse<FollowResult> getFollowers(
       SearchFollowersCondition followersCondition
   ) {
+    Slice<Follow> followings = followRepository.findFollowersByFolloweeId(
+        followersCondition.followeeId(),
+        followersCondition.cursor(),
+        followersCondition.idAfter(),
+        followersCondition.limit(),
+        followersCondition.nameLike(),
+        followersCondition.sortBy(),
+        followersCondition.sortDirection()
+    );
 
-    // d.followee = :followeeId 인 팔로워를 봅니다.
-    return null;
+    return followMapper.toFollowResponse(followings);
   }
 
   @Transactional

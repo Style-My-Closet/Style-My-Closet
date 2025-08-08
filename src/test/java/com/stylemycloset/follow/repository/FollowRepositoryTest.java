@@ -261,4 +261,31 @@ class FollowRepositoryTest extends IntegrationTestSupport {
     });
   }
 
+  @DisplayName("팔로워 목록의 기본 정렬은 createdAt DESC 이다")
+  @Test
+  void defaultSortFollowers() {
+    // given
+    User userA = userRepository.save(new User("followee", "e"));
+    User userB = userRepository.save(new User("f1", "f1"));
+    User userC = userRepository.save(new User("f2", "f2"));
+
+    Follow followBtoA = followRepository.save(new Follow(userA, userB));
+    Follow followCtoA = followRepository.save(new Follow(userA, userC));
+
+    // when
+    Slice<Follow> result = followRepository.findFollowersByFolloweeId(
+        userA.getId(), null, null, 2, null, null, null
+    );
+
+    // then
+    Sort.Order order = result.getPageable().getSort().iterator().next();
+    SoftAssertions.assertSoftly(softly -> {
+      softly.assertThat(order.getProperty())
+          .isEqualTo(QFollow.follow.createdAt.getMetadata().getName());
+      softly.assertThat(order.getDirection()).isEqualTo(Direction.DESC);
+      softly.assertThat(result.getContent()).extracting(Follow::getId)
+          .containsExactly(followCtoA.getId(), followBtoA.getId());
+    });
+  }
+
 }

@@ -5,8 +5,10 @@ import com.stylemycloset.follow.dto.FollowListResponse;
 import com.stylemycloset.follow.dto.FollowResult;
 import com.stylemycloset.follow.dto.FollowSummaryResult;
 import com.stylemycloset.follow.dto.request.FollowCreateRequest;
+import com.stylemycloset.follow.dto.request.SearchFollowersCondition;
 import com.stylemycloset.follow.dto.request.SearchFollowingsCondition;
 import com.stylemycloset.follow.entity.Follow;
+import com.stylemycloset.follow.entity.QFollow;
 import com.stylemycloset.follow.exception.FollowAlreadyExist;
 import com.stylemycloset.follow.exception.FollowSelfForbiddenException;
 import com.stylemycloset.follow.repository.FollowRepository;
@@ -165,7 +167,7 @@ class FollowServiceTest extends IntegrationTestSupport {
         ).containsExactly(false, null, userB.getId(), 0L, 0L);
   }
 
-  @DisplayName("사용자가 팔로잉 목록을 첫 페이지 이후로 조회하면, 중복 없이 이어서 조회된다")
+  @DisplayName("사용자가 팔로워의 팔로잉 목록을 첫 페이지 이후로 조회하면, 중복 없이 이어서 조회된다")
   @Test
   void cursorPagination_nextPage_noOverlap() {
     // given
@@ -176,7 +178,8 @@ class FollowServiceTest extends IntegrationTestSupport {
     Follow followAtoC = followRepository.save(new Follow(userC, userA));
 
     FollowListResponse<FollowResult> firstSearchResult = followService.getFollowings(
-        new SearchFollowingsCondition(userA.getId(), null, null, 1, null, null, "DESC")
+        new SearchFollowingsCondition(userA.getId(), null, null, 1, null,
+            QFollow.follow.createdAt.getMetadata().getName(), "DESC")
     );
 
     // when
@@ -187,7 +190,7 @@ class FollowServiceTest extends IntegrationTestSupport {
             firstSearchResult.nextIdAfter(),
             1,
             null,
-            null,
+            QFollow.follow.createdAt.getMetadata().getName(),
             "DESC")
     );
 
@@ -200,10 +203,41 @@ class FollowServiceTest extends IntegrationTestSupport {
     });
   }
 
-
+  @DisplayName("팔로워 목록을 다음 페이지로 조회하면 이전 페이지와 중복 없이 이어진다")
   @Test
-  void getFollowers() {
+  void cursorPagination_followers_nextPage_noOverlap() {
+    // given
+    User userA = userRepository.save(new User("a", "a"));
+    User userB = userRepository.save(new User("b", "b"));
+    User userC = userRepository.save(new User("c", "c"));
+    Follow followBtoA = followRepository.save(new Follow(userA, userB));
+    Follow followCtoA = followRepository.save(new Follow(userA, userC));
 
+    FollowListResponse<FollowResult> firstSearchResult = followService.getFollowers(
+        new SearchFollowersCondition(userA.getId(), null, null, 1, null,
+            QFollow.follow.createdAt.getMetadata().getName(), "DESC")
+    );
+
+    // when
+    FollowListResponse<FollowResult> secondSearchResult = followService.getFollowers(
+        new SearchFollowersCondition(
+            userA.getId(),
+            firstSearchResult.nextCursor(),
+            firstSearchResult.nextIdAfter(),
+            1,
+            null,
+            QFollow.follow.createdAt.getMetadata().getName(),
+            "DESC"
+        )
+    );
+
+    // then
+    SoftAssertions.assertSoftly(softly -> {
+      softly.assertThat(secondSearchResult.hasNext()).isFalse();
+      softly.assertThat(secondSearchResult.data())
+          .extracting(FollowResult::id)
+          .containsExactly(followBtoA.getId());
+    });
   }
 
   @Test

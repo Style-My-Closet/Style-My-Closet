@@ -15,4 +15,14 @@ public interface FollowRepositoryCustom {
       String sortDirection
   );
 
+  Slice<Follow> findFollowersByFolloweeId(
+      Long followerId,
+      String cursor,
+      String idAfter,
+      Integer limit,
+      String nameLike,
+      String sortBy,
+      String sortDirection
+  );
+
 }

@@ -42,7 +42,7 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
         .join(QFollow.follow.follower).fetchJoin()
         .where(
             QFollow.follow.follower.id.eq(followerId),
-            buildNameLikeCondition(nameLike),
+            buildFolloweeNameLikeCondition(nameLike),
             cursorStrategy.buildPredicate(sortDirection, cursor),
             idAfterStrategy.buildPredicate(sortDirection, idAfter),
             QFollow.follow.deletedAt.isNull(),
@@ -58,7 +58,52 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
     return convertToSlice(limit, follows, cursorStrategy, sortDirection);
   }
 
-  private BooleanExpression buildNameLikeCondition(String nameLike) {
+  // d.followee = :followeeId 인 팔로워를 봅니다.
+  @Override
+  public Slice<Follow> findFollowersByFolloweeId(
+      Long followerId,
+      String cursor,
+      String idAfter,
+      Integer limit,
+      String nameLike,
+      String sortBy,
+      String sortDirection
+  ) {
+    CursorStrategy<?> cursorStrategy = FollowCursorField.resolveStrategy(sortBy);
+    CursorStrategy<?> idAfterStrategy = FollowCursorField.resolveStrategy(
+        QFollow.follow.id.getMetadata().getName()
+    );
+
+    List<Follow> follows = queryFactory
+        .selectFrom(QFollow.follow)
+        .join(QFollow.follow.followee).fetchJoin()
+        .join(QFollow.follow.follower).fetchJoin()
+        .where(
+            QFollow.follow.followee.id.eq(followerId),
+            buildFollowerNameLikeCondition(nameLike),
+            cursorStrategy.buildPredicate(sortDirection, cursor),
+            idAfterStrategy.buildPredicate(sortDirection, idAfter),
+            QFollow.follow.deletedAt.isNull(),
+            QFollow.follow.follower.deletedAt.isNull()
+        )
+        .orderBy(
+            cursorStrategy.buildOrder(sortDirection, cursor),
+            idAfterStrategy.buildOrder(sortDirection, idAfter)
+        )
+        .limit(limit + 1)
+        .fetch();
+
+    return convertToSlice(limit, follows, cursorStrategy, sortDirection);
+  }
+
+  private BooleanExpression buildFollowerNameLikeCondition(String nameLike) {
+    if (nameLike != null && !nameLike.isBlank()) {
+      return QFollow.follow.follower.name.containsIgnoreCase(nameLike);
+    }
+    return null;
+  }
+
+  private BooleanExpression buildFolloweeNameLikeCondition(String nameLike) {
     if (nameLike != null && !nameLike.isBlank()) {
       return QFollow.follow.followee.name.containsIgnoreCase(nameLike);
     }
