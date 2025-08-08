@@ -14,10 +14,10 @@ public class SecurityMatchers {
   public static final RequestMatcher SIGN_UP = new AntPathRequestMatcher(
       "/api/users", HttpMethod.POST.name());
   public static final RequestMatcher LOGIN = new AntPathRequestMatcher(
-      "/api/auth/login", HttpMethod.POST.name());
-  public static final String LOGIN_URL = "/api/auth/login";
+      "/api/auth/sign-in", HttpMethod.POST.name());
+  public static final String LOGIN_URL = "/api/auth/sign-in";
   public static final RequestMatcher LOGOUT = new AntPathRequestMatcher(
-      "/api/auth/logout", HttpMethod.POST.name());
+      "/api/auth/sign-out", HttpMethod.POST.name());
   public static final RequestMatcher ME = new AntPathRequestMatcher(
       "/api/auth/me", HttpMethod.GET.name()
   );

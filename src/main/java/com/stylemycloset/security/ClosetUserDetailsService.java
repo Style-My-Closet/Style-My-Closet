@@ -20,9 +20,9 @@ public class ClosetUserDetailsService implements UserDetailsService {
 
   @Transactional(readOnly = true)
   @Override
-  public UserDetails loadUserByUsername(String name) throws UsernameNotFoundException {
-    System.out.println(name);
-    User user = userRepository.findByname(name)
+  public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    System.out.println(email);
+    User user = userRepository.findByemail(email)
         .orElseThrow(UserNotFoundException::new);
 
     return new ClosetUserDetails(userMapper.UsertoUserDto(user), user.getPassword());

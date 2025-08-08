@@ -1,12 +1,21 @@
 package com.stylemycloset.security.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stylemycloset.security.CustomLoginFailureHandler;
+import com.stylemycloset.security.CustomLoginSuccessHandler;
+import com.stylemycloset.security.JsonUsernamePasswordAuthenticationFilter;
 import com.stylemycloset.security.SecurityMatchers;
+import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.user.entity.Role;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyAuthoritiesMapper;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -23,7 +32,9 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http,
-      DaoAuthenticationProvider daoAuthenticationProvider) throws Exception {
+      DaoAuthenticationProvider daoAuthenticationProvider,
+      ObjectMapper objectMapper,
+      JwtService jwtService) throws Exception {
     http
         .authenticationProvider(daoAuthenticationProvider)
         .authorizeHttpRequests(authorize -> authorize
@@ -39,6 +50,11 @@ public class SecurityConfig {
             .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
             .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())
         )
+        .with(new JsonUsernamePasswordAuthenticationFilter.Configurer(objectMapper), configurer ->
+            configurer
+                .successHandler(new CustomLoginSuccessHandler(objectMapper, jwtService))
+                .failureHandler(new CustomLoginFailureHandler(objectMapper))
+        );
 
     ;
     return http.build();
@@ -69,5 +85,11 @@ public class SecurityConfig {
         .role(Role.ADMIN.name())
         .implies(Role.USER.name())
         .build();
+  }
+
+  @Bean
+  public AuthenticationManager authenticationManager(
+      List<AuthenticationProvider> authenticationProviders) {
+    return new ProviderManager(authenticationProviders);
   }
 }

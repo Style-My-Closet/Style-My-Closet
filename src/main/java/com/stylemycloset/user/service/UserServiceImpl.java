@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserServiceImpl implements UserService {
 
   private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
   private final UserMapper userMapper;
 
 
@@ -37,8 +39,9 @@ public class UserServiceImpl implements UserService {
     if (userRepository.existsByEmail(request.email())) {
       throw new EmailDuplicateException();
     }
+    String encodedPassword = passwordEncoder.encode(request.password());
 
-    User user = new User(request);
+    User user = new User(request.name(), request.email(), encodedPassword);
     User savedUser = userRepository.save(user);
     return userMapper.UsertoUserDto(savedUser);
   }

@@ -61,10 +61,10 @@ public class User extends SoftDeletableEntity {
   @JoinColumn(name = "location_id")
   private Location location;
 
-  public User(UserCreateRequest request) {
-    this.name = request.name();
-    this.email = request.email();
-    this.password = request.password();
+  public User(String name, String email, String password) {
+    this.name = name;
+    this.email = email;
+    this.password = password;
     this.role = Role.USER;
     this.linkedOAuthProviders = List.of("google");
     this.locked = false;

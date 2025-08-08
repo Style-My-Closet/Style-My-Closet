@@ -21,7 +21,7 @@ public class AuthServiceImpl implements AuthService {
   private String username;
   @Value("${closet.admin.email}")
   private String email;
-  @Value("${closet.admin.username}")
+  @Value("${closet.admin.password}")
   private String password;
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
@@ -35,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
     }
     UserCreateRequest request = new UserCreateRequest(username, email,
         passwordEncoder.encode(password));
-    User admin = new User(request);
+    User admin = new User(request.name(), request.email(), request.password());
     admin.updateRole(Role.ADMIN);
 
     User saved = userRepository.save(admin);
