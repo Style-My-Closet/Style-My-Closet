@@ -8,8 +8,10 @@ import com.stylemycloset.sse.service.SseSender;
 import com.stylemycloset.sse.service.SseService;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.retry.annotation.Backoff;
@@ -130,9 +132,9 @@ public class SseServiceImpl implements SseService {
     sseRepository.getAllEmittersReadOnly()
         .forEach((userId, emitters) ->
             emitters.forEach(emitter -> {
-              try {
+              try{
                 emitter.send(SseEmitter.event().name("heartbeat").data("data"));
-              } catch (IOException e) {
+              } catch (IOException e){
                 log.debug("user [{}]에 대한 연결이 실패하여 emitter를 삭제", userId);
                 sseRepository.delete(userId, emitter);
               }

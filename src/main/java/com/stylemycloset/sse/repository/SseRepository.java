@@ -3,6 +3,7 @@ package com.stylemycloset.sse.repository;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -36,4 +37,3 @@ public class SseRepository {
   public CopyOnWriteArrayList<SseEmitter> findByUserId(Long userId) {
     return userEmitters.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>());
   }
-}
