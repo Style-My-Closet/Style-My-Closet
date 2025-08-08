@@ -1,12 +1,16 @@
 package com.stylemycloset.sse.service.impl;
 
+import com.stylemycloset.common.exception.ErrorCode;
+import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.sse.dto.SseInfo;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.SseService;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,10 +22,11 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequiredArgsConstructor
 public class SseServiceImpl implements SseService {
 
+  private static final long DEFAULT_TIMEOUT = 30L * 60 * 1000;
   private final SseRepository sseRepository;
 
   private final ConcurrentHashMap<Long, List<SseInfo>> userEvents = new ConcurrentHashMap<>();
-  private static final long DEFAULT_TIMEOUT = 30L * 60 * 1000;
+  private final AtomicLong eventIdSequence = new AtomicLong();
 
   public SseEmitter connect(Long userId, String eventId, String lastEventId) {
 
@@ -90,5 +95,8 @@ public class SseServiceImpl implements SseService {
       if(events.isEmpty()) userEvents.remove(userId);
     });
   }
+
+
+
 
 }

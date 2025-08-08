@@ -2,8 +2,19 @@ package com.stylemycloset.ootd.entity;
 
 import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.common.entity.CreatedAtEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -26,5 +37,14 @@ public class FeedClothes extends CreatedAtEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "clothes_id", nullable = false)
   private Cloth clothes;
+
+  private FeedClothes(Feed feed, Cloth clothes) {
+    this.feed = feed;
+    this.clothes = clothes;
+  }
+
+  public static FeedClothes createFeedClothes(Feed feed, Cloth clothes) {
+    return new FeedClothes(feed, clothes);
+  }
 
 }
