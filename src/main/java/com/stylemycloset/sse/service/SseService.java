@@ -12,4 +12,5 @@ public interface SseService {
   void cleanUpSseEmitter();
 
   void cleanUpSseInfos();
+
 }
