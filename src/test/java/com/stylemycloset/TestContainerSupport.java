@@ -50,7 +50,7 @@ abstract class TestContainerSupport {
     registry.add("style-my-closet.storage.s3.access-key", LOCAL_STACK_CONTAINER::getAccessKey);
     registry.add("style-my-closet.storage.s3.secret-key", LOCAL_STACK_CONTAINER::getSecretKey);
     registry.add("style-my-closet.storage.s3.region", LOCAL_STACK_CONTAINER::getRegion);
-  } // ? 이걸로 넣어주는데 뭐가 문제지?
+  }
 
   @TestConfiguration
   static class TestContainersConfiguration {
