@@ -7,6 +7,7 @@ import com.stylemycloset.follow.dto.request.FollowCreateRequest;
 import com.stylemycloset.follow.dto.request.SearchFollowersCondition;
 import com.stylemycloset.follow.dto.request.SearchFollowingsCondition;
 import com.stylemycloset.follow.service.FollowService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,36 +29,34 @@ public class FollowController {
 
   private final FollowService followService;
 
-  @PostMapping("/api/follows")
-  public ResponseEntity<FollowResult> startFollowing(FollowCreateRequest followCreateRequest) {
+  @PostMapping
+  public ResponseEntity<FollowResult> startFollowing(
+      @Valid @RequestBody FollowCreateRequest followCreateRequest
+  ) {
     FollowResult followResult = followService.startFollowing(followCreateRequest);
     return ResponseEntity.ok(followResult);
   }
 
   @GetMapping("/summary")
   public ResponseEntity<FollowSummaryResult> getFollowSummaryResult(
-      @RequestParam(value = "userId") Long followeeId,
-      @AuthenticationPrincipal Long followerId // 시큐리티 구현시 추후 수정 예정
+      @RequestParam(value = "userId") Long userId,
+      @AuthenticationPrincipal Long logInUserId // 시큐리티 추가시 넣을 예정
   ) {
-    FollowSummaryResult followSummaryResult = followService.summaryFollow(
-        followeeId,
-        followerId
-    );
+    FollowSummaryResult followSummaryResult = followService.summaryFollow(userId, logInUserId);
     return ResponseEntity.ok(followSummaryResult);
   }
 
   @GetMapping("/followings")
   public ResponseEntity<FollowListResponse<FollowResult>> getFollowings(
-      @ModelAttribute SearchFollowingsCondition searchFollowingsCondition
+      @Valid @ModelAttribute SearchFollowingsCondition followingsCondition
   ) {
-    FollowListResponse<FollowResult> followings = followService.getFollowings(
-        searchFollowingsCondition);
+    FollowListResponse<FollowResult> followings = followService.getFollowings(followingsCondition);
     return ResponseEntity.ok(followings);
   }
 
   @GetMapping("/follower")
   public ResponseEntity<FollowListResponse<FollowResult>> getFollowers(
-      @ModelAttribute SearchFollowersCondition followersCondition
+      @Valid @ModelAttribute SearchFollowersCondition followersCondition
   ) {
     FollowListResponse<FollowResult> followers = followService.getFollowers(followersCondition);
     return ResponseEntity.ok(followers);

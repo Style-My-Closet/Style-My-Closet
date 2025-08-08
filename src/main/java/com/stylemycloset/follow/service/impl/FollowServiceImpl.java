@@ -52,17 +52,21 @@ public class FollowServiceImpl implements FollowService {
 
   @Transactional(readOnly = true)
   @Override
-  public FollowSummaryResult summaryFollow(Long followee, Long follower) {
-    long followersNumber = followRepository.countActiveFollowers(follower);
-    long followingsNumber = followRepository.countActiveFollowings(follower);
+  public FollowSummaryResult summaryFollow(Long userId,
+      Long logInUserId) { // 뒤가 내 아이디 들어가느데? // 수정 필요 // 수정해야되네..
+    long followersNumber = followRepository.countActiveFollowers(logInUserId);
+    long followingsNumber = followRepository.countActiveFollowings(logInUserId);
     Follow userToTargetFollow = followRepository.findActiveByFolloweeIdAndFollowerId(
-            followee, follower)
-        .orElse(null);
+        userId,
+        logInUserId
+    ).orElse(null);
     boolean isFollowingMe = followRepository.existsActiveByFolloweeIdAndFollowerId(
-        followee, follower);
+        userId,
+        logInUserId
+    );
 
     return FollowSummaryResult.of(
-        followee,
+        userId,
         followersNumber,
         followingsNumber,
         userToTargetFollow,
