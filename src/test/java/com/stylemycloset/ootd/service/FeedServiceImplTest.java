@@ -17,6 +17,7 @@ import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
 import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
+import com.stylemycloset.ootd.dto.FeedSearchRequest;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.FeedLike;
 import com.stylemycloset.ootd.repo.FeedClothesRepository;
@@ -122,8 +123,9 @@ class FeedServiceImplTest {
     @DisplayName("성공")
     void success() {
       // given (준비)
-      Long cursorId = null;
-      Pageable pageable = PageRequest.of(0, 10);
+      FeedSearchRequest request = FeedSearchRequest.builder().limit(10).build();
+
+      Pageable pageable = PageRequest.of(0, request.limit());
 
       // Repository가 반환할 '가짜' 엔티티 목록 생성
       Feed mockFeed = mock(Feed.class);
@@ -131,11 +133,11 @@ class FeedServiceImplTest {
       when(mockFeed.getAuthor()).thenReturn(mockUser);
       List<Feed> fakeFeeds = List.of(mockFeed);
 
-      when(feedRepository.findByConditions(cursorId, null, null, null, pageable))
+      when(feedRepository.findByConditions(request, pageable))
           .thenReturn(fakeFeeds);
 
       // when (실행)
-      FeedDtoCursorResponse result = feedService.getFeeds(cursorId, null, null, null, pageable);
+      FeedDtoCursorResponse result = feedService.getFeeds(request);
 
       // then (검증)
       assertThat(result).isNotNull();

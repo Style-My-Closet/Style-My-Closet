@@ -9,6 +9,7 @@ import com.stylemycloset.ootd.dto.ClothesAttributeWithDefDto;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
 import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
+import com.stylemycloset.ootd.dto.FeedSearchRequest;
 import com.stylemycloset.ootd.dto.OotdItemDto;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.FeedClothes;
@@ -25,6 +26,7 @@ import com.stylemycloset.weather.dto.WeatherSummaryDto;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,11 +75,13 @@ public class FeedServiceImpl implements FeedService {
   }
 
   @Override
-  public FeedDtoCursorResponse getFeeds(Long cursorId, String keywordLike, Weather.SkyStatus skyStatus, Long authorId, Pageable pageable) {
+  public FeedDtoCursorResponse getFeeds(FeedSearchRequest request) {
     // TODO: 이 메서드에도 현재 로그인한 유저 ID를 파라미터로 받아와야 likedByMe를 계산
     User currentUser = null;
 
-    List<Feed> feeds = feedRepository.findByConditions(cursorId, keywordLike, skyStatus, authorId, pageable);
+    Pageable pageable = PageRequest.of(0, request.limit() != null ? request.limit() : 10);
+
+    List<Feed> feeds = feedRepository.findByConditions(request, pageable);
 
     boolean hasNext = feeds.size() > pageable.getPageSize();
     if (hasNext) {
@@ -94,7 +98,7 @@ public class FeedServiceImpl implements FeedService {
         .collect(Collectors.toList());
 
     return new FeedDtoCursorResponse(
-        feedDtos, nextCursor, nextCursor, hasNext, 0L, "createdAt", "DESCENDING");
+        feedDtos, nextCursor, nextCursor, hasNext, 0L, request.sortBy(), request.sortDirection());
   }
 
   @Override

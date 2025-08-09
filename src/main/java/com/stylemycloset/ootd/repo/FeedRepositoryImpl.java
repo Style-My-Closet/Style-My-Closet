@@ -2,8 +2,10 @@ package com.stylemycloset.ootd.repo;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.stylemycloset.ootd.dto.FeedSearchRequest;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.QFeed;
+import com.stylemycloset.ootd.tempEnum.PrecipitationType;
 import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +20,7 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public List<Feed> findByConditions(Long cursorId, String keywordLike, SkyStatus skyStatus,
-      Long authorId, Pageable pageable) {
+  public List<Feed> findByConditions(FeedSearchRequest request, Pageable pageable) {
     QFeed feed = QFeed.feed;
 
     return queryFactory
@@ -27,10 +28,10 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
         .join(feed.author).fetchJoin()
         .leftJoin(feed.weather).fetchJoin()
         .where(
-            ltCursorId(cursorId),
-            containsKeyword(keywordLike),
-            eqSkyStatus(skyStatus),
-            eqAuthorId(authorId)
+            ltCursorId(request.idAfter()),
+            containsKeyword(request.keywordLike()),
+            eqSkyStatus(request.skyStatusEqual()),
+            eqAuthorId(request.authorIdEqual())
         )
         .orderBy(feed.id.desc())
         .limit(pageable.getPageSize() + 1)
@@ -52,5 +53,9 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
 
   private BooleanExpression eqAuthorId(Long authorId) {
     return authorId != null ? QFeed.feed.author.id.eq(authorId) : null;
+  }
+
+  private BooleanExpression eqPrecipitationType(PrecipitationType type) {
+    return type != null ? QFeed.feed.weather.precipitation.type.eq(type.name()) : null;
   }
 }
