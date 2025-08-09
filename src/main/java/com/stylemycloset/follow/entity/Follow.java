@@ -41,8 +41,8 @@ public class Follow extends SoftDeletableEntity {
   private Instant followedAt;
 
   public Follow(User followee, User follower) {
-    this.follower = follower;
     this.followee = followee;
+    this.follower = follower;
     this.followedAt = Instant.now();
   }
 

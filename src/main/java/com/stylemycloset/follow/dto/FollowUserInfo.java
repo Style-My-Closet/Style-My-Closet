@@ -4,11 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.stylemycloset.user.entity.User;
 
 public record FollowUserInfo(
-    @JsonProperty("userId")
     Long userId,
-    @JsonProperty("name")
     String name,
-    @JsonProperty("profileImageUrl")
     String profileImageUrl
 ) {
 

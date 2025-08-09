@@ -49,7 +49,7 @@ class BinaryContentServiceImplTest extends IntegrationTestSupport {
         binaryContentRequest);
 
     // then
-    Assertions.assertThat(binaryContent.name()).isEqualTo(name);
+    Assertions.assertThat(binaryContent.originalFileName()).isEqualTo(name);
 
     verify(binaryContentStorage, times(1)).put(any(), any());
   }

@@ -35,16 +35,16 @@ public class BinaryContentServiceImpl implements BinaryContentService {
     BinaryContent savedBinaryContent = binaryContentRepository.save(binaryContent);
     binaryContentStorage.put(savedBinaryContent.getId(), binaryContentRequest.bytes());
 
-    return BinaryContentResult.fromEntity(savedBinaryContent);
+    return BinaryContentResult.from(savedBinaryContent);
   }
 
   @Transactional(readOnly = true)
   @Override
   public BinaryContentResult getById(UUID id) {
     BinaryContent binaryContent = binaryContentRepository.findById(id)
-        .orElseThrow(() -> new BinaryContentNotFoundException(Map.of()));
+        .orElseThrow(BinaryContentNotFoundException::new);
 
-    return BinaryContentResult.fromEntity(binaryContent);
+    return BinaryContentResult.from(binaryContent);
   }
 
   @Transactional(readOnly = true)
@@ -52,7 +52,7 @@ public class BinaryContentServiceImpl implements BinaryContentService {
   public List<BinaryContentResult> getByIdIn(List<UUID> ids) {
     return binaryContentRepository.findAllById(ids)
         .stream()
-        .map(BinaryContentResult::fromEntity)
+        .map(BinaryContentResult::from)
         .toList();
   }
 
@@ -68,7 +68,7 @@ public class BinaryContentServiceImpl implements BinaryContentService {
     if (binaryContentRepository.existsById(id)) {
       return;
     }
-    throw new BinaryContentNotFoundException(Map.of());
+    throw new BinaryContentNotFoundException();
   }
 
 }

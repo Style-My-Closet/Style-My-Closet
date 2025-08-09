@@ -58,7 +58,6 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
     return convertToSlice(limit, follows, cursorStrategy, sortDirection);
   }
 
-  // d.followee = :followeeId 인 팔로워를 봅니다.
   @Override
   public Slice<Follow> findFollowersByFolloweeId(
       Long followerId,

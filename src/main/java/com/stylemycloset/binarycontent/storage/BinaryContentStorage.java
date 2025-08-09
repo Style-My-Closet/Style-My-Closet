@@ -11,7 +11,6 @@ public interface BinaryContentStorage {
 
   InputStream get(UUID binaryContentId);
 
-  // 추후에 프론트 엔트 코드 보고 수정
   URL getUrl(UUID binaryContentId);
 
 }

@@ -22,18 +22,18 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, FollowRep
   @Query("""
       SELECT COUNT(f)
       FROM Follow f
-      WHERE f.follower.id = :targetUserId
+      WHERE f.followee.id = :userId
       AND f.deletedAt IS NULL
       """)
-  long countActiveFollowers(Long targetUserId);
+  long countActiveFollowers(Long userId);
 
   @Query("""
       SELECT COUNT(f)
       FROM Follow f
-      WHERE f.followee.id = :targetUserId
+      WHERE f.follower.id = :userId
        AND f.deletedAt IS NULL
       """)
-  long countActiveFollowings(Long targetUserId);
+  long countActiveFollowings(Long userId);
 
   @Query("""
       SELECT f

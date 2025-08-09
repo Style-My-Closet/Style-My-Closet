@@ -45,7 +45,7 @@ style-my-closet:
       secret-key: ${AWS_S3_SECRET_KEY:secret-key}
       region: ${AWS_S3_REGION:region}
       bucket: ${AWS_S3_BUCKET:bucket}
-      presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION:600}
+      presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION_SECOND:600}
 
 external:
   market-index:

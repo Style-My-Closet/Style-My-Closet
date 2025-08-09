@@ -77,7 +77,7 @@ class FollowControllerTest extends ControllerTestSupport {
   @DisplayName("요약 조회: userId 정상 전달이면 200")
   void summary_valid_returns200() {
     // given
-    BDDMockito.given(followService.summaryFollow(any(), any()))
+    BDDMockito.given(followService.getFollowSummary(any(), any()))
         .willReturn(Mockito.mock(FollowSummaryResult.class));
 
     // when

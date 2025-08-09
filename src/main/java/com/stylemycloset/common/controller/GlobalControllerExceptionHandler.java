@@ -19,7 +19,8 @@ public class GlobalControllerExceptionHandler {
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<List<ErrorResponse>> handleValidationErrors(
-      MethodArgumentNotValidException exception) {
+      MethodArgumentNotValidException exception
+  ) {
     List<FieldError> fieldErrors = exception.getBindingResult().getFieldErrors();
     log.error("Wrong Method Argument: {}", exception.getMessage());
 
@@ -30,8 +31,9 @@ public class GlobalControllerExceptionHandler {
 
   @ExceptionHandler(MissingServletRequestParameterException.class)
   public ResponseEntity<ErrorResponse> handleMissingParam(
-      MissingServletRequestPartException exception) {
-    log.error("Missing Param: {}", exception.getRequestPartName());
+      MissingServletRequestParameterException exception
+  ) {
+    log.error("Missing request parameter: {}", exception.getParameterName());
 
     ErrorResponse errorResponse = ErrorResponse.of(exception, HttpStatus.BAD_REQUEST.value());
     return ResponseEntity.badRequest()
@@ -40,7 +42,8 @@ public class GlobalControllerExceptionHandler {
 
   @ExceptionHandler(MissingServletRequestPartException.class)
   public ResponseEntity<ErrorResponse> handleMissingPart(
-      MissingServletRequestPartException exception) {
+      MissingServletRequestPartException exception
+  ) {
     log.error("Missing multipart part: {}", exception.getRequestPartName());
 
     ErrorResponse errorResponse = ErrorResponse.of(exception, HttpStatus.BAD_REQUEST.value());
@@ -59,10 +62,12 @@ public class GlobalControllerExceptionHandler {
 
   @ExceptionHandler(StyleMyClosetException.class)
   public ResponseEntity<ErrorResponse> handleStyleMyClosetException(
-      StyleMyClosetException exception) {
+      StyleMyClosetException exception
+  ) {
     log.error("커스텀 예외 발생: errorCodeName={}, message={}", exception.getErrorCode(),
         exception.getMessage(),
         exception);
+
     HttpStatus status = exception.getErrorCode().getHttpStatus();
     ErrorResponse errorResponse = ErrorResponse.of(exception, status.value());
     return ResponseEntity.status(status)

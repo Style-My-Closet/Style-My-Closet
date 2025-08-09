@@ -10,7 +10,7 @@ import com.stylemycloset.follow.dto.request.SearchFollowingsCondition;
 import com.stylemycloset.follow.entity.Follow;
 import com.stylemycloset.follow.entity.QFollow;
 import com.stylemycloset.follow.exception.ActiveFollowNotFoundException;
-import com.stylemycloset.follow.exception.FollowAlreadyExist;
+import com.stylemycloset.follow.exception.FollowAlreadyExistException;
 import com.stylemycloset.follow.exception.FollowNotFoundException;
 import com.stylemycloset.follow.exception.FollowSelfForbiddenException;
 import com.stylemycloset.follow.repository.FollowRepository;
@@ -21,7 +21,6 @@ import com.stylemycloset.user.repository.UserRepository;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,7 +98,7 @@ class FollowServiceTest extends IntegrationTestSupport {
 
     // when & then
     Assertions.assertThatThrownBy(() -> followService.startFollowing(followCreateRequest))
-        .isInstanceOf(FollowAlreadyExist.class);
+        .isInstanceOf(FollowAlreadyExistException.class);
   }
 
   @DisplayName("A 유저가 B 유저를 팔로우 취소 후 팔로우를 하면, 새로 생성되지 않고 이전 팔로우 기록이 복구된다")
@@ -135,43 +134,54 @@ class FollowServiceTest extends IntegrationTestSupport {
   @Test
   void summaryFollowInfo() {
     // given
-    User logInUser = userRepository.save(new User("a", "a", "a"));
-    User targetUser = userRepository.save(new User("b", "b", "b"));
-    Follow savedFollow = followRepository.save(new Follow(targetUser, logInUser));
+    User userA = userRepository.save(new User("a", "a", "a"));
+    User userB = userRepository.save(new User("b", "b", "b"));
+    User userC = userRepository.save(new User("c", "c", "c"));
+    Follow followAtoB = followRepository.save(new Follow(userB, userA));
+    Follow followAtoC = followRepository.save(new Follow(userC, userA));
+    Follow followCtoA = followRepository.save(new Follow(userA, userC));
 
     // when
-    FollowSummaryResult followSummary = followService.summaryFollow(targetUser.getId(),
-        logInUser.getId());
+    FollowSummaryResult followSummary = followService.getFollowSummary(
+        userA.getId(),
+        userC.getId()
+    );
 
     // then
     Assertions.assertThat(followSummary)
         .extracting(
-            FollowSummaryResult::followedByMe, FollowSummaryResult::followedByMeId,
-            FollowSummaryResult::followeeId, FollowSummaryResult::followerCount,
-            FollowSummaryResult::followingCount
-        ).containsExactly(true, savedFollow.getId(), targetUser.getId(), 0L, 1L);
+            FollowSummaryResult::followeeId,
+            FollowSummaryResult::followerCount,
+            FollowSummaryResult::followingCount,
+            FollowSummaryResult::followedByMe,
+            FollowSummaryResult::followedByMeId,
+            FollowSummaryResult::followingMe
+        ).containsExactly(userA.getId(), 1L, 2L, true, followCtoA.getId(), true);
   }
 
   @DisplayName("로그인 유저가 다른 유저의 팔로우 요약 정보를 조회하면 팔로우 여부가 포함된다(팔로우 정보가 없을떄)")
   @Test
   void summaryFollow_NoneFollow() {
     // given
-    User logInUser = userRepository.save(new User("a", "a", "a"));
-    User targetUser = userRepository.save(new User("b", "b", "b"));
+    User userA = userRepository.save(new User("a", "a", "a"));
+    User userB = userRepository.save(new User("b", "b", "b"));
 
     // when
-    FollowSummaryResult followSummary = followService.summaryFollow(
-        targetUser.getId(),
-        logInUser.getId()
+    FollowSummaryResult followSummary = followService.getFollowSummary(
+        userB.getId(),
+        userA.getId()
     );
 
     // then
     Assertions.assertThat(followSummary)
         .extracting(
-            FollowSummaryResult::followedByMe, FollowSummaryResult::followedByMeId,
-            FollowSummaryResult::followeeId, FollowSummaryResult::followerCount,
-            FollowSummaryResult::followingCount
-        ).containsExactly(false, null, targetUser.getId(), 0L, 0L);
+            FollowSummaryResult::followeeId,
+            FollowSummaryResult::followerCount,
+            FollowSummaryResult::followingCount,
+            FollowSummaryResult::followedByMe,
+            FollowSummaryResult::followedByMeId,
+            FollowSummaryResult::followingMe
+        ).containsExactly(userB.getId(), 0L, 0L, false, null, false);
   }
 
   @DisplayName("사용자가 팔로워의 팔로잉 목록을 첫 페이지 이후로 조회하면, 중복 없이 이어서 조회된다")
@@ -252,7 +262,7 @@ class FollowServiceTest extends IntegrationTestSupport {
   void softDelete_marksDeleted_and_excludedFromActiveSearch() {
     // given
     User followee = userRepository.save(new User("followee", "e", "p"));
-    User follower = userRepository.save(new User("follower", "f","p"));
+    User follower = userRepository.save(new User("follower", "f", "p"));
     Follow follow = followRepository.save(new Follow(followee, follower));
 
     // when

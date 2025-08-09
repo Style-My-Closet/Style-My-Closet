@@ -34,6 +34,29 @@ class FollowRepositoryTest extends IntegrationTestSupport {
     followRepository.deleteAllInBatch();
   }
 
+  @Test
+  @DisplayName("유저 A의 팔로워 수와 팔로잉 수를 정확히 카운트한다")
+  void countActiveFollowersAndFollowings() {
+    // given
+    User userA = userRepository.save(new User("A", "a@example.com", "P"));
+    User userB = userRepository.save(new User("B", "b@example.com", "P"));
+    User userC = userRepository.save(new User("C", "c@example.com", "P"));
+
+    Follow followBtoA = followRepository.save(new Follow(userA, userB));
+    Follow followAtoB = followRepository.save(new Follow(userB, userA));
+    Follow followAtoC = followRepository.save(new Follow(userC, userA));
+
+    // when
+    long followersCount = followRepository.countActiveFollowers(userA.getId());
+    long followingsCount = followRepository.countActiveFollowings(userA.getId());
+
+    // then
+    SoftAssertions.assertSoftly(softly -> {
+      softly.assertThat(followersCount).isEqualTo(1);
+      softly.assertThat(followingsCount).isEqualTo(2);
+    });
+  }
+
   @DisplayName("팔로우 관계가 SoftDelete 되었으면 조회되지 않습니다.")
   @Test
   void test_SoftDelete() {

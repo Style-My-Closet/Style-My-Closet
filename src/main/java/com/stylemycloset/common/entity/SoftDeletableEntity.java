@@ -4,15 +4,16 @@ import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 
 import java.time.Instant;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-@Setter
 @MappedSuperclass
 public abstract class SoftDeletableEntity extends BaseTimeEntity {
 
   @Column(name = "deleted_at")
+  @Setter(AccessLevel.NONE)
   private Instant deletedAt;
 
   public boolean isSoftDeleted() {

@@ -6,8 +6,8 @@ import java.util.Map;
 
 public abstract class FollowException extends StyleMyClosetException {
 
-  public FollowException(ErrorCode errorCode, Map<String, Object> details) {
-    super(errorCode, details);
+  public FollowException(ErrorCode errorCode) {
+    super(errorCode);
   }
 
 }

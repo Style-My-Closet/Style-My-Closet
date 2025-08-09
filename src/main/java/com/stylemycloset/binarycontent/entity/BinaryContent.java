@@ -25,7 +25,7 @@ public class BinaryContent extends CreatedAtEntity {
   @Column(name = "file_name", nullable = false)
   private String originalFileName;
 
-  @Column(name = "content_type")
+  @Column(name = "content_type", nullable = false)
   private String contentType;
 
   @Column(name = "size", nullable = false)

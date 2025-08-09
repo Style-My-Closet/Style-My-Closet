@@ -14,7 +14,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,7 +41,7 @@ public class FollowController {
       @RequestParam(value = "userId") Long userId,
       @AuthenticationPrincipal Long logInUserId // 시큐리티 추가시 넣을 예정
   ) {
-    FollowSummaryResult followSummaryResult = followService.summaryFollow(userId, logInUserId);
+    FollowSummaryResult followSummaryResult = followService.getFollowSummary(userId, logInUserId);
     return ResponseEntity.ok(followSummaryResult);
   }
 

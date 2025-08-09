@@ -47,8 +47,11 @@ public class AsyncConfig {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(2);
     executor.setMaxPoolSize(3);
+    executor.setQueueCapacity(200);
     executor.setThreadNamePrefix("S3-Thread-");
     executor.setTaskDecorator(taskDecorator);
+    executor.setWaitForTasksToCompleteOnShutdown(true);
+    executor.setAwaitTerminationSeconds(30);
     executor.initialize();
 
     return executor;

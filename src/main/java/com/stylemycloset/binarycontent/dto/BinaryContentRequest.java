@@ -17,17 +17,17 @@ public record BinaryContentRequest(
         multipartFile.getName(),
         multipartFile.getContentType(),
         multipartFile.getSize(),
-        getBytesFromMultiPartFile(multipartFile)
+        getBytesFromMultipartFile(multipartFile)
     );
   }
 
-  public static byte[] getBytesFromMultiPartFile(MultipartFile file) {
+  public static byte[] getBytesFromMultipartFile(MultipartFile file) {
     validateMultipartFile(file);
 
     try {
       return file.getBytes();
     } catch (IOException e) {
-      throw new UncheckedIOException("파일 바이트 변환에 실패했습니다.", e);
+      throw new IllegalArgumentException("파일 바이트 변환에 실패했습니다.", e);
     }
   }
 

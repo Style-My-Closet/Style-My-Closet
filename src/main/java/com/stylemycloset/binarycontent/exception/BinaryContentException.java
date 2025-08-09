@@ -6,8 +6,8 @@ import java.util.Map;
 
 public class BinaryContentException extends StyleMyClosetException {
 
-  public BinaryContentException(ErrorCode errorCode, Map<String, Object> details) {
-    super(errorCode, details);
+  public BinaryContentException(ErrorCode errorCode) {
+    super(errorCode);
   }
 
 }
