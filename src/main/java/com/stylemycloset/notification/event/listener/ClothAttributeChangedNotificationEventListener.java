@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -28,7 +27,6 @@ public class ClothAttributeChangedNotificationEventListener  {
   private static final String CLOTH_ATTRIBUTE_CHANGED = "의상 속성이 변경되었어요.";
   private static final String CLOTH_ATTRIBUTE_CHANGED_CONTENT = "[%s] 속성을 확인해보세요.";
 
-  @Async("eventTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handler(ClothAttributeChangedEvent event) {
     try {

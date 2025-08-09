@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -30,17 +29,14 @@ public class NewFeedNotificationEventListener {
 
   private static final String FEED_ADDED = "%s님이 새로운 피드를 작성했어요.";
 
-  @Async("eventTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handler(NewFeedEvent event) {
+    log.info("새로운 피드 생성 추가 이벤트 호출 - feedId={}, feedAuthorId={}", event.feedId(), event.feedAuthorId());
+    User feedAuthor = userRepository.findById(event.feedAuthorId())
+        .orElseThrow(UserNotFoundException::new);
+    Set<User> receivers = followRepository.findFollowersByFolloweeId(feedAuthor.getId());
     try{
-      log.info("새로운 피드 생성 추가 이벤트 호출 - feedId={}, feedAuthorId={}", event.feedId(), event.feedAuthorId());
-      User feedAuthor = userRepository.findById(event.feedAuthorId())
-          .orElseThrow(UserNotFoundException::new);
-      Set<User> receivers = followRepository.findFollowersByFolloweeId(feedAuthor.getId());
-
       String title = String.format(FEED_ADDED, feedAuthor.getName());
-
       List<NotificationDto> notificationDtoList =
           notificationService.createAll(receivers, title, event.feedContent(), NotificationLevel.INFO);
 

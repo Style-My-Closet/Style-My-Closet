@@ -10,7 +10,6 @@ import com.stylemycloset.notification.service.NotificationService;
 import com.stylemycloset.sse.service.SseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -26,14 +25,13 @@ public class DMReceivedNotificationEventListener {
 
   private static final String NEW_MESSAGE = "[DM] %s";
 
-  @Async("eventTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handler(DMSentEvent event) {
-    try {
-      log.info("DM 이벤트 호출 - messageId={}", event.messageId());
+    log.info("DM 이벤트 호출 - messageId={}", event.messageId());
 
-      Message message = messageRepository.findWithReceiverById(event.messageId())
-          .orElseThrow(() -> new MessageNotFoundException(event.messageId()));
+    Message message = messageRepository.findWithReceiverById(event.messageId())
+        .orElseThrow(() -> new MessageNotFoundException(event.messageId()));
+    try {
       String title = String.format(NEW_MESSAGE, event.sendUsername());
       NotificationDto notificationDto = notificationService.create(message.getReceiver(), title, "", NotificationLevel.INFO);
 

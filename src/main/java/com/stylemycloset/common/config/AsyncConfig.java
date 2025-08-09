@@ -17,18 +17,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @EnableRetry
 public class AsyncConfig {
 
-  @Bean(name = "eventTaskExecutor")
-  public TaskExecutor eventExecutor() {
-    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setCorePoolSize(2);
-    executor.setMaxPoolSize(4);
-    executor.setQueueCapacity(100);
-    executor.setThreadNamePrefix("event-task-");
-    executor.setTaskDecorator(taskDecorator());
-    executor.initialize();
-    return executor;
-  }
-
   @Bean(name = "sseTaskExecutor")
   public TaskExecutor sseExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
