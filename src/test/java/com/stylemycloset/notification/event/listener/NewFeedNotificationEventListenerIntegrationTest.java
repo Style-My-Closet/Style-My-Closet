@@ -3,7 +3,6 @@ package com.stylemycloset.notification.event.listener;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import com.stylemycloset.follow.entity.repository.FollowRepository;
 import com.stylemycloset.notification.event.domain.NewFeedEvent;
@@ -63,8 +62,8 @@ public class NewFeedNotificationEventListenerIntegrationTest extends Integration
     given(followRepository.findFollowersByFolloweeId(feedAuthor.getId())).willReturn(receivers);
 
     NotificationStubHelper.stubSaveAll(notificationRepository);
-    given(sseRepository.findByUserId(follower1.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
-    given(sseRepository.findByUserId(follower2.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter2)));
+    given(sseRepository.findOrCreateEmitters(follower1.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
+    given(sseRepository.findOrCreateEmitters(follower2.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter2)));
 
     NewFeedEvent event = new NewFeedEvent(1L, "피드 테스트", feedAuthor.getId());
 
@@ -72,6 +71,6 @@ public class NewFeedNotificationEventListenerIntegrationTest extends Integration
     listener.handler(event);
 
     // then
-    await().untilAsserted(() -> verify(notificationRepository).saveAll(any(List.class)));
+    verify(notificationRepository).saveAll(any(List.class));
   }
 }

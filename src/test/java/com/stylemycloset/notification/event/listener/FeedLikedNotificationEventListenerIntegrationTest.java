@@ -3,7 +3,6 @@ package com.stylemycloset.notification.event.listener;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.entity.NotificationLevel;
@@ -66,7 +65,7 @@ public class FeedLikedNotificationEventListenerIntegrationTest extends Integrati
     given(feedRepository.findWithUserById(feed.getId())).willReturn(Optional.of(feed));
     given(userRepository.findById(likeUser.getId())).willReturn(Optional.of(likeUser));
     NotificationStubHelper.stubSave(notificationRepository);
-    given(sseRepository.findByUserId(user.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
+    given(sseRepository.findOrCreateEmitters(user.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
 
     FeedLikedEvent event = new FeedLikedEvent(6L, 66L);
 
@@ -74,14 +73,12 @@ public class FeedLikedNotificationEventListenerIntegrationTest extends Integrati
     listener.handler(event);
 
     // then
-    await().untilAsserted(() -> {
-      ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
-      verify(notificationRepository).save(captor.capture());
+    ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+    verify(notificationRepository).save(captor.capture());
 
-      Notification saved = captor.getValue();
-      assertThat(saved.getReceiver()).isEqualTo(user);
-      assertThat(saved.getTitle()).isEqualTo("likeUsername님이 내 피드를 좋아합니다.");
-      assertThat(saved.getLevel()).isEqualTo(NotificationLevel.INFO);
-    });
+    Notification saved = captor.getValue();
+    assertThat(saved.getReceiver()).isEqualTo(user);
+    assertThat(saved.getTitle()).isEqualTo("likeUsername님이 내 피드를 좋아합니다.");
+    assertThat(saved.getLevel()).isEqualTo(NotificationLevel.INFO);
   }
 }

@@ -3,7 +3,6 @@ package com.stylemycloset.notification.event.listener;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import com.stylemycloset.notification.event.domain.NewClothAttributeEvent;
 import com.stylemycloset.notification.repository.NotificationRepository;
@@ -55,8 +54,8 @@ public class NewClothAttributeNotificationEventListenerIntegrationTest extends I
 
     given(userRepository.findByLockedFalseAndDeleteAtIsNull()).willReturn(users);
     NotificationStubHelper.stubSaveAll(notificationRepository);
-    given(sseRepository.findByUserId(insertUser1.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
-    given(sseRepository.findByUserId(insertUser2.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter2)));
+    given(sseRepository.findOrCreateEmitters(insertUser1.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
+    given(sseRepository.findOrCreateEmitters(insertUser2.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter2)));
 
     NewClothAttributeEvent event = new NewClothAttributeEvent(1L, "속성 추가");
 
@@ -64,7 +63,7 @@ public class NewClothAttributeNotificationEventListenerIntegrationTest extends I
     listener.handler(event);
 
     // then
-    await().untilAsserted(() -> verify(notificationRepository).saveAll(any(List.class)));
+    verify(notificationRepository).saveAll(any(List.class));
   }
 
 }

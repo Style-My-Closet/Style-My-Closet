@@ -1,4 +1,4 @@
-package com.stylemycloset.notification.service;
+package com.stylemycloset.sse.service;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -6,7 +6,6 @@ import static org.mockito.Mockito.verify;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import com.stylemycloset.sse.repository.SseRepository;
-import com.stylemycloset.sse.service.SseSender;
 import com.stylemycloset.testutil.IntegrationTestSupport;
 import java.io.IOException;
 import org.junit.jupiter.api.DisplayName;
@@ -58,6 +57,6 @@ public class SseSenderUnitTest extends IntegrationTestSupport {
     );
 
     // then
-    await().untilAsserted(() -> verify(sseRepository).delete(1L, emitter));
+    await().untilAsserted(() -> verify(sseRepository).removeEmitter(1L, emitter));
   }
 }

@@ -3,7 +3,6 @@ package com.stylemycloset.notification.event.listener;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.entity.NotificationLevel;
@@ -55,7 +54,7 @@ public class WeatherAlertNotificationEventListenerIntegrationTest extends Integr
 
     given(userRepository.findById(weatherSender.getId())).willReturn(Optional.of(weatherSender));
     NotificationStubHelper.stubSave(notificationRepository);
-    given(sseRepository.findByUserId(weatherSender.getId())).willReturn(new CopyOnWriteArrayList<>(
+    given(sseRepository.findOrCreateEmitters(weatherSender.getId())).willReturn(new CopyOnWriteArrayList<>(
         List.of(emitter)));
 
     WeatherAlertEvent weatherAlertEvent = new WeatherAlertEvent(weatherSender.getId(), 1L, "날씨 변화 테스트");
@@ -64,15 +63,13 @@ public class WeatherAlertNotificationEventListenerIntegrationTest extends Integr
     listener.handler(weatherAlertEvent);
 
     // then
-    await().untilAsserted(() -> {
-      ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
-      verify(notificationRepository).save(captor.capture());
+    ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+    verify(notificationRepository).save(captor.capture());
 
-      Notification saved = captor.getValue();
-      assertThat(saved.getReceiver()).isEqualTo(weatherSender);
-      assertThat(saved.getTitle()).isEqualTo("급격한 날씨 변화가 발생했습니다.");
-      assertThat(saved.getContent()).isEqualTo("날씨 변화 테스트");
-      assertThat(saved.getLevel()).isEqualTo(NotificationLevel.WARNING);
-    });
+    Notification saved = captor.getValue();
+    assertThat(saved.getReceiver()).isEqualTo(weatherSender);
+    assertThat(saved.getTitle()).isEqualTo("급격한 날씨 변화가 발생했습니다.");
+    assertThat(saved.getContent()).isEqualTo("날씨 변화 테스트");
+    assertThat(saved.getLevel()).isEqualTo(NotificationLevel.WARNING);
   }
 }

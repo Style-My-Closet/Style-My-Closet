@@ -3,7 +3,6 @@ package com.stylemycloset.notification.event.listener;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import com.stylemycloset.directmessage.entity.Message;
 import com.stylemycloset.directmessage.entity.repository.MessageRepository;
@@ -65,7 +64,7 @@ public class DMReceivedNotificationEventListenerIntegrationTest extends Integrat
 
     given(messageRepository.findWithReceiverById(message.getId())).willReturn(Optional.of(message));
     NotificationStubHelper.stubSave(notificationRepository);
-    given(sseRepository.findByUserId(dmReceiver.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
+    given(sseRepository.findOrCreateEmitters(dmReceiver.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
 
     DMSentEvent dmSentEvent = new DMSentEvent(message.getId(), "user");
 
@@ -73,15 +72,13 @@ public class DMReceivedNotificationEventListenerIntegrationTest extends Integrat
     listener.handler(dmSentEvent);
 
     // then
-    await().untilAsserted(() -> {
-      ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
-      verify(notificationRepository).save(captor.capture());
+    ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+    verify(notificationRepository).save(captor.capture());
 
-      Notification saved = captor.getValue();
-      assertThat(saved.getReceiver()).isEqualTo(dmReceiver);
-      assertThat(saved.getTitle()).isEqualTo("[DM] user");
-      assertThat(saved.getLevel()).isEqualTo(NotificationLevel.INFO);
-    });
+    Notification saved = captor.getValue();
+    assertThat(saved.getReceiver()).isEqualTo(dmReceiver);
+    assertThat(saved.getTitle()).isEqualTo("[DM] user");
+    assertThat(saved.getLevel()).isEqualTo(NotificationLevel.INFO);
   }
 
 }

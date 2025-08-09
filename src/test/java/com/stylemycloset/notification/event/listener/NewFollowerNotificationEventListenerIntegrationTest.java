@@ -3,7 +3,6 @@ package com.stylemycloset.notification.event.listener;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.entity.NotificationLevel;
@@ -55,7 +54,7 @@ public class NewFollowerNotificationEventListenerIntegrationTest extends Integra
 
     given(userRepository.findById(followee.getId())).willReturn(Optional.of(followee));
     NotificationStubHelper.stubSave(notificationRepository);
-    given(sseRepository.findByUserId(followee.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
+    given(sseRepository.findOrCreateEmitters(followee.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
 
     FollowEvent followEvent = new FollowEvent(followee.getId(), "user");
 
@@ -63,14 +62,12 @@ public class NewFollowerNotificationEventListenerIntegrationTest extends Integra
     listener.handler(followEvent);
 
     // then
-    await().untilAsserted(() -> {
-      ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
-      verify(notificationRepository).save(captor.capture());
+    ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+    verify(notificationRepository).save(captor.capture());
 
-      Notification saved = captor.getValue();
-      assertThat(saved.getReceiver()).isEqualTo(followee);
-      assertThat(saved.getTitle()).isEqualTo("user님이 나를 팔로우했어요.");
-      assertThat(saved.getLevel()).isEqualTo(NotificationLevel.INFO);
-    });
+    Notification saved = captor.getValue();
+    assertThat(saved.getReceiver()).isEqualTo(followee);
+    assertThat(saved.getTitle()).isEqualTo("user님이 나를 팔로우했어요.");
+    assertThat(saved.getLevel()).isEqualTo(NotificationLevel.INFO);
   }
 }

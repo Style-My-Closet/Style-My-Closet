@@ -3,7 +3,6 @@ package com.stylemycloset.notification.event.listener;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.entity.NotificationLevel;
@@ -66,7 +65,7 @@ public class FeedCommentNotificationEventListenerIntegrationTest extends Integra
     given(feedRepository.findWithUserById(feed.getId())).willReturn(Optional.of(feed));
     given(userRepository.findById(commentUser.getId())).willReturn(Optional.of(commentUser));
     NotificationStubHelper.stubSave(notificationRepository);
-    given(sseRepository.findByUserId(user.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
+    given(sseRepository.findOrCreateEmitters(user.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
 
     FeedCommentEvent event = new FeedCommentEvent(7L, 77L);
 
@@ -74,14 +73,12 @@ public class FeedCommentNotificationEventListenerIntegrationTest extends Integra
     listener.handler(event);
 
     // then
-    await().untilAsserted(() -> {
-      ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
-      verify(notificationRepository).save(captor.capture());
+    ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+    verify(notificationRepository).save(captor.capture());
 
-      Notification saved = captor.getValue();
-      assertThat(saved.getReceiver()).isEqualTo(user);
-      assertThat(saved.getTitle()).isEqualTo("commentUsername님이 댓글을 달았어요.");
-      assertThat(saved.getLevel()).isEqualTo(NotificationLevel.INFO);
-    });
+    Notification saved = captor.getValue();
+    assertThat(saved.getReceiver()).isEqualTo(user);
+    assertThat(saved.getTitle()).isEqualTo("commentUsername님이 댓글을 달았어요.");
+    assertThat(saved.getLevel()).isEqualTo(NotificationLevel.INFO);
   }
 }
