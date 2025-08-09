@@ -102,7 +102,7 @@ public class FeedServiceImpl implements FeedService {
   @Override
   @Transactional
   public FeedDto likeFeed(Long userId, Long feedId) {
-    User user = userRepository.findById(userId)
+    User user = userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)
         .orElseThrow(() -> new StyleMyClosetException(ErrorCode.USER_NOT_FOUND,
             Map.of("userId", userId)));
     Feed feed = feedRepository.findById(feedId)
@@ -122,7 +122,7 @@ public class FeedServiceImpl implements FeedService {
   @Override
   @Transactional
   public void unlikeFeed(Long userId, Long feedId) {
-    User user = userRepository.findById(userId)
+    User user = userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)
         .orElseThrow(() -> new StyleMyClosetException(ErrorCode.USER_NOT_FOUND,
             Map.of("userId", userId)));
     Feed feed = feedRepository.findById(feedId)

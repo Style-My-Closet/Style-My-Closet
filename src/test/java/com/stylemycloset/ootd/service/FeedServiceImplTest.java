@@ -159,7 +159,7 @@ class FeedServiceImplTest {
       Feed mockFeed = mock(Feed.class);
       User author = mock(User.class); // 피드 작성자 Mock
 
-      when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+      when(userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)).thenReturn(Optional.of(mockUser));
       when(feedRepository.findById(feedId)).thenReturn(Optional.of(mockFeed));
 
       when(feedLikeRepository.findByUserAndFeed(mockUser, mockFeed)).thenReturn(Optional.empty());
@@ -189,7 +189,7 @@ class FeedServiceImplTest {
       FeedLike mockFeedLike = mock(FeedLike.class);
 
       // Mock 객체 설정
-      when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+      when(userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)).thenReturn(Optional.of(mockUser));
       when(feedRepository.findById(feedId)).thenReturn(Optional.of(mockFeed));
       // 이미 좋아요를 누른 상태를 가정
       when(feedLikeRepository.findByUserAndFeed(mockUser, mockFeed)).thenReturn(
@@ -213,7 +213,7 @@ class FeedServiceImplTest {
       FeedLike mockFeedLike = mock(FeedLike.class);
 
       // Mock 객체 설정
-      when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+      when(userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)).thenReturn(Optional.of(mockUser));
       when(feedRepository.findById(feedId)).thenReturn(Optional.of(mockFeed));
       // 이미 좋아요를 누른 상태를 가정
       when(feedLikeRepository.findByUserAndFeed(mockUser, mockFeed)).thenReturn(
@@ -233,7 +233,7 @@ class FeedServiceImplTest {
       // given (준비)
       Long userId = 999L; // 존재하지 않는 유저 ID
       Long feedId = 10L;
-      when(userRepository.findById(userId)).thenReturn(Optional.empty());
+      when(userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)).thenReturn(Optional.empty());
 
       // when & then (좋아요 요청)
       assertThatThrownBy(() -> feedService.likeFeed(userId, feedId))
@@ -255,7 +255,7 @@ class FeedServiceImplTest {
       Long userId = 1L;
       Long feedId = 999L; // 존재하지 않는 피드 ID
       User mockUser = mock(User.class);
-      when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+      when(userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)).thenReturn(Optional.of(mockUser));
       when(feedRepository.findById(feedId)).thenReturn(Optional.empty());
 
       // when & then (좋아요 요청)

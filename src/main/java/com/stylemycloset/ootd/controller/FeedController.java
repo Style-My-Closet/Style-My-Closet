@@ -59,6 +59,7 @@ public class FeedController {
 
   @DeleteMapping("/{feedId}/like")
   public ResponseEntity<Void> unlikeFeed(@PathVariable Long feedId, Authentication authentication) {
+    // TODO: 유저 디테일 구현 후 유저 아이디로 대체
     User user = userRepository.findByEmail(authentication.getName())
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     Long currentUserId = user.getId();
