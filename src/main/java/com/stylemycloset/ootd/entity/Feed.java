@@ -51,6 +51,9 @@ public class Feed extends SoftDeletableEntity {
   @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<FeedClothes> feedClothes = new ArrayList<>();
 
+  @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<FeedLike> feedLikes = new ArrayList<>();
+
   private Feed(User author, Weather weather, String content) {
     this.author = author;
     this.weather = weather;

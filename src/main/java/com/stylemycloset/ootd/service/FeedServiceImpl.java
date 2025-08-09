@@ -1,10 +1,10 @@
 package com.stylemycloset.ootd.service;
 
-import com.stylemycloset.cloth.repository.ClothRepository;
-import com.stylemycloset.ootd.dto.AuthorDto;
 import com.stylemycloset.cloth.entity.Cloth;
+import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
+import com.stylemycloset.ootd.dto.AuthorDto;
 import com.stylemycloset.ootd.dto.ClothesAttributeWithDefDto;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
@@ -25,16 +25,13 @@ import com.stylemycloset.weather.dto.TemperatureDto;
 import com.stylemycloset.weather.dto.WeatherSummaryDto;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.repository.WeatherRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -77,18 +74,23 @@ public class FeedServiceImpl implements FeedService {
     // TODO: 이 메서드에도 현재 로그인한 유저 ID를 파라미터로 받아와야 likedByMe를 계산
     User currentUser = null;
 
-    Pageable pageable = PageRequest.of(0, request.limit() != null ? request.limit() : 10);
+    List<Feed> feeds = feedRepository.findByConditions(request);
 
-    List<Feed> feeds = feedRepository.findByConditions(request, pageable);
-
-    boolean hasNext = feeds.size() > pageable.getPageSize();
+    int limit = request.limit() != null ? request.limit() : 10;
+    boolean hasNext = feeds.size() > limit;
     if (hasNext) {
-      feeds.remove(pageable.getPageSize());
+      feeds.remove(limit);
     }
 
     String nextCursor = null;
+    Long nextIdAfter = null;
     if (hasNext && !feeds.isEmpty()) {
-      nextCursor = feeds.get(feeds.size() - 1).getId().toString();
+      Feed lastFeed = feeds.get(feeds.size() - 1);
+      if ("createdAt".equals(request.sortBy()) || request.sortBy() == null) {
+        nextCursor = lastFeed.getCreatedAt().toString();
+      }
+
+      nextIdAfter = lastFeed.getId();
     }
 
     List<FeedDto> feedDtos = feeds.stream()
@@ -96,7 +98,7 @@ public class FeedServiceImpl implements FeedService {
         .collect(Collectors.toList());
 
     return new FeedDtoCursorResponse(
-        feedDtos, nextCursor, nextCursor, hasNext, 0L, request.sortBy(), request.sortDirection());
+        feedDtos, nextCursor, nextIdAfter, hasNext, 0L, request.sortBy(), request.sortDirection());
   }
 
   @Override
@@ -152,7 +154,8 @@ public class FeedServiceImpl implements FeedService {
     List<OotdItemDto> ootdItemDtos = toOotdItemDtoList(clothesList);
 
     long likeCount = feedLikeRepository.countByFeed(feed);
-    boolean likedByMe = (currentUser != null) && feedLikeRepository.existsByUserAndFeed(currentUser, feed);
+    boolean likedByMe =
+        (currentUser != null) && feedLikeRepository.existsByUserAndFeed(currentUser, feed);
 
     return new FeedDto(
         feed.getId(),
@@ -169,12 +172,16 @@ public class FeedServiceImpl implements FeedService {
   }
 
   private AuthorDto toAuthorDto(User author) {
-    if (author == null) return null;
+    if (author == null) {
+      return null;
+    }
     return new AuthorDto(author.getId(), author.getName(), null);
   }
 
   private WeatherSummaryDto toWeatherSummaryDto(Weather weather) {
-    if (weather == null) return null;
+    if (weather == null) {
+      return null;
+    }
     PrecipitationDto precipitationDto = new PrecipitationDto(
         Weather.AlertType.valueOf(weather.getPrecipitation().getType().toUpperCase()),
         weather.getPrecipitation().getAmount(),
@@ -187,7 +194,8 @@ public class FeedServiceImpl implements FeedService {
         weather.getTemperature().getMax()
     );
 
-    return new WeatherSummaryDto(weather.getId(), weather.getSkyStatus(), precipitationDto, temperatureDto);
+    return new WeatherSummaryDto(weather.getId(), weather.getSkyStatus(), precipitationDto,
+        temperatureDto);
   }
 
   private List<OotdItemDto> toOotdItemDtoList(List<Cloth> clothesList) {
@@ -197,6 +205,7 @@ public class FeedServiceImpl implements FeedService {
   private OotdItemDto toOotdItemDto(Cloth cloth) {
     List<ClothesAttributeWithDefDto> attributes = new ArrayList<>();
     // TODO: cloth의 속성 정보를 attributes 리스트에 채우는 로직 구현
-    return new OotdItemDto(cloth.getId(), cloth.getName(), null, ClothesType.valueOf(cloth.getCategory().getName().name()), attributes);
+    return new OotdItemDto(cloth.getId(), cloth.getName(), null,
+        ClothesType.valueOf(cloth.getCategory().getName().name()), attributes);
   }
 }

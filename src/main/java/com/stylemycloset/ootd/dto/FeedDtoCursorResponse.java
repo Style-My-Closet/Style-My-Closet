@@ -5,7 +5,7 @@ import java.util.List;
 public record FeedDtoCursorResponse(
     List<FeedDto> data,
     String nextCursor,
-    String nextIdAfter,
+    Long nextIdAfter,
     boolean hasNext,
     long totalCount,
     String sortBy,
