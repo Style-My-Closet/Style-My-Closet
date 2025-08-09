@@ -65,9 +65,7 @@ public class FeedServiceImpl implements FeedService {
 
     Feed newFeed = Feed.createFeed(author, weather, request.content());
 
-    List<FeedClothes> feedClothesList = clothesList.stream()
-        .map(cloth -> FeedClothes.createFeedClothes(newFeed, cloth))
-        .collect(Collectors.toList());
+    clothesList.forEach(newFeed::addClothes);
 
     feedRepository.save(newFeed);
 
