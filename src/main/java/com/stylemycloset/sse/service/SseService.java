@@ -9,7 +9,7 @@ public interface SseService {
 
   void sendNotification(NotificationDto notificationDto);
 
-  void cleanUpSseEmitter();
+  void cleanUpSseEmitters();
 
   void cleanUpSseInfos();
 }
