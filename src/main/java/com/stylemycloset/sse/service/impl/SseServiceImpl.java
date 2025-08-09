@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -97,9 +98,9 @@ public class SseServiceImpl implements SseService {
     sseRepository.findAllEmittersReadOnly()
         .forEach((userId, emitters) ->
             emitters.forEach(emitter -> {
-              try {
+              try{
                 emitter.send(SseEmitter.event().name("heartbeat").data("data"));
-              } catch (IOException e) {
+              } catch (IOException e){
                 log.debug("user [{}]에 대한 연결이 실패하여 emitter를 삭제", userId);
                 sseRepository.removeEmitter(userId, emitter);
               }
