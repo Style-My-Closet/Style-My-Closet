@@ -5,6 +5,7 @@ import com.stylemycloset.user.exception.UserNotFoundException;
 import com.stylemycloset.user.mapper.UserMapper;
 import com.stylemycloset.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,8 +23,13 @@ public class ClosetUserDetailsService implements UserDetailsService {
   @Override
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     System.out.println(email);
+
     User user = userRepository.findByemail(email)
         .orElseThrow(UserNotFoundException::new);
+
+    if (user.isLocked()) {
+      throw new LockedException("잠긴 계정입니다.");
+    }
 
     return new ClosetUserDetails(userMapper.UsertoUserDto(user), user.getPassword());
   }

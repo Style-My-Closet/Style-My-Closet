@@ -31,6 +31,7 @@ public class UserServiceImpl implements UserService {
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
   private final UserMapper userMapper;
+  private final JwtService jwtService;
 
 
   @Transactional
@@ -74,6 +75,10 @@ public class UserServiceImpl implements UserService {
         .orElseThrow(UserNotFoundException::new);
     boolean locked = updateRequest.locked();
     user.lockUser(locked);
+
+    if (locked) {
+      jwtService.invalidateJwtSession(userId);
+    }
   }
 
 
