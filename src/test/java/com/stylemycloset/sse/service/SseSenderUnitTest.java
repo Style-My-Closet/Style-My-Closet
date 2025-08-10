@@ -3,7 +3,7 @@ package com.stylemycloset.sse.service;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.await;
 
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.testutil.IntegrationTestSupport;

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.test.util.ReflectionTestUtils;
 
-public class NotificationStubHelper {
+public final class NotificationStubHelper {
 
   private static final AtomicLong idGenerator = new AtomicLong(1L);
 
