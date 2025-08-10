@@ -1,7 +1,6 @@
 package com.stylemycloset.common.exception;
 
 import lombok.Getter;
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties.Http;
 import org.springframework.http.HttpStatus;
 
 @Getter
@@ -25,7 +24,10 @@ public enum ErrorCode {
   // Security
   TOKEN_NOT_FOUND("토큰 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
   INVALID_TOKEN_SECRET("유효하지 않은 시크릿입니다.", HttpStatus.NOT_FOUND),
-  INVALID_TOKEN("유효하지 않은 토큰입니다.", HttpStatus.NOT_FOUND);
+  INVALID_TOKEN("유효하지 않은 토큰입니다.", HttpStatus.NOT_FOUND),
+
+  // Sse
+  SSE_SEND_FAILURE("SSE 전송에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
   private final String message;
   private final HttpStatus httpStatus;
