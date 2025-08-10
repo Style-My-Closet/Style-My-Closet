@@ -61,7 +61,7 @@ public class SecurityConfig {
         )
         .with(new JsonUsernamePasswordAuthenticationFilter.Configurer(objectMapper), configurer ->
             configurer
-                .successHandler(new CustomLoginSuccessHandler(objectMapper, jwtService))
+                .successHandler(new CustomLoginSuccessHandler(jwtService))
                 .failureHandler(new CustomLoginFailureHandler(objectMapper))
         )
         .addFilterBefore(new JwtAuthenticationFilter(jwtService, objectMapper),
