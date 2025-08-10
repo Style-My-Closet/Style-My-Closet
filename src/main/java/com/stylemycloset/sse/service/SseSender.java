@@ -29,7 +29,10 @@ public class SseSender {
           .id(eventId)
           .name(eventName)
           .data(data));
-      log.debug("[{}] {} SSE 이벤트 수신 완료 (eventId: {})", userId, eventName, eventId);
+      log.debug("[{}] {} SSE 이벤트 전송 성공 (eventId: {})", userId, eventName, eventId);
+    } catch (IllegalStateException e) {
+      log.warn("[{}] {} 전송 실패 - emitter가 이미 완료됨. 즉시 제거 (eventId: {})", userId, eventName, eventId, e);
+      sseRepository.removeEmitter(userId, emitter);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
