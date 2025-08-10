@@ -6,6 +6,7 @@ import com.stylemycloset.security.jwt.JwtSession;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.entity.User;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -35,6 +36,11 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
 
     JwtSession jwtSession = jwtService.createJwtSession(userDto);
     String accessToken = jwtSession.getAccessToken();
+    String refreshToken = jwtSession.getRefreshToken();
+
+    Cookie refreshTokenCookie = new Cookie(JwtService.REFRESH_TOKEN_COOKIE_NAME, refreshToken);
+    refreshTokenCookie.setHttpOnly(true);
+    response.addCookie(refreshTokenCookie);
 
     response.setStatus(HttpServletResponse.SC_OK);
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
