@@ -36,7 +36,7 @@ public class WeatherAlertNotificationEventListener {
       sseService.sendNotification(notificationDto);
       log.info("날씨 변화 이벤트 완료 - notificationId={}", notificationDto.id());
     } catch(Exception e){
-      log.info("날씨 변화 이벤트 처리 중 예외 발생 - weatherId={}, receiverId={}", event.weatherId(), event.receiverId(), e);
+      log.error("날씨 변화 이벤트 처리 중 예외 발생 - weatherId={}, receiverId={}", event.weatherId(), event.receiverId(), e);
     }
   }
 }

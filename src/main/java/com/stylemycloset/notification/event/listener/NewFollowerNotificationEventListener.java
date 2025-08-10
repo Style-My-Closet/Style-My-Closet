@@ -40,7 +40,7 @@ public class NewFollowerNotificationEventListener {
       sseService.sendNotification(notificationDto);
       log.info("팔로우 이벤트 완료 - notificationId={}", notificationDto.id());
     } catch (Exception e) {
-      log.info("팔로우 이벤트 처리 중 예외 발생 - receiverId={}, followUsername={}", event.receiverId(),
+      log.error("팔로우 이벤트 처리 중 예외 발생 - receiverId={}, followUsername={}", event.receiverId(),
           event.followUsername(), e);
     }
   }

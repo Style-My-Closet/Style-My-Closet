@@ -35,6 +35,10 @@ public class NewFeedNotificationEventListener {
     User feedAuthor = userRepository.findById(event.feedAuthorId())
         .orElseThrow(UserNotFoundException::new);
     Set<User> receivers = followRepository.findFollowersByFolloweeId(feedAuthor.getId());
+    if (receivers.isEmpty()) {
+      log.info("새 피드 알림 대상이 없어 작업 스킵 - feedId={}", event.feedId());
+      return;
+    }
     try{
       String title = String.format(FEED_ADDED, feedAuthor.getName());
       List<NotificationDto> notificationDtoList =
@@ -45,7 +49,7 @@ public class NewFeedNotificationEventListener {
       }
       log.info("새로운 피드 생성 추가 이벤트 완료 - notification Size={}", notificationDtoList.size());
     } catch(Exception e){
-      log.info("새로운 피드 생성 추가 이벤트 처리 중 예외 발생 - feedId={}, feedAuthorId={}", event.feedId(), event.feedAuthorId(), e);
+      log.error("새로운 피드 생성 추가 이벤트 처리 중 예외 발생 - feedId={}, feedAuthorId={}", event.feedId(), event.feedAuthorId(), e);
     }
   }
 }
