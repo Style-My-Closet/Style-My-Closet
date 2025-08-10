@@ -1,4 +1,4 @@
-package com.stylemycloset.follow.repository.querydsl.cursor;
+package com.stylemycloset.follow.repository.cursor.strategy;
 
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Path;

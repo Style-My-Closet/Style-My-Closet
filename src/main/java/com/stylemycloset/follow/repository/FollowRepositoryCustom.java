@@ -1,4 +1,4 @@
-package com.stylemycloset.follow.repository.querydsl;
+package com.stylemycloset.follow.repository;
 
 import com.stylemycloset.follow.entity.Follow;
 import org.springframework.data.domain.Slice;

@@ -6,9 +6,10 @@ import com.stylemycloset.follow.dto.FollowListResponse.NextCursorInfo;
 import com.stylemycloset.follow.dto.FollowResult;
 import com.stylemycloset.follow.dto.FollowUserInfo;
 import com.stylemycloset.follow.entity.Follow;
-import com.stylemycloset.follow.repository.querydsl.cursor.CursorStrategy;
-import com.stylemycloset.follow.repository.querydsl.cursor.FollowCursorField;
+import com.stylemycloset.follow.repository.cursor.strategy.CursorStrategy;
+import com.stylemycloset.follow.repository.cursor.FollowCursorField;
 import com.stylemycloset.user.entity.User;
+import java.net.URL;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
@@ -36,18 +37,17 @@ public class FollowMapper {
     if (user.getProfileImage() == null) {
       return null;
     }
-    return binaryContentStorage.getUrl(user.getProfileImage().getId())
-        .toString();
+    URL url = binaryContentStorage.getUrl(user.getProfileImage().getId());
+    return url.toString();
   }
 
   public FollowListResponse<FollowResult> toFollowResponse(Slice<Follow> follows) {
     List<FollowResult> followResults = getFollowResults(follows);
     Order order = getOrder(follows);
-    String sortBy = order.getProperty();
 
     return FollowListResponse.from(
         followResults,
-        extractNextCursorInfo(follows, sortBy),
+        extractNextCursorInfo(follows, order.getProperty()),
         follows.hasNext(),
         null,
         order.getProperty(),
@@ -58,8 +58,9 @@ public class FollowMapper {
   private Order getOrder(Slice<Follow> follows) {
     return follows.getPageable()
         .getSort()
-        .iterator()
-        .next();
+        .stream()
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("DTO 변환시 정렬 순서(Order)가 존재하지 않습니다."));
   }
 
   private List<FollowResult> getFollowResults(Slice<Follow> follows) {
@@ -70,7 +71,9 @@ public class FollowMapper {
   }
 
   private NextCursorInfo extractNextCursorInfo(Slice<Follow> follows, String sortBy) {
-    if (!follows.hasNext() || follows.getContent().isEmpty()) {
+    if (sortBy == null || sortBy.isBlank() ||
+        !follows.hasNext() || follows.getContent().isEmpty()
+    ) {
       return new NextCursorInfo(null, null);
     }
 

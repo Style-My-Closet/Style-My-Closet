@@ -1,7 +1,9 @@
-package com.stylemycloset.follow.repository.querydsl.cursor;
+package com.stylemycloset.follow.repository.impl.cursorstrategy;
 
 import com.querydsl.core.types.Path;
 import com.stylemycloset.follow.entity.QFollow;
+import com.stylemycloset.follow.repository.cursor.FollowCursorField;
+import com.stylemycloset.follow.repository.cursor.strategy.CursorStrategy;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;

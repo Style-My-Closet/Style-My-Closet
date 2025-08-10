@@ -1,32 +1,32 @@
-package com.stylemycloset.follow.repository.querydsl.cursor.strategy;
+package com.stylemycloset.follow.repository.cursor.strategy.impl;
 
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.stylemycloset.follow.entity.Follow;
-import com.stylemycloset.follow.repository.querydsl.cursor.CursorStrategy;
-import java.time.Instant;
+import com.stylemycloset.follow.repository.cursor.strategy.CursorStrategy;
 import java.util.function.Function;
 import org.springframework.data.domain.Sort.Direction;
 
-public record ChronologicalCursorStrategy(
-    DateTimePath<Instant> path,
-    Function<String, Instant> parser,
-    Function<Follow, Instant> extractor
-) implements CursorStrategy<Instant> {
+public record NumberCursorStrategy<T extends Number & Comparable<T>>(
+    NumberPath<T> path,
+    Function<String, T> parser,
+    Function<Follow, T> extractor
+) implements CursorStrategy<T> {
+
 
   @Override
-  public Instant parse(String rawCursor) {
+  public T parse(String rawCursor) {
     return parser.apply(rawCursor);
   }
 
   @Override
-  public Instant extract(Follow follow) {
-    if (follow == null) {
+  public T extract(Follow instance) {
+    if (instance == null) {
       throw new IllegalArgumentException("follow 인스턴스 값이 비어있습니다.");
     }
-    return extractor.apply(follow);
+    return extractor.apply(instance);
   }
 
   @Override
@@ -34,9 +34,8 @@ public record ChronologicalCursorStrategy(
     if (rawCursor == null || rawCursor.isBlank()) {
       return null;
     }
-
     Direction direction = parseDirectionOrDefault(rawDirection);
-    Instant parsed = parse(rawCursor);
+    T parsed = parse(rawCursor);
     if (direction.isDescending()) {
       return path.lt(parsed);
     }
@@ -44,7 +43,7 @@ public record ChronologicalCursorStrategy(
   }
 
   @Override
-  public OrderSpecifier<Instant> buildOrder(String rawDirection, String rawCursor) {
+  public OrderSpecifier<T> buildOrder(String rawDirection, String rawCursor) {
     Direction direction = parseDirectionOrDefault(rawDirection);
     if (direction.isDescending()) {
       return new OrderSpecifier<>(Order.DESC, path);

@@ -1,7 +1,6 @@
 package com.stylemycloset.follow.repository;
 
 import com.stylemycloset.follow.entity.Follow;
-import com.stylemycloset.follow.repository.querydsl.FollowRepositoryCustom;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
