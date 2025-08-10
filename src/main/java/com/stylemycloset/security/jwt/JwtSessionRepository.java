@@ -7,4 +7,6 @@ public interface JwtSessionRepository extends JpaRepository<JwtSession, Long> {
 
   Optional<JwtSession> findByUserId(Long userId);
 
+  Optional<JwtSession> findByRefreshToken(String refreshToken);
+
 }

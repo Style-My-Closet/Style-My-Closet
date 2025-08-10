@@ -5,6 +5,8 @@ import com.stylemycloset.security.CustomLoginFailureHandler;
 import com.stylemycloset.security.CustomLoginSuccessHandler;
 import com.stylemycloset.security.JsonUsernamePasswordAuthenticationFilter;
 import com.stylemycloset.security.SecurityMatchers;
+import com.stylemycloset.security.jwt.JwtAuthenticationFilter;
+import com.stylemycloset.security.jwt.JwtLogoutHandler;
 import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.user.entity.Role;
 import java.util.List;
@@ -23,6 +25,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
@@ -50,11 +53,19 @@ public class SecurityConfig {
             .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
             .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())
         )
+        .logout(logout ->
+            logout
+                .logoutRequestMatcher(SecurityMatchers.LOGOUT)
+                .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
+                .addLogoutHandler(new JwtLogoutHandler(jwtService))
+        )
         .with(new JsonUsernamePasswordAuthenticationFilter.Configurer(objectMapper), configurer ->
             configurer
                 .successHandler(new CustomLoginSuccessHandler(objectMapper, jwtService))
                 .failureHandler(new CustomLoginFailureHandler(objectMapper))
-        );
+        )
+        .addFilterBefore(new JwtAuthenticationFilter(jwtService, objectMapper),
+            JsonUsernamePasswordAuthenticationFilter.class);
 
     ;
     return http.build();

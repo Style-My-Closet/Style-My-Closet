@@ -20,7 +20,12 @@ public enum ErrorCode {
   CLOTHES_NOT_FOUND("일부 의상 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
   // Weather
-  WEATHER_NOT_FOUND("날씨 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+  WEATHER_NOT_FOUND("날씨 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
+  // Security
+  TOKEN_NOT_FOUND("토큰 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+  INVALID_TOKEN_SECRET("유효하지 않은 시크릿입니다.", HttpStatus.NOT_FOUND),
+  INVALID_TOKEN("유효하지 않은 토큰입니다.", HttpStatus.NOT_FOUND);
 
   private final String message;
   private final HttpStatus httpStatus;

@@ -1,6 +1,7 @@
 package com.stylemycloset.security;
 
 import com.stylemycloset.user.dto.data.UserDto;
+import com.stylemycloset.user.entity.Role;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -14,22 +15,41 @@ import org.springframework.security.core.userdetails.UserDetails;
 @RequiredArgsConstructor
 public class ClosetUserDetails implements UserDetails {
 
-  private final UserDto userDto;
+  private final Long userId;
+  private final String email;
+  private final String name;
   private final String password;
+  private final Role role;
+
+  public ClosetUserDetails(UserDto userDto, String password) {
+    this.userId = userDto.id();
+    this.email = userDto.email();
+    this.name = userDto.name();
+    this.password = password;
+    this.role = userDto.role();
+  }
+
+  public ClosetUserDetails(Long userId, String roleName, String name) {
+    this.userId = userId;
+    this.email = null;
+    this.name = name;
+    this.password = null;
+    this.role = Role.valueOf(roleName);
+  }
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return List.of(new SimpleGrantedAuthority("ROLE_".concat(userDto.role().name())));
+    return List.of(new SimpleGrantedAuthority("ROLE_".concat(this.role.name())));
   }
 
   @Override
   public String getPassword() {
-    return password;
+    return this.password;
   }
 
   @Override
   public String getUsername() {
-    return userDto.name();
+    return this.name;
   }
 
   @Override
@@ -37,15 +57,16 @@ public class ClosetUserDetails implements UserDetails {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof ClosetUserDetails that)) {
+    if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    return userDto.name().equals(that.userDto.name());
+    ClosetUserDetails that = (ClosetUserDetails) o;
+    return Objects.equals(this.userId, that.userId);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(userDto.name());
+    return Objects.hash(this.userId);
   }
 
 }
