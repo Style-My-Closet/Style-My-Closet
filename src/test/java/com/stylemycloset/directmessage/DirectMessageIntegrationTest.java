@@ -16,7 +16,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
@@ -41,7 +40,6 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 import java.lang.reflect.Type;
 import java.util.concurrent.TimeUnit;
 
-@AutoConfigureMockMvc(addFilters = false)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class DirectMessageIntegrationTest extends IntegrationTestSupport {
 
@@ -49,8 +47,6 @@ class DirectMessageIntegrationTest extends IntegrationTestSupport {
   private UserRepository userRepository;
   @Autowired
   private DirectMessageRepository messageRepository;
-  @Autowired
-  private DirectMessageController directMessageController;
 
   @LocalServerPort
   private int port;
@@ -68,15 +64,16 @@ class DirectMessageIntegrationTest extends IntegrationTestSupport {
     User sender = userRepository.save(new User("alice", "a@a.com", "pwd"));
     User receiver = userRepository.save(new User("bob", "b@b.com", "pwd"));
 
-    StompSession session = getStompSession();
-    BlockingQueue<DirectMessageResult> messageMailbox = getDirectMessageResults(session, sender,
-        receiver);
+    StompSession senderSession = createClientSession();
+    StompSession receiverSession = createClientSession();
+    BlockingQueue<DirectMessageResult> messageMailbox = createMessageMailbox(receiverSession,
+        sender, receiver);
 
     // when
     String content = UUID.randomUUID().toString();
     DirectMessageCreateRequest request =
         new DirectMessageCreateRequest(sender.getId(), receiver.getId(), content);
-    session.send("/pub/direct-messages_send", request);
+    senderSession.send("/pub/direct-messages_send", request);
 
     // then
     await()
@@ -93,7 +90,27 @@ class DirectMessageIntegrationTest extends IntegrationTestSupport {
         .containsExactly(sender.getId(), receiver.getId(), content);
   }
 
-  private BlockingQueue<DirectMessageResult> getDirectMessageResults(
+  private StompSession createClientSession()
+      throws InterruptedException, ExecutionException, TimeoutException {
+    List<Transport> transports = List.of(new WebSocketTransport(new StandardWebSocketClient()));
+    SockJsClient sockJsClient = new SockJsClient(transports);
+    WebSocketStompClient stompClient = new WebSocketStompClient(sockJsClient);
+
+    // ★ Jackson 설정: JavaTimeModule 등록
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
+    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+    MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
+    converter.setObjectMapper(mapper);
+    stompClient.setMessageConverter(converter);
+
+    String url = "ws://localhost:" + port + "/ws";
+    return stompClient.connectAsync(url, new StompSessionHandlerAdapter() {
+    }).get(3, TimeUnit.SECONDS);
+  }
+
+  private BlockingQueue<DirectMessageResult> createMessageMailbox(
       StompSession session,
       User sender,
       User receiver
@@ -113,26 +130,6 @@ class DirectMessageIntegrationTest extends IntegrationTestSupport {
     });
 
     return inbox;
-  }
-
-  private StompSession getStompSession()
-      throws InterruptedException, ExecutionException, TimeoutException {
-    List<Transport> transports = List.of(new WebSocketTransport(new StandardWebSocketClient()));
-    SockJsClient sockJsClient = new SockJsClient(transports);
-    WebSocketStompClient stompClient = new WebSocketStompClient(sockJsClient);
-
-    // ★ Jackson 설정: JavaTimeModule 등록
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.registerModule(new JavaTimeModule());
-    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-    MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
-    converter.setObjectMapper(mapper);
-    stompClient.setMessageConverter(converter);
-
-    String url = "ws://localhost:" + port + "/ws";
-    return stompClient.connectAsync(url, new StompSessionHandlerAdapter() {
-    }).get(3, TimeUnit.SECONDS);
   }
 
 }
