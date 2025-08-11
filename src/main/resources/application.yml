@@ -12,7 +12,7 @@ spring:
       max-request-size: 4MB
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: create
     show-sql: true
     properties:
       hibernate:
@@ -24,6 +24,15 @@ spring:
   sql:
     init:
       mode: never
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${CLOSET_ADMIN_EMAIL_ID}
+    password: ${CLOSET_ADMIN_EMAIL_PASSWORD}
+    properties:
+      mail.smtp:
+        auth: true
+        starttls.enable: true
 
 logging:
   level:
@@ -56,3 +65,4 @@ security:
     secret: ${SECURITY_JWT_SECRET}
     access-token-validity-seconds: ${SECURITY_JWT_ACCESS_TOKEN_VALIDITY_SECONDS}
     refresh-token-validity-seconds: ${SECURITY_JWT_REFRESH_TOKEN_VALIDITY_SECONDS}
+

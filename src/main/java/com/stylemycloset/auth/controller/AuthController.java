@@ -1,8 +1,12 @@
 package com.stylemycloset.auth.controller;
 
 import com.stylemycloset.auth.service.AuthService;
+import com.stylemycloset.security.ClosetUserDetails;
 import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.security.jwt.JwtSession;
+import com.stylemycloset.user.dto.request.ChangePasswordRequest;
+import com.stylemycloset.user.dto.request.ResetPasswordRequest;
+import com.stylemycloset.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -16,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-  private final AuthService authService;
   private final JwtService jwtService;
 
   @GetMapping("csrf-token")

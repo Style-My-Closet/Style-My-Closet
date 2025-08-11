@@ -61,6 +61,12 @@ public class User extends SoftDeletableEntity {
   @JoinColumn(name = "location_id")
   private Location location;
 
+  private String passwordResetToken;
+
+  private Instant resetPasswordTime;
+
+  private boolean changePasswordFlag;
+
   public User(String name, String email, String password) {
     this.name = name;
     this.email = email;
@@ -106,4 +112,5 @@ public class User extends SoftDeletableEntity {
   public void setId(Long id) {// 테스트 때문에 넣었습니다.
     this.id = id;
   }
+
 }
