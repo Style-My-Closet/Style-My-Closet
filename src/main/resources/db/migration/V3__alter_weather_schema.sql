@@ -16,10 +16,3 @@ ALTER TABLE weather
     ALTER COLUMN forecasted_at SET NOT NULL,
     ALTER COLUMN forecast_at SET NOT NULL,
     ALTER COLUMN location_id SET NOT NULL;
-
-UPDATE batch_job_execution
-SET status = 'FAILED', end_time = NOW(), exit_code = 'FAILED'
-WHERE status = 'STARTED' AND job_instance_id IN (
-    SELECT job_instance_id FROM batch_job_instance WHERE job_name = 'weatherJob'
-);
-
