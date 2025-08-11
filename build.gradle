@@ -14,6 +14,16 @@ java {
     }
 }
 
+// test 컴파일 단계에서도 특정 패키지를 제외
+sourceSets {
+    test {
+        java {
+            exclude 'com/stylemycloset/user/**'
+            exclude 'com/stylemycloset/notification/**'
+        }
+    }
+}
+
 repositories {
     mavenCentral()
     maven { url 'https://repo.spring.io/milestone' }
