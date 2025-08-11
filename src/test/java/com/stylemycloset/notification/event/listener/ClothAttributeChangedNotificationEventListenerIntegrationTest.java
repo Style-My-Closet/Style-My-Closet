@@ -52,9 +52,9 @@ public class ClothAttributeChangedNotificationEventListenerIntegrationTest exten
     // given
     User changedUser1 = TestUserFactory.createUser("ChangedUser1", "ChangedUser1@test.test", 4L);
     User changedUser2 = TestUserFactory.createUser("ChangedUser2", "ChangedUser2@test.test", 5L);
-    Set<User> users = Set.of(changedUser1, changedUser2);
+    Set<Long> users = Set.of(changedUser1.getId(), changedUser2.getId());
 
-    given(userRepository.findByLockedFalseAndDeleteAtIsNull()).willReturn(users);
+    given(userRepository.findActiveUserIds()).willReturn(users);
     NotificationStubHelper.stubSaveAll(notificationRepository);
 
     CopyOnWriteArrayList<SseEmitter> list1 = new CopyOnWriteArrayList<>();

@@ -19,7 +19,7 @@ public record NotificationDto(
     return NotificationDto.builder()
       .id(notification.getId())
       .createdAt(notification.getCreatedAt())
-      .receiverId(notification.getReceiver().getId())
+      .receiverId(notification.getReceiverId())
       .title(notification.getTitle())
       .content(notification.getContent())
       .level(notification.getLevel())

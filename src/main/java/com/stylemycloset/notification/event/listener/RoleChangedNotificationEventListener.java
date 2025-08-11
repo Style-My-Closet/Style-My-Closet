@@ -35,7 +35,7 @@ public class RoleChangedNotificationEventListener {
     try {
       String content = String.format(ROLE_CHANGED_CONTENT, event.previousRole(),
           receiver.getRole());
-      NotificationDto notificationDto = notificationService.create(receiver, ROLE_CHANGED, content,
+      NotificationDto notificationDto = notificationService.create(event.receiverId(), ROLE_CHANGED, content,
           NotificationLevel.INFO);
 
       sseService.sendNotification(notificationDto);

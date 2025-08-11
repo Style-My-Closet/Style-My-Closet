@@ -88,7 +88,7 @@ public class FeedCommentNotificationEventListenerIntegrationTest extends Integra
     verify(notificationRepository).save(captor.capture());
 
     Notification saved = captor.getValue();
-    assertThat(saved.getReceiver()).isEqualTo(user);
+    assertThat(saved.getReceiverId()).isEqualTo(user.getId());
     assertThat(saved.getId()).isNotNull();
     assertThat(saved.getCreatedAt()).isNotNull();
     assertThat(saved.getTitle()).isEqualTo("commentUsername님이 댓글을 달았어요.");

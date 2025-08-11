@@ -39,7 +39,7 @@ public class FeedLikedNotificationEventListener {
     try {
       String title = String.format(FEED_LIKED, likeUser.getName());
       NotificationDto notificationDto =
-          notificationService.create(feed.getAuthor(), title, feed.getContent(), NotificationLevel.INFO);
+          notificationService.create(feed.getAuthor().getId(), title, feed.getContent(), NotificationLevel.INFO);
 
       sseService.sendNotification(notificationDto);
       log.info("피드 좋아요 이벤트 완료 - notificationId={}", notificationDto.id());

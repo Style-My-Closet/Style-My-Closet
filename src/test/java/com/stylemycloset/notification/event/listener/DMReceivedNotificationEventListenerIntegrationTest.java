@@ -87,7 +87,7 @@ public class DMReceivedNotificationEventListenerIntegrationTest extends Integrat
     verify(notificationRepository).save(captor.capture());
 
     Notification saved = captor.getValue();
-    assertThat(saved.getReceiver()).isEqualTo(dmReceiver);
+    assertThat(saved.getReceiverId()).isEqualTo(dmReceiver.getId());
     assertThat(saved.getId()).isNotNull();
     assertThat(saved.getCreatedAt()).isNotNull();
     assertThat(saved.getTitle()).isEqualTo("[DM] user");

@@ -77,7 +77,7 @@ public class NewFollowerNotificationEventListenerIntegrationTest extends Integra
     verify(notificationRepository).save(captor.capture());
 
     Notification saved = captor.getValue();
-    assertThat(saved.getReceiver()).isEqualTo(followee);
+    assertThat(saved.getReceiverId()).isEqualTo(followee.getId());
     assertThat(saved.getId()).isNotNull();
     assertThat(saved.getCreatedAt()).isNotNull();
     assertThat(saved.getTitle()).isEqualTo("user님이 나를 팔로우했어요.");

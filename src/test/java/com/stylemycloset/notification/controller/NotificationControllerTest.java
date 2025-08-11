@@ -42,7 +42,7 @@ public class NotificationControllerTest extends IntegrationTestSupport {
     User user1 = userRepository.save(new User(request1));
 
     Notification notification = notificationRepository.save(
-        new Notification(user1, "testTitle", "testContent", NotificationLevel.INFO));
+        new Notification(user1.getId(), "testTitle", "testContent", NotificationLevel.INFO));
 
     // when & then
     mockMvc.perform(
@@ -60,11 +60,11 @@ public class NotificationControllerTest extends IntegrationTestSupport {
     userRepository.save(user4);
 
     notificationRepository.save(
-        new Notification(user4, "testTitle", "testContent", NotificationLevel.INFO));
+        new Notification(user4.getId(), "testTitle", "testContent", NotificationLevel.INFO));
     notificationRepository.save(
-        new Notification(user4, "testTitle", "testContent", NotificationLevel.INFO));
+        new Notification(user4.getId(), "testTitle", "testContent", NotificationLevel.INFO));
     notificationRepository.save(
-        new Notification(user4, "testTitle", "testContent", NotificationLevel.INFO));
+        new Notification(user4.getId(), "testTitle", "testContent", NotificationLevel.INFO));
 
     notificationRepository.flush();
 

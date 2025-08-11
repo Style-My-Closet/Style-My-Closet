@@ -88,7 +88,7 @@ public class FeedLikedNotificationEventListenerIntegrationTest extends Integrati
     verify(notificationRepository).save(captor.capture());
 
     Notification saved = captor.getValue();
-    assertThat(saved.getReceiver()).isEqualTo(user);
+    assertThat(saved.getReceiverId()).isEqualTo(user.getId());
     assertThat(saved.getId()).isNotNull();
     assertThat(saved.getCreatedAt()).isNotNull();
     assertThat(saved.getTitle()).isEqualTo("likeUsername님이 내 피드를 좋아합니다.");

@@ -80,7 +80,7 @@ public class RoleChangedNotificationEventListenerIntegrationTest extends Integra
     verify(notificationRepository).save(captor.capture());
 
     Notification saved = captor.getValue();
-    assertThat(saved.getReceiver()).isEqualTo(user);
+    assertThat(saved.getReceiverId()).isEqualTo(user.getId());
     assertThat(saved.getId()).isNotNull();
     assertThat(saved.getCreatedAt()).isNotNull();
     assertThat(saved.getTitle()).isEqualTo("내 권한이 변경되었어요.");

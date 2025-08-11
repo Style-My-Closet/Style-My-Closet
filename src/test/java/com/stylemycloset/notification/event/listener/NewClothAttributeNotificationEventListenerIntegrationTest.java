@@ -51,9 +51,9 @@ public class NewClothAttributeNotificationEventListenerIntegrationTest extends I
     // given
     User insertUser1 = TestUserFactory.createUser("insertTest1", "insertTest1@test.test", 2L);
     User insertUser2 = TestUserFactory.createUser("insertTest2", "insertTest2@test.test", 3L);
-    Set<User> users = Set.of(insertUser1, insertUser2);
+    Set<Long> users = Set.of(insertUser1.getId(), insertUser2.getId());
 
-    given(userRepository.findByLockedFalseAndDeleteAtIsNull()).willReturn(users);
+    given(userRepository.findActiveUserIds()).willReturn(users);
     NotificationStubHelper.stubSaveAll(notificationRepository);
 
     CopyOnWriteArrayList<SseEmitter> list1 = new CopyOnWriteArrayList<>();

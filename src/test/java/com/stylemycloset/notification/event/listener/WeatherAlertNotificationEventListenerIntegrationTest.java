@@ -77,7 +77,7 @@ public class WeatherAlertNotificationEventListenerIntegrationTest extends Integr
     verify(notificationRepository).save(captor.capture());
 
     Notification saved = captor.getValue();
-    assertThat(saved.getReceiver()).isEqualTo(weatherSender);
+    assertThat(saved.getReceiverId()).isEqualTo(weatherSender.getId());
     assertThat(saved.getId()).isNotNull();
     assertThat(saved.getCreatedAt()).isNotNull();
     assertThat(saved.getTitle()).isEqualTo("급격한 날씨 변화가 발생했습니다.");

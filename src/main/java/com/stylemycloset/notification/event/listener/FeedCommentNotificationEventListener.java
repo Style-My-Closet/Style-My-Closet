@@ -40,7 +40,7 @@ public class FeedCommentNotificationEventListener {
     try {
       String title = String.format(NEW_COMMENT, feedCommentAuthor.getName());
       NotificationDto notificationDto =
-          notificationService.create(feed.getAuthor(), title, feed.getContent(), NotificationLevel.INFO);
+          notificationService.create(feed.getAuthor().getId(), title, feed.getContent(), NotificationLevel.INFO);
 
       sseService.sendNotification(notificationDto);
       log.info("피드 댓글 이벤트 완료 - notificationId={}", notificationDto.id());

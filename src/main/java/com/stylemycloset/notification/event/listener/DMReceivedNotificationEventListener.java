@@ -33,7 +33,7 @@ public class DMReceivedNotificationEventListener {
         .orElseThrow(() -> new MessageNotFoundException(event.messageId()));
     try {
       String title = String.format(NEW_MESSAGE, event.sendUsername());
-      NotificationDto notificationDto = notificationService.create(message.getReceiver(), title, "", NotificationLevel.INFO);
+      NotificationDto notificationDto = notificationService.create(message.getReceiver().getId(), title, "", NotificationLevel.INFO);
 
       sseService.sendNotification(notificationDto);
       log.info("DM 이벤트 완료 - notificationId={}",  notificationDto.id());

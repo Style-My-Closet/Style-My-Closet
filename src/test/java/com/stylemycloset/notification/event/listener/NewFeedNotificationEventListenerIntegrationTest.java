@@ -57,10 +57,10 @@ public class NewFeedNotificationEventListenerIntegrationTest extends Integration
     User feedAuthor = TestUserFactory.createUser("feedAuthor", "feedAuthor@test.test", 18L);
     User follower1 = TestUserFactory.createUser("follower1", "follower1@test.test", 180L);
     User follower2 = TestUserFactory.createUser("follower2", "follower2@test.test", 1800L);
-    Set<User> receivers = Set.of(follower1, follower2);
+    Set<Long> receivers = Set.of(follower1.getId(), follower2.getId());
 
     given(userRepository.findById(feedAuthor.getId())).willReturn(Optional.of(feedAuthor));
-    given(followRepository.findFollowersByFolloweeId(feedAuthor.getId())).willReturn(receivers);
+    given(followRepository.findFollowerIdsByFolloweeId(feedAuthor.getId())).willReturn(receivers);
     NotificationStubHelper.stubSaveAll(notificationRepository);
 
     CopyOnWriteArrayList<SseEmitter> list1 = new CopyOnWriteArrayList<>();

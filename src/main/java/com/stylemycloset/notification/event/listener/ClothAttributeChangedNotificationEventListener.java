@@ -5,7 +5,6 @@ import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.notification.event.domain.ClothAttributeChangedEvent;
 import com.stylemycloset.notification.service.NotificationService;
 import com.stylemycloset.sse.service.SseService;
-import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +29,7 @@ public class ClothAttributeChangedNotificationEventListener  {
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handler(ClothAttributeChangedEvent event) {
     try {
-      Set<User> receivers = userRepository.findByLockedFalseAndDeleteAtIsNull();
+      Set<Long> receivers = userRepository.findActiveUserIds();
       log.info("의상 속성 변경 이벤트 호출 - ClothingAttributeId={}, Receiver Size={}",
           event.clothAttributeId(), receivers.size());
 

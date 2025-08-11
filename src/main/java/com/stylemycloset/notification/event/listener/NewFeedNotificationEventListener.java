@@ -34,7 +34,7 @@ public class NewFeedNotificationEventListener {
     log.info("새로운 피드 생성 추가 이벤트 호출 - feedId={}, feedAuthorId={}", event.feedId(), event.feedAuthorId());
     User feedAuthor = userRepository.findById(event.feedAuthorId())
         .orElseThrow(UserNotFoundException::new);
-    Set<User> receivers = followRepository.findFollowersByFolloweeId(feedAuthor.getId());
+    Set<Long> receivers = followRepository.findFollowerIdsByFolloweeId(feedAuthor.getId());
     if (receivers.isEmpty()) {
       log.info("새 피드 알림 대상이 없어 작업 스킵 - feedId={}", event.feedId());
       return;
