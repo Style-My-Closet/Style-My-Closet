@@ -4,6 +4,7 @@ import com.stylemycloset.follow.entity.Follow;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -16,7 +17,10 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, FollowRep
       AND f.follower.id = :followerId
       AND f.deletedAt IS NOT NULL
       """)
-  Optional<Follow> findSoftDeletedByFolloweeIdAndFollowerId(Long followeeId, Long followerId);
+  Optional<Follow> findSoftDeletedByFolloweeIdAndFollowerId(
+      @Param("followeeId") Long followeeId,
+      @Param("followerId") Long followerId
+  );
 
   @Query("""
       SELECT COUNT(f)
@@ -24,7 +28,7 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, FollowRep
       WHERE f.followee.id = :userId
       AND f.deletedAt IS NULL
       """)
-  long countActiveFollowers(Long userId);
+  long countActiveFollowers(@Param("userId") Long userId);
 
   @Query("""
       SELECT COUNT(f)
@@ -32,7 +36,7 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, FollowRep
       WHERE f.follower.id = :userId
        AND f.deletedAt IS NULL
       """)
-  long countActiveFollowings(Long userId);
+  long countActiveFollowings(@Param("userId") Long userId);
 
   @Query("""
       SELECT f
@@ -41,7 +45,10 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, FollowRep
       AND f.follower.id = :followerId
       AND f.deletedAt IS NULL
       """)
-  Optional<Follow> findActiveByFolloweeIdAndFollowerId(Long followeeId, Long followerId);
+  Optional<Follow> findActiveByFolloweeIdAndFollowerId(
+      @Param("followeeId") Long followeeId,
+      @Param("followerId") Long followerId
+  );
 
   @Query("""
       SELECT COUNT(f) > 0
@@ -50,7 +57,10 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, FollowRep
       AND f.follower.id = :followerId
       AND f.deletedAt IS NULL
       """)
-  boolean existsActiveByFolloweeIdAndFollowerId(Long followeeId, Long followerId);
+  boolean existsActiveByFolloweeIdAndFollowerId(
+      @Param("followeeId") Long followeeId,
+      @Param("followerId") Long followerId
+  );
 
   @Query("""
       SELECT f 
@@ -58,6 +68,6 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, FollowRep
       WHERE f.id = :followId
       AND f.deletedAt IS NULL
       """)
-  Optional<Follow> findActiveById(Long followId);
+  Optional<Follow> findActiveById(@Param("followId") Long followId);
 
 }
