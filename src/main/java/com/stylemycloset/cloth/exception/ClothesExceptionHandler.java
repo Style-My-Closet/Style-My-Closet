@@ -25,10 +25,13 @@ public class ClothesExceptionHandler {
     
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception e) {
+        java.util.Map<String, Object> details = new java.util.HashMap<>();
+        details.put("error", e.getMessage());
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .exceptionName("INTERNAL_ERROR")
                 .message("옷 목록 조회에 실패했습니다.")
-                .details(Map.of("error", e.getMessage()))
+                .details(details)
                 .build();
 
         return ResponseEntity
