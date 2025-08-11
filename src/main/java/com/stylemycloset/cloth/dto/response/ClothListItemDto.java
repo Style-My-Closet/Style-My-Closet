@@ -3,6 +3,7 @@ package com.stylemycloset.cloth.dto.response;
 import com.querydsl.core.annotations.QueryProjection;
 import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingCategoryType;
+import java.util.Objects;
 
 public record ClothListItemDto(
     String id,
@@ -23,6 +24,11 @@ public record ClothListItemDto(
     }
 
     public static ClothListItemDto from(Cloth cloth) {
+        Objects.requireNonNull(cloth, "Cloth cannot be null");
+        Objects.requireNonNull(cloth.getCloset(), "Closet cannot be null");
+        Objects.requireNonNull(cloth.getCloset().getUser(), "User cannot be null");
+        Objects.requireNonNull(cloth.getCategory(), "Category cannot be null");
+
         return new ClothListItemDto(
             cloth.getId().toString(),
             cloth.getCloset().getUser().getId().toString(),
@@ -31,4 +37,6 @@ public record ClothListItemDto(
             cloth.getCategory().getName()
         );
     }
+
+
 } 

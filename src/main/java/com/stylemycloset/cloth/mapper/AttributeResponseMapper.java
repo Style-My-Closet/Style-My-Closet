@@ -8,8 +8,11 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface AttributeResponseMapper {
     
-    @Mapping(target = "id", expression = "java(entity.getId().toString())")
+    @Mapping(target = "id", expression = "java(entity.getId() == null ? null : entity.getId().toString())")
     @Mapping(target = "name", source = "name")
-    @Mapping(target = "selectableValues", expression = "java(entity.getActiveOptions().stream().map(option -> option.getValue()).toList())")
+    @Mapping(
+        target = "selectableValues",
+        expression = "java(entity.getActiveOptions() == null ? java.util.Collections.emptyList() : entity.getActiveOptions().stream().map(option -> option.getValue()).toList())"
+    )
     AttributeResponseDto toDto(ClothingAttribute entity);
 } 

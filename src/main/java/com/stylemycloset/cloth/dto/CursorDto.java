@@ -8,55 +8,40 @@ public record CursorDto(
         String sortDirection,
         String keywordLike
 ) {
-    
-    public static CursorDto ofDefault() {
-        return new CursorDto(null, null, 20, "id", "ASCENDING", null);
-    }
+    private static final int DEFAULT_LIMIT = 20;
+    private static final String DEFAULT_SORT_BY = "id";
+    private static final String DEFAULT_SORT_DIRECTION = "ASCENDING";
+
     
     public static CursorDto ofDefault(int limit) {
-        return new CursorDto(null, null, limit, "id", "ASCENDING", null);
+        return new CursorDto(null, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_DIRECTION, null);
     }
-    
-    public static CursorDto ofSearch(String keywordLike) {
-        return new CursorDto(null, null, 20, "id", "ASCENDING", keywordLike);
-    }
+
     
     public static CursorDto ofSearch(String keywordLike, int limit) {
-        return new CursorDto(null, null, limit, "id", "ASCENDING", keywordLike);
+        return new CursorDto(null, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_DIRECTION, keywordLike);
     }
     
     public static CursorDto ofPagination(Long cursor, int limit) {
-        return new CursorDto(cursor, null, limit, "id", "ASCENDING", null);
+        return new CursorDto(cursor, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_DIRECTION, null);
     }
     
-    public static CursorDto ofPagination(Long cursor, int limit, String sortBy, String sortDirection) {
-        return new CursorDto(cursor, null, limit, sortBy, sortDirection, null);
-    }
+
     
-    // String 기반 생성자 (기존 코드와의 호환성을 위해)
-    public static CursorDto fromStrings(String cursor, String idAfter, String limit, 
-                                       String sortBy, String sortDirection, String keywordLike) {
-        return new CursorDto(
-                cursor != null ? Long.valueOf(cursor) : null,
-                idAfter != null ? Long.valueOf(idAfter) : null,
-                limit != null ? Integer.valueOf(limit) : 20,
-                sortBy != null ? sortBy : "id",
-                sortDirection != null ? sortDirection : "ASCENDING",
-                keywordLike
-        );
-    }
+
+
     
     // 기본값 처리
     public Integer limit() {
-        return limit != null ? limit : 20;
+        return limit != null ? limit : DEFAULT_LIMIT;
     }
     
     public String sortBy() {
-        return sortBy != null ? sortBy : "deleted_at";
+        return sortBy != null ? sortBy : DEFAULT_SORT_BY;
     }
     
     public String sortDirection() {
-        return sortDirection != null ? sortDirection : "ASCENDING";
+        return sortDirection != null ? sortDirection : DEFAULT_SORT_DIRECTION;
     }
     
     public boolean isDescending() {

@@ -5,6 +5,7 @@ import com.stylemycloset.cloth.dto.AttributeDto;
 import com.stylemycloset.cloth.entity.Cloth;
 
 import java.util.List;
+import java.util.Objects;
 
 public record ClothUpdateResponseDto(
         String id,
@@ -16,6 +17,10 @@ public record ClothUpdateResponseDto(
 
 ) {
     public static ClothUpdateResponseDto from(Cloth cloth) {
+       Objects.requireNonNull(cloth, "Cloth cannot be null");
+       Objects.requireNonNull(cloth.getCloset(), "Closet cannot be null");
+       Objects.requireNonNull(cloth.getCloset().getUser(), "User cannot be null");
+       Objects.requireNonNull(cloth.getCategory(), "Category cannot be null");
 
        List<AttributeDto> attributest= cloth.getAttributeValues()
                 .stream()

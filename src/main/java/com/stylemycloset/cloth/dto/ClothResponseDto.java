@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -32,13 +33,18 @@ public class ClothResponseDto {
     }
 
     public ClothResponseDto(Cloth cloth) {
+        Objects.requireNonNull(cloth, "Cloth cannot be null");
+        Objects.requireNonNull(cloth.getCloset(), "Closet cannot be null");
+        Objects.requireNonNull(cloth.getCloset().getUser(), "User cannot be null");
+        Objects.requireNonNull(cloth.getCategory(), "Category cannot be null");
+
         this.id = cloth.getId().toString();  // Long을 String으로 변환
         this.ownerId = cloth.getCloset().getUser().getId().toString();  // Long을 String으로 변환
         this.name = cloth.getName();
         this.imageUrl = cloth.getBinaryContent() != null ? cloth.getBinaryContent().getImageUrl() : null;
         this.type = cloth.getCategory().getName();
 
-        this.attributes = cloth.getAttributeValues()  // attributeList -> attributes로 변경
+        this.attributes = cloth.getAttributeValues()
                 .stream()
                 .map(AttributeDto::from)
                 .toList();
