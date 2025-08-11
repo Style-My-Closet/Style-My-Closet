@@ -9,11 +9,6 @@ ALTER TABLE weather
 -- 2. precipitation 관련 컬럼 추가/이름 변경/정비
 ALTER TABLE weather
     ALTER COLUMN alert_type TYPE VARCHAR(20);
-ALTER TABLE weather
-    ADD sky_status VARCHAR(20);
-
-
-ALTER TABLE weather ALTER COLUMN sky_status TYPE sky_status_enum USING sky_status::sky_status_enum;
 
 -- 7. 기타 nullable 보장
 ALTER TABLE weather
