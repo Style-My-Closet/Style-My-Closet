@@ -1,4 +1,9 @@
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dev
+    driver-class-name: org.postgresql.Driver
+    username: dev
+    password: password
   flyway:
     enabled: true
   jpa:
@@ -15,6 +20,32 @@ spring:
   sql:
     init:
       mode: never
+  cloud:
+    compatibility-verifier:
+      enabled: false
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      crawling:
+        failureRateThreshold: 50
+        waitDurationInOpenState: 3s
+        permittedNumberOfCallsInHalfOpenState: 2
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 5
+  ratelimiter:
+    instances:
+      crawling:
+        limitForPeriod: 10
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0s
+  retry:
+    instances:
+      crawling:
+        maxAttempts: 2
+        waitDuration: 500ms
+        retryExceptions:
+          - org.springframework.web.client.ResourceAccessException
 
 logging:
   level:
