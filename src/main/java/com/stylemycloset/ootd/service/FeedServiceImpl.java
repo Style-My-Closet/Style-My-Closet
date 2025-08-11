@@ -29,6 +29,7 @@ import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -104,36 +105,27 @@ public class FeedServiceImpl implements FeedService {
 
   @Override
   @Transactional
-  public FeedDto likeFeed(Long userId, Long feedId) {
+  public FeedDto toggleLike(Long userId, Long feedId) {
     User user = userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)
         .orElseThrow(() -> new StyleMyClosetException(ErrorCode.USER_NOT_FOUND,
             Map.of("userId", userId)));
+
     Feed feed = feedRepository.findById(feedId)
         .orElseThrow(() -> new StyleMyClosetException(ErrorCode.FEED_NOT_FOUND,
             Map.of("feedId", feedId)));
 
-    feedLikeRepository.findByUserAndFeed(user, feed).ifPresent(like -> {
-      throw new StyleMyClosetException(ErrorCode.ALREADY_LIKED_FEED, Map.of("feedId", feedId));
-    });
+    Optional<FeedLike> existingLike = feedLikeRepository.findByUserAndFeed(user, feed);
 
-    FeedLike newLike = FeedLike.createFeedLike(user, feed);
-    feedLikeRepository.save(newLike);
+    if (existingLike.isPresent()) {
+      // 이미 좋아요가 존재하면 -> 삭제 (좋아요 취소)
+      feedLikeRepository.delete(existingLike.get());
+    } else {
+      // 좋아요가 없으면 -> 생성 (좋아요)
+      FeedLike newLike = FeedLike.createFeedLike(user, feed);
+      feedLikeRepository.save(newLike);
+    }
 
     return mapToFeedResponse(feed, user);
-  }
-
-  @Override
-  @Transactional
-  public void unlikeFeed(Long userId, Long feedId) {
-    User user = userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)
-        .orElseThrow(() -> new StyleMyClosetException(ErrorCode.USER_NOT_FOUND,
-            Map.of("userId", userId)));
-    Feed feed = feedRepository.findById(feedId)
-        .orElseThrow(() -> new StyleMyClosetException(ErrorCode.FEED_NOT_FOUND,
-            Map.of("feedId", feedId)));
-
-    feedLikeRepository.findByUserAndFeed(user, feed)
-        .ifPresent(feedLike -> feedLikeRepository.delete(feedLike));
   }
 
   private Weather findWeatherOrNull(Long weatherId) {

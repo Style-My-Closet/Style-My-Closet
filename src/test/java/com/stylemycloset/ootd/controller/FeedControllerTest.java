@@ -3,7 +3,6 @@ package com.stylemycloset.ootd.controller;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -123,7 +122,10 @@ public class FeedControllerTest extends IntegrationTestSupport {
       }
 
       mockMvc.perform(get("/api/feeds")
-              .param("size", "10"))
+              .param("limit", "10")
+              .param("sortBy", "createdAt")
+              .param("sortDirection", "DESCENDING")
+              .with(csrf())) // GET 요청이지만 CSRF 설정에 따라 필요할 수 있음
           .andDo(print())
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.data.length()").value(10))
@@ -131,57 +133,32 @@ public class FeedControllerTest extends IntegrationTestSupport {
     }
   }
 
-  @Nested
-  @DisplayName("피드 좋아요 API")
-  class FeedLikeApi {
+  @Test
+  @DisplayName("좋아요 토글 - 성공 시 (좋아요 추가) 200 OK와 업데이트된 피드 정보를 반환한다")
+  @WithMockUser
+  void toggleLike_whenNotLiked_returnsOkWithFeedDto() throws Exception {
+    Feed feed = feedRepository.save(Feed.createFeed(testUser, null, "좋아요 테스트용 피드"));
 
-    @Test
-    @DisplayName("피드에 좋아요를 누르면 200 OK 상태와 함께 'likedByMe'가 true로 반환된다")
-    @WithMockUser
-      // 현재 Controller에서 사용자 ID를 1L로 하드코딩했으므로, 이 테스트는 ID 1번 유저가 수행하는 셈
-    void likeFeed_Returns200AndUpdatedFeed() throws Exception {
-      // given (준비)
-      Feed feed = feedRepository.save(Feed.createFeed(testUser, null, "좋아요 테스트용 피드"));
+    mockMvc.perform(post("/api/feeds/{feedId}/like", feed.getId())
+            .with(csrf()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.likedByMe").value(true))
+        .andExpect(jsonPath("$.likeCount").value(1));
+  }
 
-      // when & then (실행 및 검증)
-      mockMvc.perform(post("/api/feeds/{feedId}/like", feed.getId())
-              .with(csrf()))
-          .andDo(print())
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.likedByMe").value(true))
-          .andExpect(jsonPath("$.likeCount").value(1));
-    }
+  @Test
+  @DisplayName("좋아요 토글 - 성공 시 (좋아요 취소) 200 OK와 업데이트된 피드 정보를 반환한다")
+  @WithMockUser
+  void toggleLike_whenAlreadyLiked_returnsOkWithFeedDto() throws Exception {
+    Feed feed = feedRepository.save(Feed.createFeed(testUser, null, "좋아요 테스트용 피드"));
+    feedLikeRepository.save(FeedLike.createFeedLike(testUser, feed));
 
-    @Test
-    @DisplayName("이미 좋아요를 누른 피드에 다시 요청하면 404 Not Found를 반환한다")
-    @WithMockUser
-    void likeFeed_WhenAlreadyLiked_Returns404() throws Exception {
-      // given (준비)
-      Feed feed = feedRepository.save(Feed.createFeed(testUser, null, "좋아요 테스트용 피드"));
-      // 미리 '좋아요' 상태를 만들어둠
-      feedLikeRepository.save(FeedLike.createFeedLike(testUser, feed));
-
-      // when & then (실행 및 검증)
-      mockMvc.perform(post("/api/feeds/{feedId}/like", feed.getId())
-              .with(csrf()))
-          .andDo(print())
-          .andExpect(status().isNotFound()) // ErrorCode에 정의된 HttpStatus
-          .andExpect(jsonPath("$.errorCodeName").value("ALREADY_LIKED_FEED"));
-    }
-
-    @Test
-    @DisplayName("좋아요를 누른 피드를 취소하면 204 No Content를 반환한다")
-    @WithMockUser
-    void unlikeFeed_Returns204() throws Exception {
-      // given (준비)
-      Feed feed = feedRepository.save(Feed.createFeed(testUser, null, "좋아요 테스트용 피드"));
-      feedLikeRepository.save(FeedLike.createFeedLike(testUser, feed));
-
-      // when & then (실행 및 검증)
-      mockMvc.perform(delete("/api/feeds/{feedId}/like", feed.getId())
-              .with(csrf()))
-          .andDo(print())
-          .andExpect(status().isNoContent());
-    }
+    mockMvc.perform(post("/api/feeds/{feedId}/like", feed.getId())
+            .with(csrf()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.likedByMe").value(false))
+        .andExpect(jsonPath("$.likeCount").value(0));
   }
 }

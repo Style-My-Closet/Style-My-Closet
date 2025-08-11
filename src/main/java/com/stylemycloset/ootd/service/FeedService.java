@@ -11,7 +11,5 @@ public interface FeedService {
 
   FeedDtoCursorResponse getFeeds(FeedSearchRequest request);
 
-  FeedDto likeFeed(Long userId, Long feedId); // 좋아요
-
-  void unlikeFeed(Long userId, Long feedId); // 좋아요 취소
+  FeedDto toggleLike(Long userId, Long feedId);
 }

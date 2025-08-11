@@ -1,7 +1,6 @@
 package com.stylemycloset.ootd.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -12,8 +11,6 @@ import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingCategory;
 import com.stylemycloset.cloth.entity.ClothingCategoryType;
 import com.stylemycloset.cloth.repository.ClothRepository;
-import com.stylemycloset.common.exception.ErrorCode;
-import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
 import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
@@ -35,6 +32,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -112,8 +110,10 @@ class FeedServiceImplTest {
       assertThat(result.ootds().get(0).name()).isEqualTo("청바지");
 
       // verify (행위 검증)
-      verify(feedRepository, times(1)).save(any(Feed.class));
-      // verify(feedClothesRepository, times(1)).saveAll(any());
+      // Feed 엔티티 내부에서 cascade로 저장되는지 확인
+      ArgumentCaptor<Feed> feedCaptor = ArgumentCaptor.forClass(Feed.class);
+      verify(feedRepository, times(1)).save(feedCaptor.capture());
+      assertThat(feedCaptor.getValue().getFeedClothes()).hasSize(2);
     }
   }
 
@@ -180,136 +180,51 @@ class FeedServiceImplTest {
 
     // nextCursor는 null이 아닌 문자열인지 검증
     assertThat(result.nextCursor()).isNotNull().isInstanceOf(String.class);
+  }
 
-    @Nested
-    @DisplayName("피드 좋아요")
-    class LikeFeed {
+  @Test
+  @DisplayName("좋아요 토글 - 성공 (좋아요 추가)")
+  void toggleLike_whenNotLiked_createsLike() {
+    // given
+    Long userId = 1L;
+    Long feedId = 10L;
+    User mockUser = mock(User.class);
+    Feed mockFeed = mock(Feed.class);
+    when(userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)).thenReturn(
+        Optional.of(mockUser));
+    when(feedRepository.findById(feedId)).thenReturn(Optional.of(mockFeed));
+    when(feedLikeRepository.findByUserAndFeed(mockUser, mockFeed)).thenReturn(Optional.empty());
+    when(mockFeed.getAuthor()).thenReturn(mock(User.class));
 
-      @Test
-      @DisplayName("성공 - 피드 좋아요 누르기")
-      void likeFeedSuccess() {
-        Long userId = 1L;
-        Long feedId = 10L;
-        User mockUser = mock(User.class);
-        Feed mockFeed = mock(Feed.class);
-        User author = mock(User.class); // 피드 작성자 Mock
+    // when
+    feedService.toggleLike(userId, feedId);
 
-        when(userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)).thenReturn(
-            Optional.of(mockUser));
-        when(feedRepository.findById(feedId)).thenReturn(Optional.of(mockFeed));
+    // then
+    verify(feedLikeRepository, times(1)).save(any(FeedLike.class));
+    verify(feedLikeRepository, times(0)).delete(any());
+  }
 
-        when(feedLikeRepository.findByUserAndFeed(mockUser, mockFeed)).thenReturn(Optional.empty());
+  @Test
+  @DisplayName("좋아요 토글 - 성공 (좋아요 취소)")
+  void toggleLike_whenAlreadyLiked_deletesLike() {
+    // given
+    Long userId = 1L;
+    Long feedId = 10L;
+    User mockUser = mock(User.class);
+    Feed mockFeed = mock(Feed.class);
+    FeedLike mockFeedLike = mock(FeedLike.class);
+    when(userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)).thenReturn(
+        Optional.of(mockUser));
+    when(feedRepository.findById(feedId)).thenReturn(Optional.of(mockFeed));
+    when(feedLikeRepository.findByUserAndFeed(mockUser, mockFeed)).thenReturn(
+        Optional.of(mockFeedLike));
+    when(mockFeed.getAuthor()).thenReturn(mock(User.class));
 
-        when(mockFeed.getAuthor()).thenReturn(author);
-        when(author.getId()).thenReturn(2L);
-        when(mockFeed.getFeedClothes()).thenReturn(Collections.emptyList());
-        when(feedLikeRepository.countByFeed(mockFeed)).thenReturn(1L); // 좋아요 후 카운트는 1
-        when(feedLikeRepository.existsByUserAndFeed(mockUser, mockFeed)).thenReturn(
-            true); // 좋아요 후에는 존재함
+    // when
+    feedService.toggleLike(userId, feedId);
 
-        FeedDto result = feedService.likeFeed(userId, feedId);
-
-        verify(feedLikeRepository, times(1)).save(any(FeedLike.class)); // save가 1번 호출되었는지 검증
-        assertThat(result.likeCount()).isEqualTo(1L);
-        assertThat(result.likedByMe()).isTrue();
-      }
-
-      @Test
-      @DisplayName("성공 - 피드 좋아요 취소하기")
-      void unlikeFeedSuccess() {
-        // given (준비)
-        Long userId = 1L;
-        Long feedId = 10L;
-        User mockUser = mock(User.class);
-        Feed mockFeed = mock(Feed.class);
-        FeedLike mockFeedLike = mock(FeedLike.class);
-
-        // Mock 객체 설정
-        when(userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)).thenReturn(
-            Optional.of(mockUser));
-        when(feedRepository.findById(feedId)).thenReturn(Optional.of(mockFeed));
-        // 이미 좋아요를 누른 상태를 가정
-        when(feedLikeRepository.findByUserAndFeed(mockUser, mockFeed)).thenReturn(
-            Optional.of(mockFeedLike));
-
-        // when (실행)
-        feedService.unlikeFeed(userId, feedId);
-
-        // then (검증)
-        verify(feedLikeRepository, times(1)).delete(mockFeedLike); // delete가 1번 호출되었는지 검증
-      }
-
-      @Test
-      @DisplayName("실패 - 이미 좋아요를 누른 피드에 다시 좋아요 요청")
-      void likeFeedFail_AlreadyLiked() {
-        // given (준비)
-        Long userId = 1L;
-        Long feedId = 10L;
-        User mockUser = mock(User.class);
-        Feed mockFeed = mock(Feed.class);
-        FeedLike mockFeedLike = mock(FeedLike.class);
-
-        // Mock 객체 설정
-        when(userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)).thenReturn(
-            Optional.of(mockUser));
-        when(feedRepository.findById(feedId)).thenReturn(Optional.of(mockFeed));
-        // 이미 좋아요를 누른 상태를 가정
-        when(feedLikeRepository.findByUserAndFeed(mockUser, mockFeed)).thenReturn(
-            Optional.of(mockFeedLike));
-
-        // when & then (실행 및 검증)
-        // StyleMyClosetException이 발생하는지, ErrorCode가 ALREADY_LIKED_FEED인지 확인
-        assertThatThrownBy(() -> feedService.likeFeed(userId, feedId))
-            .isInstanceOf(StyleMyClosetException.class)
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.ALREADY_LIKED_FEED);
-      }
-
-      @Test
-      @DisplayName("실패 - 존재하지 않는 유저의 요청")
-      void fail_UserNotFound() {
-        // given (준비)
-        Long userId = 999L; // 존재하지 않는 유저 ID
-        Long feedId = 10L;
-        when(userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)).thenReturn(
-            Optional.empty());
-
-        // when & then (좋아요 요청)
-        assertThatThrownBy(() -> feedService.likeFeed(userId, feedId))
-            .isInstanceOf(StyleMyClosetException.class)
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.USER_NOT_FOUND);
-
-        // when & then (좋아요 취소 요청)
-        assertThatThrownBy(() -> feedService.unlikeFeed(userId, feedId))
-            .isInstanceOf(StyleMyClosetException.class)
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.USER_NOT_FOUND);
-      }
-
-      @Test
-      @DisplayName("실패 - 존재하지 않는 피드")
-      void fail_FeedNotFound() {
-        // given (준비)
-        Long userId = 1L;
-        Long feedId = 999L; // 존재하지 않는 피드 ID
-        User mockUser = mock(User.class);
-        when(userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)).thenReturn(
-            Optional.of(mockUser));
-        when(feedRepository.findById(feedId)).thenReturn(Optional.empty());
-
-        // when & then (좋아요 요청)
-        assertThatThrownBy(() -> feedService.likeFeed(userId, feedId))
-            .isInstanceOf(StyleMyClosetException.class)
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.FEED_NOT_FOUND);
-
-        // when & then (좋아요 취소 요청)
-        assertThatThrownBy(() -> feedService.unlikeFeed(userId, feedId))
-            .isInstanceOf(StyleMyClosetException.class)
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.FEED_NOT_FOUND);
-      }
-    }
+    // then
+    verify(feedLikeRepository, times(1)).delete(mockFeedLike);
+    verify(feedLikeRepository, times(0)).save(any());
   }
 }

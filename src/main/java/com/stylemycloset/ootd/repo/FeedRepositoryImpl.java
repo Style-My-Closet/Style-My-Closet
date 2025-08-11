@@ -30,7 +30,6 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
 
     return queryFactory
         .selectFrom(feed)
-        .from(feed)
         .leftJoin(feed.author).fetchJoin()
         .leftJoin(feed.weather).fetchJoin()
         .where(
@@ -63,7 +62,7 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
     }
 
     // 커서 페이징의 일관성을 위해 항상 ID로 2차 정렬
-    orderSpecifiers.add(new OrderSpecifier<>(Order.DESC, feed.id));
+    orderSpecifiers.add(new OrderSpecifier<>(direction, feed.id));
 
     return orderSpecifiers.toArray(new OrderSpecifier[0]);
   }
@@ -84,6 +83,17 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
       } else {
         return feed.createdAt.lt(cursorDate)
             .or(feed.createdAt.eq(cursorDate).and(feed.id.lt(request.idAfter())));
+      }
+    }
+
+    if ("likeCount".equals(sortBy)) {
+      int likeCount = Integer.parseInt(request.cursor());
+      if ("ASCENDING".equalsIgnoreCase(request.sortDirection())) {
+        return feed.feedLikes.size().gt(likeCount)
+            .or(feed.feedLikes.size().eq(likeCount).and(feed.id.gt(request.idAfter())));
+      } else {
+        return feed.feedLikes.size().lt(likeCount)
+            .or(feed.feedLikes.size().eq(likeCount).and(feed.id.lt(request.idAfter())));
       }
     }
 

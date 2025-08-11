@@ -40,9 +40,10 @@ public class FeedController {
 
   @GetMapping
   public ResponseEntity<FeedDtoCursorResponse> getFeeds(
-      FeedSearchRequest request
+      @Valid FeedSearchRequest request
 
   ) {
+
     FeedDtoCursorResponse response = feedService.getFeeds(request);
     return ResponseEntity.ok(response);
   }
@@ -52,8 +53,7 @@ public class FeedController {
       Authentication authentication) {
     User user = userRepository.findByEmail(authentication.getName())
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-    Long currentUserId = user.getId();
-    FeedDto responseDto = feedService.likeFeed(currentUserId, feedId);
+    FeedDto responseDto = feedService.toggleLike(user.getId(), feedId);
     return ResponseEntity.ok(responseDto);
   }
 
@@ -62,8 +62,7 @@ public class FeedController {
     // TODO: 유저 디테일 구현 후 유저 아이디로 대체
     User user = userRepository.findByEmail(authentication.getName())
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-    Long currentUserId = user.getId();
-    feedService.unlikeFeed(currentUserId, feedId);
+    feedService.toggleLike(user.getId(), feedId);
     return ResponseEntity.noContent().build();
   }
 }
