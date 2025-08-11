@@ -10,6 +10,9 @@ import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.ootd.dto.AuthorDto;
 import com.stylemycloset.ootd.dto.ClothesAttributeWithDefDto;
+import com.stylemycloset.ootd.dto.CommentCursorResponse;
+import com.stylemycloset.ootd.dto.CommentDto;
+import com.stylemycloset.ootd.dto.CommentSearchRequest;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
 import com.stylemycloset.weather.dto.*;
@@ -19,8 +22,10 @@ import com.stylemycloset.ootd.dto.FeedUpdateRequest;
 import com.stylemycloset.ootd.dto.OotdItemDto;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.FeedClothes;
+import com.stylemycloset.ootd.entity.FeedComment;
 import com.stylemycloset.ootd.entity.FeedLike;
 import com.stylemycloset.ootd.repo.FeedClothesRepository;
+import com.stylemycloset.ootd.repo.FeedCommentRepository;
 import com.stylemycloset.ootd.repo.FeedLikeRepository;
 import com.stylemycloset.ootd.repo.FeedRepository;
 import com.stylemycloset.ootd.tempEnum.ClothesType;
@@ -50,6 +55,7 @@ public class FeedServiceImpl implements FeedService {
   private final ClothRepository clothRepository;
   private final WeatherRepository weatherRepository;
   private final FeedLikeRepository feedLikeRepository;
+  private final FeedCommentRepository feedCommentRepository;
 
   @Override
   @Transactional
@@ -259,5 +265,46 @@ public class FeedServiceImpl implements FeedService {
     }
 
     feedRepository.delete(feed);
+  }
+
+  @Override
+  public CommentCursorResponse getComments(Long feedId, CommentSearchRequest request) {
+    if (!feedRepository.existsById(feedId)) {
+      throw new StyleMyClosetException(ErrorCode.FEED_NOT_FOUND, Map.of("feedId", feedId));
+    }
+
+    List<FeedComment> comments = feedCommentRepository.findByFeedIdWithCursor(feedId, request);
+
+    int limit = request.limit();
+    boolean hasNext = comments.size() > limit;
+    if (hasNext) {
+      comments.remove(limit);
+    }
+
+    String nextCursor = null;
+    Long nextIdAfter = null;
+    if (hasNext && !comments.isEmpty()) {
+      FeedComment lastComment = comments.get(comments.size() - 1);
+      nextCursor = lastComment.getCreatedAt().toString();
+      nextIdAfter = lastComment.getId();
+    }
+
+    List<CommentDto> commentDtos = comments.stream()
+        .map(this::toCommentDto) // DTO 변환
+        .collect(Collectors.toList());
+
+    // TODO: totalCount 로직 추가 필요
+    return new CommentCursorResponse(commentDtos, nextCursor, nextIdAfter, hasNext, 0L, "createdAt",
+        "DESC");
+  }
+
+  private CommentDto toCommentDto(FeedComment comment) {
+    return new CommentDto(
+        comment.getId(),
+        comment.getCreatedAt(),
+        comment.getFeed().getId(),
+        toAuthorDto(comment.getAuthor()),
+        comment.getContent()
+    );
   }
 }
