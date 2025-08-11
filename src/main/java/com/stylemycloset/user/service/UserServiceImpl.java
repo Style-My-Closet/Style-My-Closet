@@ -1,5 +1,7 @@
 package com.stylemycloset.user.service;
 
+import com.stylemycloset.cloth.entity.Closet;
+import com.stylemycloset.cloth.repository.ClosetRepository;
 import com.stylemycloset.user.dto.data.ProfileDto;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.dto.request.ChangePasswordRequest;
@@ -27,6 +29,7 @@ public class UserServiceImpl implements UserService {
 
   private final UserRepository userRepository;
   private final UserMapper userMapper;
+  private final ClosetRepository closetRepository;
 
 
   @Transactional
@@ -38,6 +41,9 @@ public class UserServiceImpl implements UserService {
 
     User user = new User(request);
     User savedUser = userRepository.save(user);
+    // 사용자 생성 시 기본 옷장 자동 생성
+    Closet closet = new Closet(savedUser);
+    closetRepository.save(closet);
     return userMapper.UsertoUserDto(savedUser);
   }
 
@@ -129,7 +135,7 @@ public class UserServiceImpl implements UserService {
 
     Integer totalCount = null;
     if (request.cursor() == null) {
-      totalCount = (int) userRepository.countByFilter(request);
+      totalCount = userRepository.countByFilter(request);
     }
 
     return new UserCursorResponse(

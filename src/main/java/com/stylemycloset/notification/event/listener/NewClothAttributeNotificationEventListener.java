@@ -32,7 +32,7 @@ public class NewClothAttributeNotificationEventListener {
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handler(NewClothAttributeEvent event) {
     try {
-      Set<User> receivers = userRepository.findByLockedFalseAndDeleteAtIsNull();
+      Set<User> receivers = userRepository.findByLockedFalse();
       log.info("의상 속성 추가 이벤트 호출 - ClothingAttributeId={}, Receiver Size={}",
           event.clothAttributeId(), receivers.size());
 
