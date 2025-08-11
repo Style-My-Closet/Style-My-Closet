@@ -106,7 +106,7 @@ public class WeatherServiceTest {
         // then
         assertEquals(1, result.size());
         assertEquals(23.0, result.get(0).temperature().current());
-        assertEquals("RAIN", result.get(0).precipitation().type());
+        assertEquals(AlertType.RAIN, result.get(0).precipitation().type());
     }
 
     @Test
