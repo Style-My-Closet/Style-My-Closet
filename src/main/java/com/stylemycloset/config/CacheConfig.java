@@ -15,7 +15,14 @@ public class CacheConfig {
 
     @Bean
     public CacheManager cacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager("clothCount", "attributeCount", "attributeOptions");
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager(
+            "clothCount", 
+            "attributeCount", 
+            "attributeOptions",
+            "clothListFirstPage",    // 옷 목록 첫 번째 페이지 캐시
+            "attributeListFirstPage", // 속성 목록 첫 번째 페이지 캐시
+            "productExtraction"      // 상품 추출 결과 캐시
+        );
         cacheManager.setCaffeine(Caffeine.newBuilder()
                 .maximumSize(10000) // 최대 10,000개 캐시 엔트리
                 .expireAfterWrite(Duration.ofHours(1)) // 1시간 후 만료
