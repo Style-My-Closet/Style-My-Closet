@@ -1,20 +1,19 @@
 package com.stylemycloset.cloth.repository;
 
-import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.stylemycloset.cloth.dto.ClothesAttributeDto;
 import com.stylemycloset.cloth.entity.ClothingAttribute;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 
-import static com.stylemycloset.cloth.entity.QClothingAttribute.clothingAttribute;
-import static com.stylemycloset.cloth.entity.QClothingAttributeValue.clothingAttributeValue;
 import static com.stylemycloset.cloth.entity.QAttributeOption.attributeOption;
+import static com.stylemycloset.cloth.entity.QClothingAttribute.clothingAttribute;
 
+
+@Repository
 @RequiredArgsConstructor
 public class ClothingAttributeRepositoryImpl implements ClothingAttributeRepositoryCustom {
 
@@ -22,119 +21,75 @@ public class ClothingAttributeRepositoryImpl implements ClothingAttributeReposit
 
     @Override
     public List<ClothingAttribute> findWithCursorPagination(String keywordLike, Long cursor, int size) {
-        var query = factory
-                .selectFrom(clothingAttribute)
-                .leftJoin(clothingAttribute.options, attributeOption).fetchJoin();
-        
-        // 키워드 검색 조건 추가
-        if (keywordLike != null && !keywordLike.trim().isEmpty()) {
-            query.where(clothingAttribute.name.containsIgnoreCase(keywordLike.trim()));
-        }
-        
-        // 커서 기반 페이징
-        if (cursor != null) {
-            query.where(clothingAttribute.id.gt(cursor));
-        }
-        
-        return query
+        //  ID만 페이징으로 조회
+        List<Long> ids = factory
+                .select(clothingAttribute.id)
+                .from(clothingAttribute)
+                .where(
+                        nameContains(keywordLike),
+                        cursorCondition(cursor)
+                )
                 .orderBy(clothingAttribute.id.asc())
                 .limit(size)
                 .fetch();
+
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
+        // 2단계: in 절로 컬렉션 fetch join 조회
+        List<ClothingAttribute> fetched = fetchAttributesWithOptions(ids);
+
+        // fetch join 중복 제거 및 원래 ID 순서 보존
+        Map<Long, ClothingAttribute> deduped = new LinkedHashMap<>();
+        for (ClothingAttribute attr : fetched) {
+            deduped.putIfAbsent(attr.getId(), attr);
+        }
+        // 원래 ids 순서에 맞춰 정렬 반환
+        List<ClothingAttribute> ordered = new ArrayList<>(ids.size());
+        for (Long id : ids) {
+            ClothingAttribute attr = deduped.get(id);
+            if (attr != null) ordered.add(attr);
+        }
+        return ordered;
     }
 
     @Override
     public long countByKeyword(String keywordLike) {
-        var query = factory
+        Long count = factory
                 .select(clothingAttribute.count())
-                .from(clothingAttribute);
+                .from(clothingAttribute)
+                .where(nameContains(keywordLike))
+                .fetchOne();
         
-        // 키워드 검색 조건 추가
-        if (keywordLike != null && !keywordLike.trim().isEmpty()) {
-            query.where(clothingAttribute.name.containsIgnoreCase(keywordLike.trim()));
-        }
-        
-        return Optional.ofNullable(query.fetchOne()).orElse(0L);
+        return Optional.ofNullable(count).orElse(0L);
     }
 
-    @Override
-    public Map<Long, List<String>> findSelectableValuesByAttributeIds(List<Long> attributeIds) {
-        if (attributeIds.isEmpty()) {
-            return Map.of();
+
+
+
+    private BooleanExpression nameContains(String keyword) {
+        return StringUtils.hasText(keyword) 
+                ? clothingAttribute.name.containsIgnoreCase(keyword.trim()) 
+                : null;
+    }
+    // in 절로 옵션까지 fetch-join하여 속성 목록을 조회
+    private List<ClothingAttribute> fetchAttributesWithOptions(List<Long> attributeIds) {
+        if (attributeIds == null || attributeIds.isEmpty()) {
+            return java.util.List.of();
         }
-        
-        List<SelectableValueResult> results = factory
-                .select(Projections.constructor(SelectableValueResult.class,
-                        attributeOption.attribute.id,
-                        attributeOption.value
-                ))
-                .from(attributeOption)
-                .where(attributeOption.attribute.id.in(attributeIds))
+        return factory
+                .selectFrom(clothingAttribute)
+                .leftJoin(clothingAttribute.options, attributeOption).fetchJoin()
+                .where(clothingAttribute.id.in(attributeIds))
+                .orderBy(clothingAttribute.id.asc())
                 .fetch();
-        
-        return results.stream()
-                .collect(Collectors.groupingBy(
-                        SelectableValueResult::attributeId,
-                        Collectors.mapping(
-                                SelectableValueResult::value,
-                                Collectors.toList()
-                        )
-                ));
     }
 
-    @Override
-    public Map<Long, List<ClothesAttributeDto>> findAttributesByClothIds(List<Long> clothIds) {
-        if (clothIds.isEmpty()) {
-            return Map.of();
-        }
-        
-        // 1단계: 모든 의류의 attributes와 values를 한 번에 조회
-        List<AttributeResult> results = factory
-                .select(Projections.constructor(AttributeResult.class,
-                        clothingAttributeValue.cloth.id,
-                        clothingAttribute.id.stringValue(),
-                        clothingAttribute.name,
-                        attributeOption.value
-                ))
-                .from(clothingAttributeValue)
-                .leftJoin(clothingAttributeValue.attribute, clothingAttribute)
-                .leftJoin(clothingAttributeValue.option, attributeOption)
-                .where(clothingAttributeValue.cloth.id.in(clothIds))
-                .fetch();
-        
-        // 2단계: 조회된 속성들의 selectableValues를 한 번에 조회
-        List<Long> attributeIds = results.stream()
-                .map(result -> Long.valueOf(result.definitionId()))
-                .distinct()
-                .toList();
-        
-        Map<Long, List<String>> selectableValuesMap = findSelectableValuesByAttributeIds(attributeIds);
-        
-        // 3단계: clothId별로 그룹화하여 완전한 DTO 생성
-        return results.stream()
-                .collect(Collectors.groupingBy(
-                        AttributeResult::clothId,
-                        Collectors.mapping(
-                                result -> new ClothesAttributeDto(
-                                        Long.valueOf(result.definitionId()),
-                                        result.definitionName(),
-                                        selectableValuesMap.getOrDefault(Long.valueOf(result.definitionId()), List.of()),
-                                        result.value()
-                                ),
-                                Collectors.toList()
-                        )
-                ));
+    private BooleanExpression cursorCondition(Long cursor) {
+        return cursor != null ? clothingAttribute.id.gt(cursor) : null;
     }
     
-    // 내부 클래스들
-    private record AttributeResult(
-            Long clothId,
-            String definitionId,
-            String definitionName,
-            String value
-    ) {}
+
     
-    private record SelectableValueResult(
-            Long attributeId,
-            String value
-    ) {}
-} 
+}
