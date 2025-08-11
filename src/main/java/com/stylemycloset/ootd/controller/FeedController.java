@@ -71,6 +71,15 @@ public class FeedController {
     return ResponseEntity.noContent().build();
   }
 
+  @GetMapping("/{feedId}/comments")
+  public ResponseEntity<CommentCursorResponse> getComments(
+      @PathVariable Long feedId,
+      @Valid CommentSearchRequest request
+  ) {
+    CommentCursorResponse response = feedService.getComments(feedId, request);
+    return ResponseEntity.ok(response);
+  }
+
   @DeleteMapping("/{feedId}")
   public ResponseEntity<Void> deleteFeed(@PathVariable Long feedId, Authentication authentication) {
     User user = userRepository.findByEmail(authentication.getName())
