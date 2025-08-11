@@ -83,7 +83,7 @@ class FollowControllerTest extends ControllerTestSupport {
     // when
     MvcTestResult result = mvc.get()
         .uri("/api/follows/summary")
-        .param("id", String.valueOf(1L))
+        .param("userId", String.valueOf(1L))
         .exchange();
 
     // then

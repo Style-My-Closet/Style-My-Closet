@@ -15,8 +15,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Component;
 
-@Slf4j
 @RequiredArgsConstructor
 public class FollowRepositoryImpl implements FollowRepositoryCustom {
 

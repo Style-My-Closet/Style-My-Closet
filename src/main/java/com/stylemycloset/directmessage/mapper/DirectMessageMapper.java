@@ -2,11 +2,18 @@ package com.stylemycloset.directmessage.mapper;
 
 import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
 import com.stylemycloset.directmessage.dto.DirectMessageResult;
+import com.stylemycloset.directmessage.dto.response.DirectMessageResponse;
+import com.stylemycloset.directmessage.dto.response.DirectMessageResponse.NextCursorInfo;
 import com.stylemycloset.directmessage.dto.response.DirectMessageUserInfo;
 import com.stylemycloset.directmessage.entity.DirectMessage;
+import com.stylemycloset.directmessage.repository.cursor.CursorStrategy;
+import com.stylemycloset.directmessage.repository.cursor.strategy.DirectMessageField;
 import com.stylemycloset.user.entity.User;
 import java.net.URL;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -32,6 +39,55 @@ public class DirectMessageMapper {
     }
     URL url = binaryContentStorage.getUrl(user.getProfileImage().getId());
     return url.toString();
+  }
+
+  public DirectMessageResponse<DirectMessageResult> toMessageResponse(
+      Slice<DirectMessage> messages
+  ) {
+    List<DirectMessageResult> messageResults = getMessageResults(messages);
+
+    Order order = getOrder(messages);
+
+    return DirectMessageResponse.of(
+        messageResults,
+        extractNextCursorInfo(messages, order.getProperty()),
+        messages.hasNext(),
+        null,
+        order.getProperty(),
+        order.getDirection().toString()
+    );
+  }
+
+
+  private Order getOrder(Slice<DirectMessage> messages) {
+    return messages.getPageable()
+        .getSort()
+        .stream()
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("DTO 변환시 정렬 순서(Order)가 존재하지 않습니다."));
+  }
+
+  private List<DirectMessageResult> getMessageResults(Slice<DirectMessage> messages) {
+    return messages.getContent()
+        .stream()
+        .map(this::toResult)
+        .toList();
+  }
+
+  private NextCursorInfo extractNextCursorInfo(Slice<DirectMessage> messages, String sortBy) {
+    if (sortBy == null || sortBy.isBlank() ||
+        !messages.hasNext() || messages.getContent().isEmpty()
+    ) {
+      return new NextCursorInfo(null, null);
+    }
+
+    DirectMessage lastMessage = messages.getContent().get(messages.getContent().size() - 1);
+
+    CursorStrategy<?> cursorStrategy = DirectMessageField.resolveStrategy(sortBy);
+    String cursor = cursorStrategy.extract(lastMessage).toString();
+    String idAfter = lastMessage.getId().toString();
+
+    return new NextCursorInfo(cursor, idAfter);
   }
 
 }

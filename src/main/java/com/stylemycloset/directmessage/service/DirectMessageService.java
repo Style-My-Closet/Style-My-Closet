@@ -9,8 +9,8 @@ public interface DirectMessageService {
 
   DirectMessageResult create(DirectMessageCreateRequest request);
 
-  DirectMessageResponse<DirectMessageResult> getDirectMessageByUser(
-      DirectMessageSearchCondition searchCondition
+  DirectMessageResponse<DirectMessageResult> getDirectMessageBetweenParticipants(
+      DirectMessageSearchCondition searchCondition, Long logInUser
   );
 
 }

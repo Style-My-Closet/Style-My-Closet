@@ -12,7 +12,7 @@ public record FollowListResponse<T>(
     String sortDirection
 ) {
 
-  public static FollowListResponse<FollowResult> from(
+  public static FollowListResponse<FollowResult> of(
       List<FollowResult> followResults,
       NextCursorInfo nextCursorInfo,
       Boolean hasNext,

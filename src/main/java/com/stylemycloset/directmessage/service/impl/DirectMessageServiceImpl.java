@@ -13,7 +13,9 @@ import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.exception.UserNotFoundException;
 import com.stylemycloset.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +25,7 @@ public class DirectMessageServiceImpl implements DirectMessageService {
   private final UserRepository userRepository;
   private final DirectMessageMapper directMessageMapper;
 
+  @Transactional
   @Override
   public DirectMessageResult create(DirectMessageCreateRequest request) {
     validateSelfSentMessage(request);
@@ -36,11 +39,22 @@ public class DirectMessageServiceImpl implements DirectMessageService {
     return directMessageMapper.toResult(directMessage);
   }
 
+  @Transactional(readOnly = true)
   @Override
-  public DirectMessageResponse<DirectMessageResult> getDirectMessageByUser(
-      DirectMessageSearchCondition searchCondition
+  public DirectMessageResponse<DirectMessageResult> getDirectMessageBetweenParticipants(
+      DirectMessageSearchCondition searchCondition,
+      Long logInUser
   ) {
-    return null;
+    Slice<DirectMessage> messages = directMessageRepository.findMessagesBetweenParticipants(
+        searchCondition.userId(),
+        logInUser,
+        searchCondition.cursor(),
+        searchCondition.idAfter(),
+        searchCondition.limit(),
+        searchCondition.sortBy(),
+        searchCondition.sortDirection()
+    );
+    return directMessageMapper.toMessageResponse(messages);
   }
 
   private void validateSelfSentMessage(DirectMessageCreateRequest request) {

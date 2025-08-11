@@ -45,7 +45,7 @@ public class FollowMapper {
     List<FollowResult> followResults = getFollowResults(follows);
     Order order = getOrder(follows);
 
-    return FollowListResponse.from(
+    return FollowListResponse.of(
         followResults,
         extractNextCursorInfo(follows, order.getProperty()),
         follows.hasNext(),

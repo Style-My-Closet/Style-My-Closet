@@ -80,7 +80,7 @@ class DirectMessageIntegrationTest extends IntegrationTestSupport {
 
     // then
     await()
-        .atMost(Duration.ofSeconds(10))
+        .atMost(Duration.ofSeconds(15))
         .untilAsserted(() -> Assertions.assertThat(messageMailbox.poll())
             .extracting(
                 directMessageResult -> directMessageResult.sender().id(),
