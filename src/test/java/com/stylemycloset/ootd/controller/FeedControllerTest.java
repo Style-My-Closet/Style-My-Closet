@@ -311,4 +311,22 @@ public class FeedControllerTest extends IntegrationTestSupport {
           .andExpect(status().isBadRequest());
     }
   }
+
+  @Nested
+  @DisplayName("피드 삭제 API")
+  class FeedDeleteApi {
+    @Test
+    @DisplayName("자신이 작성한 피드를 삭제하면 204 No Content 상태를 반환")
+    @WithMockUser
+    void deleteFeed_Success() throws Exception {
+      Feed myFeed = feedRepository.save(Feed.createFeed(testUser, null, "삭제될 피드"));
+
+      mockMvc.perform(delete("/api/feeds/{feedId}", myFeed.getId())
+              .with(csrf()))
+          .andDo(print())
+          .andExpect(status().isNoContent());
+
+      assertThat(feedRepository.findById(myFeed.getId())).isEmpty();
+    }
+  }
 }
