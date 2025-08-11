@@ -28,4 +28,8 @@ public record ClothesAttributeDto(
             clothingAttributeValue.getOption().getValue()
         );
     }
+
+    public static ClothesAttributeDto from(Long definitionId, String definitionName, List<String> selectableValues, String value) {
+        return new ClothesAttributeDto(definitionId, definitionName, selectableValues, value);
+    }
 } 

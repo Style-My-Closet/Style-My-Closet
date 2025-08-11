@@ -12,9 +12,9 @@ import java.util.UUID;
 @NoArgsConstructor
 public class ClothCreateRequestDto {
     private String name;
-    private UUID binaryContent;
     private String type;
     private Long categoryId;
+    private UUID binaryContentId;
     private List<AttributeRequestDto> attributes;
     
     @Getter
@@ -23,10 +23,6 @@ public class ClothCreateRequestDto {
     public static class AttributeRequestDto {
         private Long definitionId;
         private Long optionId;
-        
-        public AttributeRequestDto(Long definitionId, Long optionId) {
-            this.definitionId = definitionId;
-            this.optionId = optionId;
-        }
+
     }
 }

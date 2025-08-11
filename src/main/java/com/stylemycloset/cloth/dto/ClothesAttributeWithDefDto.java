@@ -27,4 +27,8 @@ public record ClothesAttributeWithDefDto(
         String val = clothingAttributeValue.getOption().getValue();
         return new ClothesAttributeWithDefDto(defId, defName, selectList, val);
     }
+
+    public static ClothesAttributeWithDefDto from(Long definitionId, String definitionName, List<String> selectableValues, String value) {
+        return new ClothesAttributeWithDefDto(definitionId, definitionName, selectableValues, value);
+    }
 } 
