@@ -1,6 +1,8 @@
 package com.stylemycloset.ootd.service;
 
+import com.stylemycloset.cloth.entity.AttributeOption;
 import com.stylemycloset.cloth.entity.Cloth;
+import com.stylemycloset.cloth.entity.ClothingAttribute;
 import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
@@ -25,7 +27,6 @@ import com.stylemycloset.weather.dto.TemperatureDto;
 import com.stylemycloset.weather.dto.WeatherSummaryDto;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.repository.WeatherRepository;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -203,9 +204,28 @@ public class FeedServiceImpl implements FeedService {
   }
 
   private OotdItemDto toOotdItemDto(Cloth cloth) {
-    List<ClothesAttributeWithDefDto> attributes = new ArrayList<>();
-    // TODO: cloth의 속성 정보를 attributes 리스트에 채우는 로직 구현
-    return new OotdItemDto(cloth.getId(), cloth.getName(), null,
+    List<ClothesAttributeWithDefDto> attributes = cloth.getAttributeValues().stream()
+        .map(attributeValue -> {
+          ClothingAttribute definition = attributeValue.getAttribute(); // 속성의 정의
+
+          // 해당 속성이 가질 수 있는 모든 선택지
+          List<String> selectableValues = definition.getOptions().stream()
+              .map(AttributeOption::getValue)
+              .collect(Collectors.toList());
+
+          // 이 옷이 선택한 특정 값을 가져옴
+          String chosenValue = attributeValue.getOption().getValue();
+
+          return new ClothesAttributeWithDefDto(
+              definition.getId(),
+              definition.getName(),
+              selectableValues,
+              chosenValue
+          );
+        })
+        .collect(Collectors.toList());
+
+    return new OotdItemDto(cloth.getId(), cloth.getName(), null, // TODO: 이미지 URL 로직
         ClothesType.valueOf(cloth.getCategory().getName().name()), attributes);
   }
 }

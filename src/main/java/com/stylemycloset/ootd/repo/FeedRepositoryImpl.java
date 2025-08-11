@@ -106,7 +106,6 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
     if (type == null) {
       return null;
     }
-    // TODO: Feed 엔티티-Weather 관계 및 필드명 재확인 필요
-    return null;
+    return feed.weather.precipitation.type.eq(type.name());
   }
 }
