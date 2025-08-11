@@ -16,10 +16,19 @@ java {
 
 repositories {
     mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
 }
 
 ext {
     JJWT_VERSION = "0.12.3"
+    SPRING_CLOUD_VERSION = "2023.0.3"
+    RESILIENCE4J_VERSION = "2.3.0"
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${SPRING_CLOUD_VERSION}"
+    }
 }
 
 dependencies {
@@ -40,11 +49,15 @@ dependencies {
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     //로컬 캐시
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'com.github.ben-manes.caffeine:caffeine'
+
+    // Circuit Breaker
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
 
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     runtimeOnly 'org.postgresql:postgresql'
@@ -74,16 +87,23 @@ dependencies {
 
     implementation 'com.vladmihalcea:hibernate-types-60:2.21.1'
 
+    implementation 'com.google.guava:guava:32.1.3-jre'
+
+    // MapStruct
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+
+
+
+    implementation 'net.sourceforge.tess4j:tess4j:5.11.0'
+
     implementation 'software.amazon.awssdk:s3:2.31.7'
     testImplementation 'org.testcontainers:localstack'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     runtimeOnly 'com.h2database:h2'
 
-    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-    annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
-    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
-    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
 
     testImplementation 'org.mockito:mockito-core:5.11.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
@@ -92,8 +112,24 @@ dependencies {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        def include = System.getProperty('includeTags')
+        def exclude = System.getProperty('excludeTags')
+        if (include) {
+            includeTags include.split(',')
+        }
+        if (exclude) {
+            excludeTags exclude.split(',')
+        } else {
+            // 기본적으로 e2e 태그 제외
+            excludeTags 'e2e'
+        }
+    }
     finalizedBy jacocoTestReport
+    testLogging {
+        outputs.upToDateWhen {false}
+        showStandardStreams = true
+    }
 }
 
 jacocoTestReport {
@@ -104,17 +140,4 @@ jacocoTestReport {
     }
 }
 
-// QueryDSL configuration
-def generated = 'src/main/generated'
 
-tasks.withType(JavaCompile).configureEach {
-    options.getGeneratedSourceOutputDirectory().set(file(generated))
-}
-
-sourceSets {
-    main.java.srcDirs += [generated]
-}
-
-clean {
-    delete file(generated)
-}
