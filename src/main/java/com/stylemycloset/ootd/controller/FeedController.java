@@ -62,6 +62,7 @@ public class FeedController {
   @DeleteMapping("/{feedId}/like")
   public ResponseEntity<Void> unlikeFeed(@PathVariable Long feedId, Authentication authentication) {
     // TODO: 유저 디테일 구현 후 유저 아이디로 대체
+    // Spring Security 에서 username 으로 이메일을 사용하므로, authentication.getName()은 사용자의 이메일을 반환합니다.
     User user = userRepository.findByEmail(authentication.getName())
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     feedService.toggleLike(user.getId(), feedId);
