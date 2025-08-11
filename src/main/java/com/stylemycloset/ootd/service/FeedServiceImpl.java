@@ -244,4 +244,20 @@ public class FeedServiceImpl implements FeedService {
 
     return mapToFeedResponse(feed, currentUser);
   }
+
+  @Override
+  @Transactional
+  public void deleteFeed(Long currentUserId, Long feedId) {
+    // 삭제할 피드를 조회
+    Feed feed = feedRepository.findById(feedId)
+        .orElseThrow(() -> new StyleMyClosetException(ErrorCode.FEED_NOT_FOUND,
+            Map.of("feedId", feedId)));
+
+    // 권환 확인
+    if (!feed.getAuthor().getId().equals(currentUserId)) {
+      throw new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("reason", "삭제 권한이 없습니다."));
+    }
+
+    feedRepository.delete(feed);
+  }
 }

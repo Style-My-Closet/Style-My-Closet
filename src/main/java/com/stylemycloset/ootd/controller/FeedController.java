@@ -69,8 +69,19 @@ public class FeedController {
     return ResponseEntity.noContent().build();
   }
 
+  @DeleteMapping("/{feedId}")
+  public ResponseEntity<Void> deleteFeed(@PathVariable Long feedId, Authentication authentication) {
+    User user = userRepository.findByEmail(authentication.getName())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+    feedService.deleteFeed(user.getId(), feedId);
+
+    return ResponseEntity.noContent().build();
+  }
+
   @PatchMapping("/{feedId}")
-  public ResponseEntity<FeedDto> updateFeed(@PathVariable Long feedId, @Valid @RequestBody FeedUpdateRequest request, Authentication authentication) {
+  public ResponseEntity<FeedDto> updateFeed(@PathVariable Long feedId,
+      @Valid @RequestBody FeedUpdateRequest request, Authentication authentication) {
     User user = userRepository.findByEmail(authentication.getName())
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
