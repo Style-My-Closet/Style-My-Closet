@@ -67,7 +67,7 @@ public class ClothAttributeChangedNotificationEventListenerIntegrationTest exten
 
     AtomicLong idGenerator = new AtomicLong();
 
-    given(userRepository.findByLockedFalseAndDeleteAtIsNull()).willReturn(users);
+        given(userRepository.findByLockedFalse()).willReturn(users);
     given(notificationRepository.saveAll(anyList()))
         .willAnswer(invocation -> {
           List<Notification> notifications = invocation.getArgument(0);
