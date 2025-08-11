@@ -32,4 +32,8 @@ public class SseRepository {
             entry -> Collections.unmodifiableList(entry.getValue())
         ));
   }
+
+  public CopyOnWriteArrayList<SseEmitter> findByUserId(Long userId) {
+    return userEmitters.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>());
+  }
 }
