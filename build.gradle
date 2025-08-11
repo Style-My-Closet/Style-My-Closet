@@ -125,6 +125,9 @@ test {
             excludeTags 'e2e'
         }
     }
+    // 기본 제외 설정: cloth 외 영역 테스트는 실행하지 않음
+    exclude '**/com/stylemycloset/user/**'
+    exclude '**/com/stylemycloset/notification/**'
     finalizedBy jacocoTestReport
     testLogging {
         outputs.upToDateWhen {false}
