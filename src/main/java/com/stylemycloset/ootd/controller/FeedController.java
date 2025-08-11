@@ -2,14 +2,20 @@ package com.stylemycloset.ootd.controller;
 
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
+import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
 import com.stylemycloset.ootd.service.FeedService;
+import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -26,5 +32,18 @@ public class FeedController {
     FeedDto responseDto = feedService.createFeed(request);
 
     return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+  }
+
+  @GetMapping
+  public ResponseEntity<FeedDtoCursorResponse> getFeeds(
+      @RequestParam(required = false) Long cursorId,
+      @PageableDefault(size = 10) Pageable pageable,
+      @RequestParam(required = false) String keywordLike,
+      @RequestParam(required = false) SkyStatus skyStatusEqual,
+      @RequestParam(required = false) Long authorIdEqual
+
+  ) {
+    FeedDtoCursorResponse response = feedService.getFeeds(cursorId, keywordLike, skyStatusEqual, authorIdEqual, pageable);
+    return ResponseEntity.ok(response);
   }
 }

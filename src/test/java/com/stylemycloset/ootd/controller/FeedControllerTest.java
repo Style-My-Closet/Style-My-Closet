@@ -1,6 +1,7 @@
 package com.stylemycloset.ootd.controller;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -15,6 +16,8 @@ import com.stylemycloset.cloth.repository.ClosetRepository;
 import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.cloth.repository.ClothingCategoryRepository;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
+import com.stylemycloset.ootd.entity.Feed;
+import com.stylemycloset.ootd.repo.FeedRepository;
 import com.stylemycloset.testutil.IntegrationTestSupport;
 import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.entity.User;
@@ -53,6 +56,8 @@ public class FeedControllerTest extends IntegrationTestSupport {
   private User testUser;
   private Cloth testCloth1;
   private Cloth testCloth2;
+  @Autowired
+  private FeedRepository feedRepository;
 
   @BeforeEach
   void setUp() {
@@ -96,5 +101,21 @@ public class FeedControllerTest extends IntegrationTestSupport {
         .andExpect(jsonPath("$.content").value("통합 테스트 피드 내용"))
         .andExpect(jsonPath("$.author.userId").value(testUser.getId()))
         .andExpect(jsonPath("$.ootds.length()").value(2));
+  }
+
+  @Test
+  @DisplayName("피드 목록을 조회하면 200OK 상태와 함께 페이지된 피드 목록을 반환한다")
+  @WithMockUser
+  void getFeeds_Returns200AndPagedFeeds() throws Exception {
+    for (int i = 0; i < 11; i++) {
+      feedRepository.save(Feed.createFeed(testUser, null, "테스트 피드 " + i));
+    }
+
+    mockMvc.perform(get("/api/feeds")
+            .param("size", "10"))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.length()").value(10))
+        .andExpect(jsonPath("$.hasNext").value(true));
   }
 }
