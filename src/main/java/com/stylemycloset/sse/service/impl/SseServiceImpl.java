@@ -45,7 +45,7 @@ public class SseServiceImpl implements SseService {
     if(emitters.size() >= MAX_EMITTER_COUNT) {
       SseEmitter removed = emitters.removeFirst();
       removed.complete();
-      log.info("최대 emitter 수를 초과하여 오래된 emitter 제거됨 : userId={}, size={}", userId, emitters.size());
+      log.info("최대 emitter 수를 초과하여 오래된 emitter 제거됨 : id={}, size={}", userId, emitters.size());
     }
     emitters.add(emitter);
     sseRepository.save(userId, emitter);
@@ -106,7 +106,7 @@ public class SseServiceImpl implements SseService {
     Long receiverId = notificationDto.receiverId();
     List<SseEmitter> sseEmitters = sseRepository.findByUserId(receiverId);
     if(sseEmitters.isEmpty()) {
-      log.info("SSE 연결이 없어 알림 전송 실패 : userId={}, notificationId={}",
+      log.info("SSE 연결이 없어 알림 전송 실패 : id={}, notificationId={}",
           receiverId, notificationDto.id());
       return;
     }

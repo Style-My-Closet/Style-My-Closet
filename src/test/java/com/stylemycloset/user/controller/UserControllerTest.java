@@ -91,7 +91,7 @@ public class UserControllerTest extends IntegrationTestSupport {
     String jsonRequest = objectMapper.writeValueAsString(request);
 
     // when & then
-    mockMvc.perform(patch("/api/users/{userId}/role", user.getId())
+    mockMvc.perform(patch("/api/users/{id}/role", user.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonRequest))
         .andDo(print())
@@ -109,7 +109,7 @@ public class UserControllerTest extends IntegrationTestSupport {
     String jsonRequest = objectMapper.writeValueAsString(request);
 
     //when & then
-    mockMvc.perform(patch("/api/users/{userId}/password", user.getId())
+    mockMvc.perform(patch("/api/users/{id}/password", user.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonRequest))
         .andDo(print())
@@ -126,7 +126,7 @@ public class UserControllerTest extends IntegrationTestSupport {
     String jsonRequest = objectMapper.writeValueAsString(request);
 
     // when & then
-    mockMvc.perform(patch("/api/users/{userId}/lock", user.getId())
+    mockMvc.perform(patch("/api/users/{id}/lock", user.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonRequest))
         .andDo(print())
@@ -144,7 +144,7 @@ public class UserControllerTest extends IntegrationTestSupport {
         new User(userRequest1));
 
     // when & then
-    mockMvc.perform(delete("/api/users/{userId}", user.getId()))
+    mockMvc.perform(delete("/api/users/{id}", user.getId()))
         .andDo(print())
         .andExpect(status().isNoContent());
 
@@ -166,7 +166,7 @@ public class UserControllerTest extends IntegrationTestSupport {
     String jsonRequest = objectMapper.writeValueAsString(request);
 
     // when & then
-    mockMvc.perform(patch("/api/users/{userId}/profiles", user.getId(), null)
+    mockMvc.perform(patch("/api/users/{id}/profiles", user.getId(), null)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonRequest))
         .andDo(print())

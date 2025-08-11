@@ -41,7 +41,7 @@ public class FeedServiceImpl implements FeedService {
   public FeedDto createFeed(FeedCreateRequest request) {
     User author = userRepository.findById(request.authorId())
         .orElseThrow(() -> new StyleMyClosetException(ErrorCode.USER_NOT_FOUND,
-            Map.of("userId", request.authorId())));
+            Map.of("id", request.authorId())));
 
     Weather weather = findWeatherOrNull(request.weatherId());
 

@@ -62,7 +62,7 @@ class FollowControllerTest extends ControllerTestSupport {
   }
 
   @Test
-  @DisplayName("요약 조회: userId 누락이면 400")
+  @DisplayName("요약 조회: id 누락이면 400")
   void summary_missingUserId_returns400() {
     // given & when
     MvcTestResult result = mvc.get()
@@ -74,7 +74,7 @@ class FollowControllerTest extends ControllerTestSupport {
   }
 
   @Test
-  @DisplayName("요약 조회: userId 정상 전달이면 200")
+  @DisplayName("요약 조회: id 정상 전달이면 200")
   void summary_valid_returns200() {
     // given
     BDDMockito.given(followService.getFollowSummary(any(), any()))
@@ -83,7 +83,7 @@ class FollowControllerTest extends ControllerTestSupport {
     // when
     MvcTestResult result = mvc.get()
         .uri("/api/follows/summary")
-        .param("userId", String.valueOf(1L))
+        .param("id", String.valueOf(1L))
         .exchange();
 
     // then
