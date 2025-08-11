@@ -1,6 +1,8 @@
 package com.stylemycloset.ootd.controller;
 
+import com.stylemycloset.ootd.dto.CommentCreateRequest;
 import com.stylemycloset.ootd.dto.CommentCursorResponse;
+import com.stylemycloset.ootd.dto.CommentDto;
 import com.stylemycloset.ootd.dto.CommentSearchRequest;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
@@ -78,6 +80,24 @@ public class FeedController {
   ) {
     CommentCursorResponse response = feedService.getComments(feedId, request);
     return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/{feedId}/comments")
+  public ResponseEntity<CommentDto> createComment(
+      @PathVariable Long feedId,
+      @Valid @RequestBody CommentCreateRequest request,
+      Authentication authentication
+  ) {
+    if (!feedId.equals(request.feedId())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid feedId");
+    }
+
+    User user = userRepository.findByEmail(authentication.getName())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+    CommentDto createdCommentDto = feedService.createComment(request, user.getId());
+
+    return ResponseEntity.status(HttpStatus.CREATED).body(createdCommentDto);
   }
 
   @DeleteMapping("/{feedId}")
