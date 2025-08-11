@@ -82,6 +82,15 @@ public class Cloth extends SoftDeletableEntity {
     }
   }
 
+  // 양방향 연관관계 편의 메서드
+  public void setCloset(Closet closet) {
+    this.closet = closet;
+  }
+
+  public void setCategory(ClothingCategory category) {
+    this.category = category;
+  }
+
   
 
   // Soft delete 수행

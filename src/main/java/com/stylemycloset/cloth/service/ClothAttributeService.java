@@ -3,7 +3,7 @@ package com.stylemycloset.cloth.service;
 import com.stylemycloset.cloth.dto.ClothesAttributeDefCreateRequest;
 import com.stylemycloset.cloth.dto.ClothesAttributeDefDto;
 import com.stylemycloset.cloth.dto.CursorDto;
-import com.stylemycloset.cloth.dto.response.AttributeListResponseDto;
+import com.stylemycloset.cloth.dto.response.PaginatedResponse;
 import com.stylemycloset.cloth.dto.response.AttributeResponseDto;
 import com.stylemycloset.cloth.dto.SortDirection;
 import com.stylemycloset.cloth.entity.ClothingAttribute;
@@ -41,10 +41,10 @@ public class ClothAttributeService {
 
 
     @Transactional(readOnly = true)
-    public AttributeListResponseDto findAttributes(CursorDto cursorDto) {
+    public PaginatedResponse<ClothesAttributeDefDto> findAttributes(CursorDto cursorDto) {
         if (clothListCacheService.isFirstPage(cursorDto) && clothListCacheService.isNoKeywordSearch(cursorDto)) {
             return clothListCacheService.getAttributeListFirstPage(
-                    () -> computeAttributeListResponse(cursorDto)
+                () -> computeAttributeListResponse(cursorDto)
             );
         }
         
@@ -52,7 +52,7 @@ public class ClothAttributeService {
     }
     
 
-    private AttributeListResponseDto computeAttributeListResponse(CursorDto cursorDto) {
+    private PaginatedResponse<ClothesAttributeDefDto> computeAttributeListResponse(CursorDto cursorDto) {
         String keywordLike = cursorDto.keywordLike();
         Long cursor = cursorDto.cursor();
         int size = cursorDto.limit();
@@ -73,15 +73,15 @@ public class ClothAttributeService {
         String nextCursor = hasNext && !attributes.isEmpty() ?
                 attributes.getLast().getId().toString() : null;
 
-        return AttributeListResponseDto.builder()
-                .data(data)
-                .nextCursor(nextCursor)
-                .nextIdAfter(nextCursor)
-                .hasNext(hasNext)
-                .totalCount(totalCount)
-                .sortBy(sortBy)
-                .sortDirection(sortDirection != null ? SortDirection.fromString(sortDirection) : SortDirection.ASCENDING)
-                .build();
+        return PaginatedResponse.of(
+                data,
+                nextCursor,
+                nextCursor,
+                hasNext,
+                totalCount,
+                sortBy,
+                sortDirection != null ? SortDirection.fromString(sortDirection) : SortDirection.ASCENDING
+        );
     }
 
     @Transactional
@@ -236,7 +236,7 @@ public class ClothAttributeService {
     private AttributeResponseDto saveAndEvictAfterCommit(ClothingAttribute attribute) {
         ClothingAttribute savedAttribute = clothingAttributeRepository.save(attribute);
         evictAttributeListCacheAfterCommit();
-        return AttributeResponseDto.from(savedAttribute);
+        return attributeResponseMapper.toDto(savedAttribute);
     }
 
     private java.util.List<String> normalizeValues(java.util.List<String> rawValues) {

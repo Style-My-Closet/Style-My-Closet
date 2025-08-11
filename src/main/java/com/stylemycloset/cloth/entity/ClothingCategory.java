@@ -33,8 +33,13 @@ public class ClothingCategory extends SoftDeletableEntity {
   }
 
   public void addCloth(Cloth cloth) {
-    if (cloth != null && !this.clothes.contains(cloth)) {
+    if (cloth == null) return;
+    if (!this.clothes.contains(cloth)) {
       this.clothes.add(cloth);
+    }
+    // 소유자(Cloth) 측 동기화
+    if (cloth.getCategory() != this) {
+      cloth.setCategory(this);
     }
   }
 

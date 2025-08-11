@@ -3,7 +3,7 @@ package com.stylemycloset.cloth.service;
 import com.stylemycloset.cloth.dto.CursorDto;
 import com.stylemycloset.cloth.dto.SortDirection;
 import com.stylemycloset.cloth.dto.SortField;
-import com.stylemycloset.cloth.dto.response.AttributeListResponseDto;
+import com.stylemycloset.cloth.dto.response.PaginatedResponse;
 import com.stylemycloset.cloth.dto.response.ClothListResponseDto;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +47,7 @@ public class ClothListCacheService {
 
     // 속성 목록 첫 페이지 캐시
     @Cacheable(value = "attributeListFirstPage", key = "'first:page'", condition = "#root.target.isCachingEnabled()")
-    public AttributeListResponseDto getAttributeListFirstPage(Supplier<AttributeListResponseDto> supplier) {
+    public PaginatedResponse<com.stylemycloset.cloth.dto.ClothesAttributeDefDto> getAttributeListFirstPage(Supplier<PaginatedResponse<com.stylemycloset.cloth.dto.ClothesAttributeDefDto>> supplier) {
         return supplier.get();
     }
 

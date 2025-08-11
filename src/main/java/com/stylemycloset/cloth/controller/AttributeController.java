@@ -2,7 +2,8 @@ package com.stylemycloset.cloth.controller;
 
 import com.stylemycloset.cloth.dto.ClothesAttributeDefCreateRequest;
 import com.stylemycloset.cloth.dto.CursorDto;
-import com.stylemycloset.cloth.dto.response.AttributeListResponseDto;
+import com.stylemycloset.cloth.dto.ClothesAttributeDefDto;
+import com.stylemycloset.cloth.dto.response.PaginatedResponse;
 import com.stylemycloset.cloth.dto.response.AttributeResponseDto;
 import com.stylemycloset.cloth.service.ClothAttributeService;
 import jakarta.validation.Valid;
@@ -20,8 +21,8 @@ public class AttributeController {
     private final ClothAttributeService clothAttributeService;
 
     @GetMapping
-    public ResponseEntity<AttributeListResponseDto> getAttributes(@Valid @ModelAttribute CursorDto cursorDto) {
-        AttributeListResponseDto response = clothAttributeService.findAttributes(cursorDto);
+    public ResponseEntity<PaginatedResponse<ClothesAttributeDefDto>> getAttributes(@Valid @ModelAttribute CursorDto cursorDto) {
+        PaginatedResponse<ClothesAttributeDefDto> response = clothAttributeService.findAttributes(cursorDto);
         return ResponseEntity.ok(response);
     }
 
@@ -59,12 +60,4 @@ public class AttributeController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{attributeId}/options")
-    public ResponseEntity<AttributeResponseDto> removeAttributeOptions(
-            @PathVariable Long attributeId,
-            @RequestBody List<String> optionValues) {
-        
-        AttributeResponseDto response = clothAttributeService.removeAttributeOptions(attributeId, optionValues);
-        return ResponseEntity.ok(response);
-    }
 } 

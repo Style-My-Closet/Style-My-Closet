@@ -2,6 +2,8 @@ package com.stylemycloset.cloth.entity;
 
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import jakarta.persistence.*;
+import jakarta.persistence.Persistence;
+import jakarta.persistence.PersistenceUtil;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -57,13 +59,14 @@ public class ClothingAttributeValue extends SoftDeletableEntity {
   public void softDelete() {
     super.softDelete();
     // 관계된 엔티티들의 메모리상 컬렉션에서 제거
-    if (cloth != null && cloth.getAttributeValues() != null) {
+    PersistenceUtil util = Persistence.getPersistenceUtil();
+    if (cloth != null && util.isLoaded(cloth, "attributeValues")) {
       cloth.getAttributeValues().remove(this);
     }
-    if (attribute != null && attribute.getAttributeValues() != null) {
+    if (attribute != null && util.isLoaded(attribute, "attributeValues")) {
       attribute.getAttributeValues().remove(this);
     }
-    if (option != null && option.getAttributeValues() != null) {
+    if (option != null && util.isLoaded(option, "attributeValues")) {
       option.getAttributeValues().remove(this);
     }
   }

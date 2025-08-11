@@ -31,8 +31,19 @@ public class Closet extends SoftDeletableEntity {
 
 
   public void addCloth(Cloth cloth) {
-    if (cloth != null && !this.clothes.contains(cloth)) {
+    if (cloth == null) return;
+    if (!this.clothes.contains(cloth)) {
       this.clothes.add(cloth);
+    }
+    if (cloth.getCloset() != this) {
+      cloth.setCloset(this);
+    }
+  }
+
+  public void removeCloth(Cloth cloth) {
+    if (cloth == null) return;
+    if (this.clothes.remove(cloth) && cloth.getCloset() == this) {
+      cloth.setCloset(null);
     }
   }
 
