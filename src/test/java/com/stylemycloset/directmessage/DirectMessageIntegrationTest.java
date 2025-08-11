@@ -80,19 +80,17 @@ class DirectMessageIntegrationTest extends IntegrationTestSupport {
 
     // then
     await()
-        .atMost(Duration.ofSeconds(15))
-        .untilAsserted(() -> Assertions.assertThat(messageMailbox.poll())
-            .extracting(
-                directMessageResult -> directMessageResult.sender().id(),
-                directMessageResult -> directMessageResult.receiver().id(),
-                DirectMessageResult::content
-            )
-            .containsExactly(
-                sender.getId(),
-                receiver.getId(),
-                content
-            )
-        );
+        .atMost(Duration.ofSeconds(10))
+        .until(() -> !messageMailbox.isEmpty());
+
+    DirectMessageResult received = messageMailbox.poll();
+    Assertions.assertThat(received)
+        .extracting(
+            result -> result.sender().id(),
+            result -> result.receiver().id(),
+            DirectMessageResult::content
+        )
+        .containsExactly(sender.getId(), receiver.getId(), content);
   }
 
   private BlockingQueue<DirectMessageResult> getDirectMessageResults(
