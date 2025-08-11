@@ -3,7 +3,7 @@ package com.stylemycloset.cloth.service;
 import com.stylemycloset.cloth.dto.ClothesAttributeDefCreateRequest;
 import com.stylemycloset.cloth.dto.ClothesAttributeDefDto;
 import com.stylemycloset.cloth.dto.CursorDto;
-import com.stylemycloset.cloth.dto.response.AttributeListResponseDto;
+import com.stylemycloset.cloth.dto.response.PaginatedResponse;
 import com.stylemycloset.cloth.dto.response.AttributeResponseDto;
 import com.stylemycloset.cloth.entity.ClothingAttribute;
 import com.stylemycloset.cloth.exception.ClothesException;
@@ -80,7 +80,7 @@ class ClothAttributeServiceIntegrationTest extends IntegrationTestSupport {
         entityManager.createNativeQuery("TRUNCATE TABLE closets RESTART IDENTITY CASCADE").executeUpdate();
         entityManager.createNativeQuery("TRUNCATE TABLE locations RESTART IDENTITY CASCADE").executeUpdate();
         entityManager.createNativeQuery("TRUNCATE TABLE users RESTART IDENTITY CASCADE").executeUpdate();
-        // 비동기 리스너 영향으로 데드락을 유발할 수 있어 TRUNCATE 대신 DELETE + 시퀀스 리셋 사용
+
         entityManager.createNativeQuery("DELETE FROM notifications").executeUpdate();
         entityManager.createNativeQuery("ALTER SEQUENCE notifications_id_seq RESTART WITH 1").executeUpdate();
         entityManager.createNativeQuery("DELETE FROM messages").executeUpdate();
@@ -122,12 +122,12 @@ class ClothAttributeServiceIntegrationTest extends IntegrationTestSupport {
 
             // when & then: 2. 속성 목록 조회 (전체)
             CursorDto allCursor = CursorDto.ofDefault(10);
-            AttributeListResponseDto allAttributes = clothAttributeService.findAttributes(allCursor);
+            PaginatedResponse<ClothesAttributeDefDto> allAttributes = clothAttributeService.findAttributes(allCursor);
 
             allAttributes.getData().forEach(attr -> System.out.println(attr.id() + " / " + attr.name()));
 
             assertTrue(allAttributes.getData().size() >= 3); // 기존 2개 + 새로 생성한 1개
-            assertTrue(allAttributes.getTotalCount() >= 3L);
+            assertTrue(allAttributes.getPagination().getTotalCount() >= 3L);
 
             boolean foundCreatedAttribute = allAttributes.getData().stream()
                     .anyMatch(attr -> "재질".equals(attr.name()));
@@ -135,7 +135,7 @@ class ClothAttributeServiceIntegrationTest extends IntegrationTestSupport {
 
             // when & then: 3. 키워드로 속성 검색
             CursorDto searchCursor = CursorDto.ofSearch("재질", 10);
-            AttributeListResponseDto searchResult = clothAttributeService.findAttributes(searchCursor);
+            PaginatedResponse<ClothesAttributeDefDto> searchResult = clothAttributeService.findAttributes(searchCursor);
 
             assertEquals(1, searchResult.getData().size());
             assertEquals("재질", searchResult.getData().get(0).name());
@@ -185,7 +185,7 @@ class ClothAttributeServiceIntegrationTest extends IntegrationTestSupport {
 
             // 삭제 확인
             CursorDto finalCursor = CursorDto.ofDefault(10);
-            AttributeListResponseDto finalAttributes = clothAttributeService.findAttributes(finalCursor);
+            PaginatedResponse<ClothesAttributeDefDto> finalAttributes = clothAttributeService.findAttributes(finalCursor);
 
             boolean foundDeletedAttribute = finalAttributes.getData().stream()
                     .anyMatch(attr -> "소재".equals(attr.name()));
@@ -231,13 +231,13 @@ class ClothAttributeServiceIntegrationTest extends IntegrationTestSupport {
 
             // when: 1. 캐시 미스 상황에서 DB 조회
             CursorDto cursor = CursorDto.ofDefault(10);
-            AttributeListResponseDto firstResult = clothAttributeService.findAttributes(cursor);
+            PaginatedResponse<ClothesAttributeDefDto> firstResult = clothAttributeService.findAttributes(cursor);
 
             // when: 2. 캐시 히트 상황에서 캐시 조회
-            AttributeListResponseDto secondResult = clothAttributeService.findAttributes(cursor);
+            PaginatedResponse<ClothesAttributeDefDto> secondResult = clothAttributeService.findAttributes(cursor);
 
             // then: 결과가 동일해야 함
-            assertEquals(firstResult.getTotalCount(), secondResult.getTotalCount());
+            assertEquals(firstResult.getPagination().getTotalCount(), secondResult.getPagination().getTotalCount());
             assertEquals(firstResult.getData().size(), secondResult.getData().size());
 
             // 캐시에서 조회된 데이터의 내용도 일치해야 함
@@ -256,7 +256,7 @@ class ClothAttributeServiceIntegrationTest extends IntegrationTestSupport {
         void cacheEvictionOnCreate_Integration() {
             // given: 초기 상태에서 캐시 로드
             CursorDto cursor = CursorDto.ofDefault(10);
-            AttributeListResponseDto initialResult = clothAttributeService.findAttributes(cursor);
+            PaginatedResponse<ClothesAttributeDefDto> initialResult = clothAttributeService.findAttributes(cursor);
 
             // when: 새로운 속성 생성 (캐시 무효화 트리거)
             ClothesAttributeDefCreateRequest createRequest = new ClothesAttributeDefCreateRequest(
@@ -268,21 +268,21 @@ class ClothAttributeServiceIntegrationTest extends IntegrationTestSupport {
             entityManager.clear();
 
             // then: 캐시가 무효화되어 새로운 데이터가 조회되어야 함 (after-commit 타이밍 보정: 재시도 루프)
-            AttributeListResponseDto updatedResult = null;
+            PaginatedResponse<ClothesAttributeDefDto> updatedResult = null;
             long deadline = System.currentTimeMillis() + 2000; // 최대 2초 대기
             do {
                 updatedResult = clothAttributeService.findAttributes(cursor);
-                if (updatedResult.getTotalCount() > initialResult.getTotalCount()) break;
+                if (updatedResult.getPagination().getTotalCount() > initialResult.getPagination().getTotalCount()) break;
                 try { Thread.sleep(50); } catch (InterruptedException ignored) {}
             } while (System.currentTimeMillis() < deadline);
 
-            System.out.println("initial: " + initialResult.getTotalCount());
-            System.out.println("updated: " + updatedResult.getTotalCount());
-            if (initialResult.getTotalCount() == 0) {
-                assertTrue(updatedResult.getTotalCount() >= 1 || !updatedResult.getData().isEmpty(),
+            System.out.println("initial: " + initialResult.getPagination().getTotalCount());
+            System.out.println("updated: " + updatedResult.getPagination().getTotalCount());
+            if (initialResult.getPagination().getTotalCount() == 0) {
+                assertTrue(updatedResult.getPagination().getTotalCount() >= 1 || !updatedResult.getData().isEmpty(),
                         "새로운 속성이 추가되어 최소 1개 이상이어야 함");
             } else {
-                assertTrue(updatedResult.getTotalCount() > initialResult.getTotalCount(),
+                assertTrue(updatedResult.getPagination().getTotalCount() > initialResult.getPagination().getTotalCount(),
                         "새로운 속성이 추가되어 총 개수가 증가해야 함");
             }
         }
@@ -305,20 +305,20 @@ class ClothAttributeServiceIntegrationTest extends IntegrationTestSupport {
 
             // when & then: 첫 번째 페이지 조회 (5개씩)
             CursorDto firstPageCursor = CursorDto.ofDefault(5);
-            AttributeListResponseDto firstPage = clothAttributeService.findAttributes(firstPageCursor);
+            PaginatedResponse<ClothesAttributeDefDto> firstPage = clothAttributeService.findAttributes(firstPageCursor);
 
             assertEquals(5, firstPage.getData().size());
-            assertTrue(firstPage.isHasNext());
-            assertNotNull(firstPage.getNextCursor());
-            assertTrue(firstPage.getTotalCount() >= 15L);
+            assertTrue(firstPage.getPagination().isHasNext());
+            assertNotNull(firstPage.getPagination().getNextCursor());
+            assertTrue(firstPage.getPagination().getTotalCount() >= 15L);
 
             // when & then: 두 번째 페이지 조회
             CursorDto secondPageCursor = CursorDto.ofPagination(
-                    Long.valueOf(firstPage.getNextCursor()), 5);
-            AttributeListResponseDto secondPage = clothAttributeService.findAttributes(secondPageCursor);
+                    Long.valueOf(firstPage.getPagination().getNextCursor()), 5);
+            PaginatedResponse<ClothesAttributeDefDto> secondPage = clothAttributeService.findAttributes(secondPageCursor);
 
             assertEquals(5, secondPage.getData().size());
-            assertTrue(secondPage.isHasNext());
+            assertTrue(secondPage.getPagination().isHasNext());
 
             // 첫 번째와 두 번째 페이지의 데이터가 다른지 확인
             List<Long> firstPageIds = firstPage.getData().stream()
@@ -333,8 +333,8 @@ class ClothAttributeServiceIntegrationTest extends IntegrationTestSupport {
 
             // when & then: 세 번째 페이지 조회
             CursorDto thirdPageCursor = CursorDto.ofPagination(
-                    secondPage.getNextCursor() != null ? Long.valueOf(secondPage.getNextCursor()) : null, 5);
-            AttributeListResponseDto thirdPage = clothAttributeService.findAttributes(thirdPageCursor);
+                    secondPage.getPagination().getNextCursor() != null ? Long.valueOf(secondPage.getPagination().getNextCursor()) : null, 5);
+            PaginatedResponse<ClothesAttributeDefDto> thirdPage = clothAttributeService.findAttributes(thirdPageCursor);
 
             assertFalse(thirdPage.getData().isEmpty());
             assertTrue(thirdPage.getData().size() <= 5);
@@ -353,12 +353,12 @@ class ClothAttributeServiceIntegrationTest extends IntegrationTestSupport {
 
             // when: 5개씩 조회 (한 페이지에 모든 데이터가 포함됨)
             CursorDto cursor = CursorDto.ofDefault(5);
-            AttributeListResponseDto result = clothAttributeService.findAttributes(cursor);
+            PaginatedResponse<ClothesAttributeDefDto> result = clothAttributeService.findAttributes(cursor);
 
             // then
             assertEquals(3, result.getData().size());
-            assertFalse(result.isHasNext(), "마지막 페이지에서는 hasNext가 false여야 함");
-            assertNull(result.getNextCursor(), "마지막 페이지에서는 nextCursor가 null이어야 함");
+            assertFalse(result.getPagination().isHasNext(), "마지막 페이지에서는 hasNext가 false여야 함");
+            assertNull(result.getPagination().getNextCursor(), "마지막 페이지에서는 nextCursor가 null이어야 함");
         }
     }
 
@@ -384,7 +384,7 @@ class ClothAttributeServiceIntegrationTest extends IntegrationTestSupport {
 
             // when: "색상" 키워드로 검색
             CursorDto searchCursor = CursorDto.ofSearch("색상", 10);
-            AttributeListResponseDto searchResult = clothAttributeService.findAttributes(searchCursor);
+            PaginatedResponse<ClothesAttributeDefDto> searchResult = clothAttributeService.findAttributes(searchCursor);
 
             // then: "색상"과 "색상상"이 검색되어야 함
             assertEquals(2, searchResult.getData().size());
@@ -403,12 +403,12 @@ class ClothAttributeServiceIntegrationTest extends IntegrationTestSupport {
 
             // when: 존재하지 않는 키워드로 검색
             CursorDto searchCursor = CursorDto.ofSearch("존재하지않는키워드", 10);
-            AttributeListResponseDto searchResult = clothAttributeService.findAttributes(searchCursor);
+            PaginatedResponse<ClothesAttributeDefDto> searchResult = clothAttributeService.findAttributes(searchCursor);
 
             // then
             assertEquals(0, searchResult.getData().size());
-            assertEquals(0L, searchResult.getTotalCount());
-            assertFalse(searchResult.isHasNext());
+            assertEquals(0L, searchResult.getPagination().getTotalCount());
+            assertFalse(searchResult.getPagination().isHasNext());
         }
     }
 
@@ -575,13 +575,13 @@ class ClothAttributeServiceIntegrationTest extends IntegrationTestSupport {
             // when: 전체 조회
             long startTime = System.currentTimeMillis();
             CursorDto cursor = CursorDto.ofDefault(50);
-            AttributeListResponseDto result = clothAttributeService.findAttributes(cursor);
+            PaginatedResponse<ClothesAttributeDefDto> result = clothAttributeService.findAttributes(cursor);
             long endTime = System.currentTimeMillis();
 
             // then: 성능 확인 (임의의 임계값, 실제 환경에 맞게 조정 필요)
             assertTrue(endTime - startTime < 5000, "조회 시간이 5초를 초과하지 않아야 함");
             assertEquals(50, result.getData().size());
-            assertTrue(result.getTotalCount() >= 100L);
+            assertTrue(result.getPagination().getTotalCount() >= 100L);
         }
     }
 }
