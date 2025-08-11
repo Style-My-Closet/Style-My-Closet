@@ -13,7 +13,7 @@ import java.util.Map;
 public class ErrorResponse {
     private String exceptionName;
     private String message;
-    private Map<String, String> details;
+    private Map<String, Object> details;
 
 
 }

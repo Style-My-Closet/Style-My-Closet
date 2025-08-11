@@ -14,7 +14,9 @@ public enum ClothingErrorCode {
     CATEGORY_NOT_FOUND("CATEGORY_001", "해당 카테고리를 찾을 수 없습니다."),
     UNAUTHORIZED_ACCESS("AUTH_001", "권한이 없습니다."),
     INTERNAL_ERROR("SYS_001", "서버 내부 오류가 발생했습니다."),
-    CLOTH_UPDATE_FAILED("CLOTH_003", "옷 업데이트에 실패했습니다.");
+    CLOTH_UPDATE_FAILED("CLOTH_003", "옷 업데이트에 실패했습니다."),
+    IMAGE_UPLOAD_FAILED("IMAGE_001", "이미지 업로드에 실패했습니다."),
+    INVALID_CATEGORY("CATEGORY_002", "유효하지 않은 카테고리입니다.");
     private final String code;
     private final String message;
 
