@@ -4,7 +4,6 @@ import com.stylemycloset.binarycontent.BinaryContent;
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Where;
@@ -40,10 +39,10 @@ public class Cloth extends SoftDeletableEntity {
   private ClothingCategory category;
 
   @OneToMany(mappedBy = "cloth", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @Where(clause = "deleted_at IS NULL")
   private List<ClothingAttributeValue> attributeValues = new ArrayList<>();
 
-  @Builder
-  public Cloth(String name, Closet closet, ClothingCategory category, BinaryContent binaryContent) {
+  private Cloth(String name, Closet closet, ClothingCategory category, BinaryContent binaryContent) {
     this.name = name;
     this.closet = closet;
     this.category = category;
@@ -51,16 +50,14 @@ public class Cloth extends SoftDeletableEntity {
   }
 
   public static Cloth createCloth(String name, Closet closet, ClothingCategory category, BinaryContent binaryContent) {
-    Cloth cloth = Cloth.builder()
-            .name(name)
-            .closet(closet)
-            .category(category)
-            .binaryContent(binaryContent)
-            .build();
+    Cloth cloth = new Cloth(name, closet, category, binaryContent);
     
     // 양방향 관계 자동 동기화
     if (closet != null) {
-      closet.getClothes().add(cloth);
+      closet.addCloth(cloth);
+    }
+    if (category != null) {
+      category.addCloth(cloth);
     }
     
     return cloth;
@@ -71,26 +68,34 @@ public class Cloth extends SoftDeletableEntity {
     ClothingAttributeValue.createValue(this, attribute, option);
   }
   
-  // 속성값 제거
-  public void removeAttributeValue(ClothingAttribute attribute) {
-    this.attributeValues.removeIf(value -> value.getAttribute().equals(attribute));
-  }
+
 
   public void updateName(String name) {
-    if (name != null && !name.trim().isEmpty()) {
-      this.name = name;
-    }
+    if (name == null || name.isBlank()) return;
+    this.name = name;
   }
 
-  public void updateCategory(ClothingCategory category) {
-    if (category != null) {
-      this.category = category;
-    }
-  }
 
   public void updateBinaryContent(BinaryContent binaryContent) {
     if (binaryContent != null) {
       this.binaryContent = binaryContent;
     }
   }
+
+  
+
+  // Soft delete 수행
+  public void softDeleteWithCleanup() {
+    this.softDelete();
+    this.attributeValues.clear();
+
+    if (closet != null && closet.getClothes() != null) {
+      closet.getClothes().remove(this);
+    }
+    if (category != null && category.getClothes() != null) {
+      category.getClothes().remove(this);
+    }
+  }
+
+  
 }

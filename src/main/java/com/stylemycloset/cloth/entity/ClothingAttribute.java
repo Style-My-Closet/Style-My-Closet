@@ -7,7 +7,9 @@ import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Where;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "clothes_attributes_categories")
@@ -27,69 +29,76 @@ public class ClothingAttribute extends SoftDeletableEntity {
   private String name;
 
   @OneToMany(mappedBy = "attribute", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-  @BatchSize(size = 10) // N+1 문제 해결: 한 번에 10개씩 배치로 로딩
+  @Where(clause = "deleted_at IS NULL")
+  @BatchSize(size = 10)
   @Builder.Default
   private List<AttributeOption> options = new ArrayList<>();
 
   @OneToMany(mappedBy = "attribute", fetch = FetchType.LAZY)
+  @Where(clause = "deleted_at IS NULL")
   @Builder.Default
   private List<ClothingAttributeValue> attributeValues = new ArrayList<>();
 
-  // 사용자 정의 생성자 (빌더 패턴에서 사용하지 않음)
+
   public static ClothingAttribute createWithOptions(String name, List<String> selectableValues) {
     ClothingAttribute attribute = ClothingAttribute.builder()
             .name(name)
             .build();
-            
-    selectableValues.forEach(v -> AttributeOption.createOption(attribute, v));
+    // 옵션 생성 시 자동으로 더하도록함
+    if (selectableValues != null) {
+      selectableValues.forEach(v -> {
+        if (v != null && !v.isBlank()) {
+          AttributeOption.createOption(attribute, v);
+        }
+      });
+    }
     return attribute;
   }
 
 
 
-  // 업데이트 메서드 (Soft Delete 방식으로 변경)
-  public void updateAttribute(String name, List<String> selectableValues) {
-    this.name = name;
-    
-    // 현재 활성 옵션들 중 새 목록에 없는 것들은 soft delete
-    List<String> currentActiveValues = getActiveOptions().stream()
-            .map(AttributeOption::getValue)
-            .toList();
-    List<String> removingValues = currentActiveValues.stream()
-            .filter(value -> !selectableValues.contains(value))
-            .toList();
-    
-    if (!removingValues.isEmpty()) {
-      removeOptions(removingValues);
-    }
-    
-    // 새로운 옵션들 중 기존에 없는 것들만 추가
-    List<String> newValues = selectableValues.stream()
-            .filter(value -> !currentActiveValues.contains(value))
-            .toList();
-    
-    if (!newValues.isEmpty()) {
-      addOptions(newValues);
-    }
-  }
+
 
 
   public void updateName(String name) {
     this.name = name;
   }
   
-  // 옵션 추가 (AttributeOption에게 생성 책임 위임)
+  // 옵션 추가
   public void addOptions(List<String> values) {
+    // 이미 존재하는 활성 옵션은 넘어가기
+    Set<String> existingActiveValues = this.getActiveOptions().stream()
+        .map(AttributeOption::getValue)
+        .collect(java.util.stream.Collectors.toSet());
+
     values.forEach(value -> {
-      AttributeOption.createOption(this, value);  // 양방향 동기화 자동 처리됨
+      if (value == null) {
+        return;
+      }
+      if (existingActiveValues.contains(value)) {
+        return;
+      }
+      AttributeOption.createOption(this, value);
+      existingActiveValues.add(value);
     });
   }
+
   
-  // 옵션 제거 (실제 삭제 대신 soft delete 적용)
+
   public void removeOptions(List<String> values) {
-    this.options.stream()
-            .filter(option -> option.hasValueIn(values))
-            .forEach(AttributeOption::softDelete);
+    if (values == null || values.isEmpty()) {
+      return;
+    }
+    Set<String> valueSet = new HashSet<>();
+    for (String v : values) {
+      if (v != null && !v.isBlank()) valueSet.add(v);
+    }
+    if (valueSet.isEmpty()) return;
+
+    List<AttributeOption> copy = new ArrayList<>(this.options);
+    copy.stream()
+        .filter(option -> valueSet.contains(option.getValue()))
+        .forEach(AttributeOption::softDelete);
   }
   
   // 삭제되지 않은 활성 옵션들만 반환
@@ -97,6 +106,23 @@ public class ClothingAttribute extends SoftDeletableEntity {
     return options.stream()
             .filter(option -> !option.isDeleted())
             .toList();
+  }
+
+  // 메모리상 같이 처리
+  public void softDeleteWithCleanup() {
+    this.softDelete();
+    List<AttributeOption> copy = new ArrayList<>(this.options);
+    copy.forEach(AttributeOption::softDelete);
+    this.options.clear();
+    this.attributeValues.clear();
+  }
+
+  
+
+  // 옵션들을 제거하고 메모리상에서도 삭제된 것들을 정리
+  public void removeOptionsWithCleanup(List<String> values) {
+    this.removeOptions(values);
+    this.options.removeIf(AttributeOption::isDeleted);
   }
 
 }

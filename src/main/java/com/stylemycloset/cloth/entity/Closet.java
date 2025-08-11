@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import com.stylemycloset.user.entity.User;
+import org.hibernate.annotations.Where;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,17 +26,15 @@ public class Closet extends SoftDeletableEntity {
   private User user;
 
   @OneToMany(mappedBy = "closet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @Where(clause = "deleted_at IS NULL")
   private List<Cloth> clothes = new ArrayList<>();
 
 
-//  public void addCloth(Cloth cloth) {
-//    this.clothes.add(cloth);
-//  }
-//
-//
-//  public void removeCloth(Cloth cloth) {
-//    this.clothes.remove(cloth);
-//  }
+  public void addCloth(Cloth cloth) {
+    if (cloth != null && !this.clothes.contains(cloth)) {
+      this.clothes.add(cloth);
+    }
+  }
 
   public Closet(User user) {
     this.user = user;

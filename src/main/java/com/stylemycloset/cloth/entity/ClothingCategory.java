@@ -29,8 +29,15 @@ public class ClothingCategory extends SoftDeletableEntity {
   private final List<Cloth> clothes = new ArrayList<>();
 
   public ClothingCategory(ClothingCategoryType name) {
-
     this.name = name;
   }
+
+  public void addCloth(Cloth cloth) {
+    if (cloth != null && !this.clothes.contains(cloth)) {
+      this.clothes.add(cloth);
+    }
+  }
+
+
 
 }

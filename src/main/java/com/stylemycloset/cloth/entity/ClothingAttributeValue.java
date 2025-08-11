@@ -1,6 +1,6 @@
 package com.stylemycloset.cloth.entity;
 
-import com.stylemycloset.common.entity.BaseTimeEntity;
+import com.stylemycloset.common.entity.SoftDeletableEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "clothes_to_attribute_options")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ClothingAttributeValue extends BaseTimeEntity {
+public class ClothingAttributeValue extends SoftDeletableEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "clothes_to_attribute_options_seq_gen")
@@ -37,7 +37,7 @@ public class ClothingAttributeValue extends BaseTimeEntity {
     this.option = option;
   }
   // 동기화 메서드
-  public static ClothingAttributeValue createValue(Cloth cloth, ClothingAttribute attribute, AttributeOption option) {
+  public static void createValue(Cloth cloth, ClothingAttribute attribute, AttributeOption option) {
     ClothingAttributeValue value = ClothingAttributeValue.builder()
             .cloth(cloth)
             .attribute(attribute)
@@ -47,7 +47,24 @@ public class ClothingAttributeValue extends BaseTimeEntity {
     cloth.getAttributeValues().add(value);
     attribute.getAttributeValues().add(value);
     option.getAttributeValues().add(value);
-    
-    return value;
+
+  }
+
+
+
+  // Soft delete 시 관계 정리
+  @Override
+  public void softDelete() {
+    super.softDelete();
+    // 관계된 엔티티들의 메모리상 컬렉션에서 제거
+    if (cloth != null && cloth.getAttributeValues() != null) {
+      cloth.getAttributeValues().remove(this);
+    }
+    if (attribute != null && attribute.getAttributeValues() != null) {
+      attribute.getAttributeValues().remove(this);
+    }
+    if (option != null && option.getAttributeValues() != null) {
+      option.getAttributeValues().remove(this);
+    }
   }
 }

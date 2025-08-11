@@ -3,6 +3,8 @@ package com.stylemycloset.user.entity;
 import com.stylemycloset.common.entity.BaseTimeEntity;
 import com.stylemycloset.location.Location;
 import jakarta.persistence.*;
+import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
+import com.stylemycloset.user.dto.request.UserCreateRequest;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -50,5 +52,38 @@ public class User extends BaseTimeEntity {
         this.role = role;
         this.gender = gender;
         this.locked = false;
+    }
+
+    public User(UserCreateRequest request) {
+        this.name = request.name();
+        this.email = request.email();
+        this.role = Role.USER;
+        this.locked = false;
+    }
+
+    public void updateRole(Role newRole) {
+        if (newRole != null) {
+            this.role = newRole;
+        }
+    }
+
+    public void changePassword(String newPassword) {
+        // 패스워드 컬럼이 아직 없으므로 no-op (확장 시 필드 추가)
+    }
+
+    public void lockUser(boolean locked) {
+        this.locked = locked;
+    }
+
+    public void softDelete() {
+        // Soft delete 정책이 별도 컬럼 없어서 no-op (확장 포인트)
+    }
+
+    public void updateProfile(ProfileUpdateRequest request) {
+        if (request == null) return;
+        if (request.name() != null) this.name = request.name();
+        if (request.gender() != null) this.gender = request.gender();
+        if (request.birthDate() != null) this.birthDate = request.birthDate();
+        if (request.temperatureSensitivity() != null) this.temperatureSensitivity = request.temperatureSensitivity();
     }
 }
