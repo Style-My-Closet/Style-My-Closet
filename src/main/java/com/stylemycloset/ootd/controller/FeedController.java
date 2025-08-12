@@ -110,15 +110,6 @@ public class FeedController {
     return ResponseEntity.noContent().build();
   }
 
-  @GetMapping("/{feedId}/comments")
-  public ResponseEntity<CommentCursorResponse> getComments(
-      @PathVariable Long feedId,
-      @Valid CommentSearchRequest request
-  ) {
-    CommentCursorResponse response = feedService.getComments(feedId, request);
-    return ResponseEntity.ok(response);
-  }
-
   @PatchMapping("/{feedId}")
   public ResponseEntity<FeedDto> updateFeed(@PathVariable Long feedId,
       @Valid @RequestBody FeedUpdateRequest request, Authentication authentication) {
