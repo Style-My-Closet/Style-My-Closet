@@ -1,5 +1,6 @@
 package com.stylemycloset.ootd.entity;
 
+import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.weather.entity.Weather;
@@ -50,6 +51,9 @@ public class Feed extends SoftDeletableEntity {
   @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<FeedClothes> feedClothes = new ArrayList<>();
 
+  @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<FeedLike> feedLikes = new ArrayList<>();
+
   private Feed(User author, Weather weather, String content) {
     this.author = author;
     this.weather = weather;
@@ -58,5 +62,11 @@ public class Feed extends SoftDeletableEntity {
 
   public static Feed createFeed(User author, Weather weather, String content) {
     return new Feed(author, weather, content);
+  }
+
+  public FeedClothes addClothes(Cloth clothes) {
+    FeedClothes feedClothes = FeedClothes.createFeedClothes(this, clothes);
+    this.feedClothes.add(feedClothes);
+    return feedClothes;
   }
 }

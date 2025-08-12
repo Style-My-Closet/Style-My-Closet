@@ -7,6 +7,8 @@ import com.stylemycloset.weather.entity.Weather.SkyStatus;
 public record WeatherSummaryDto(
     Long weatherId,
     SkyStatus skyStatus,
-    Precipitation precipitation,
-    Temperature temperature
-) {}
+    PrecipitationDto precipitation,
+    TemperatureDto temperature
+) {
+
+}
