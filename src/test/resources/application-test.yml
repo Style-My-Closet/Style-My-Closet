@@ -29,6 +29,9 @@ style-my-closet:
 #      region: ${AWS_S3_REGION:region}
       bucket: ${AWS_S3_BUCKET:bucket}
       presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION_SECOND:600}
+  batch:
+    jdbc:
+      initialize-schema: never
 
 logging:
   level:
