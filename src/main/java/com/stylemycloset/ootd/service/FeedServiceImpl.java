@@ -180,7 +180,7 @@ public class FeedServiceImpl implements FeedService {
       return null;
     }
     PrecipitationDto precipitationDto = new PrecipitationDto(
-        Weather.AlertType.valueOf(weather.getPrecipitation().getType().toUpperCase()),
+        Weather.AlertType.valueOf(weather.getPrecipitation().getAlertType().name().toUpperCase()),
         weather.getPrecipitation().getAmount(),
         weather.getPrecipitation().getProbability()
     );
