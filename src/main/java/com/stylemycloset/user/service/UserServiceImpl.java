@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
       throw new EmailDuplicateException();
     }
 
-    User user = new User(request);
+    User user = new User(request.name(), request.email(), request.password());
     User savedUser = userRepository.save(user);
     return userMapper.UsertoUserDto(savedUser);
   }

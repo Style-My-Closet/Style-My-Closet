@@ -1,13 +1,22 @@
 package com.stylemycloset.follow.entity;
 
 import com.stylemycloset.common.entity.SoftDeletableEntity;
-import jakarta.persistence.*;
+import com.stylemycloset.user.entity.User;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import com.stylemycloset.user.entity.User;
 
-import java.time.Instant;
 
 @Getter
 @Entity
@@ -31,10 +40,16 @@ public class Follow extends SoftDeletableEntity {
   @Column(name = "followed_at", nullable = false)
   private Instant followedAt;
 
-  public Follow(User follower, User followee, Instant followedAt) {
-    this.follower = follower;
+  public Follow(User followee, User follower) {
     this.followee = followee;
-    this.followedAt = followedAt;
+    this.follower = follower;
+    this.followedAt = Instant.now();
+  }
+
+  @Override
+  public void restore() {
+    super.restore();
+    this.followedAt = Instant.now();
   }
 
 }

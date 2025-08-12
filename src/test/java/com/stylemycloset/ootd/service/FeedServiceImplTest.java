@@ -194,7 +194,7 @@ class FeedServiceImplTest {
     Long feedId = 10L;
     User mockUser = mock(User.class);
     Feed mockFeed = mock(Feed.class);
-    when(userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)).thenReturn(
+    when(userRepository.findByIdAndDeletedAtIsNullAndLockedIsFalse(userId)).thenReturn(
         Optional.of(mockUser));
     when(feedRepository.findById(feedId)).thenReturn(Optional.of(mockFeed));
     when(feedLikeRepository.findByUserAndFeed(mockUser, mockFeed)).thenReturn(Optional.empty());
@@ -217,7 +217,7 @@ class FeedServiceImplTest {
     User mockUser = mock(User.class);
     Feed mockFeed = mock(Feed.class);
     FeedLike mockFeedLike = mock(FeedLike.class);
-    when(userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)).thenReturn(
+    when(userRepository.findByIdAndDeletedAtIsNullAndLockedIsFalse(userId)).thenReturn(
         Optional.of(mockUser));
     when(feedRepository.findById(feedId)).thenReturn(Optional.of(mockFeed));
     when(feedLikeRepository.findByUserAndFeed(mockUser, mockFeed)).thenReturn(

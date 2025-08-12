@@ -6,7 +6,9 @@ import com.stylemycloset.common.exception.StyleMyClosetException;
 import java.util.Map;
 
 public class EmailDuplicateException extends StyleMyClosetException {
-    public EmailDuplicateException() {
-        super(ErrorCode.EMAIL_DUPLICATED, Map.of());
-    }
+
+  public EmailDuplicateException() {
+    super(ErrorCode.EMAIL_DUPLICATED);
+  }
+
 }

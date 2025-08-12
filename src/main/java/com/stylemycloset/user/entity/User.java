@@ -1,10 +1,10 @@
 package com.stylemycloset.user.entity;
 
+import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import com.stylemycloset.common.util.StringListJsonConverter;
 import com.stylemycloset.location.Location;
 import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
-import com.stylemycloset.user.dto.request.UserCreateRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -19,7 +19,6 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -72,14 +71,9 @@ public class User extends SoftDeletableEntity {
   @JoinColumn(name = "location_id")
   private Location location;
 
-  public User(UserCreateRequest request) {
-    this.name = request.name();
-    this.email = request.email();
-    this.password = request.password();
-    this.role = Role.USER;
-    this.linkedOAuthProviders = List.of("google");
-    this.locked = false;
-  }
+  @OneToOne
+  @JoinColumn(name = "profile_id")
+  private BinaryContent profileImage; // 나중에 추가해주시면 감사하겠습니다.
 
   public User(String name, String email, String password) {
     this.name = name;
@@ -104,10 +98,6 @@ public class User extends SoftDeletableEntity {
     }
   }
 
-  public void softDelete() {
-    super.setDeleteAt(Instant.now());
-  }
-
   public void updateProfile(ProfileUpdateRequest request) {
     if (request.name() != null) {
       this.name = request.name();
@@ -123,7 +113,7 @@ public class User extends SoftDeletableEntity {
     }
   }
 
-  public void setId(Long id) {// 테스트 때문에 넣었습니다.
+  public void setId(Long id) {// 테스트 때문에 넣었습니다. // 이 부분은 제거해주세요
     this.id = id;
   }
 }

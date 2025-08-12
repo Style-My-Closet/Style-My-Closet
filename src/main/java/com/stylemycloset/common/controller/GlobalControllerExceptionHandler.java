@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
@@ -18,7 +19,8 @@ public class GlobalControllerExceptionHandler {
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<List<ErrorResponse>> handleValidationErrors(
-      MethodArgumentNotValidException exception) {
+      MethodArgumentNotValidException exception
+  ) {
     List<FieldError> fieldErrors = exception.getBindingResult().getFieldErrors();
     log.error("Wrong Method Argument: {}", exception.getMessage());
 
@@ -27,9 +29,21 @@ public class GlobalControllerExceptionHandler {
         .body(errorResponses);
   }
 
+  @ExceptionHandler(MissingServletRequestParameterException.class)
+  public ResponseEntity<ErrorResponse> handleMissingParam(
+      MissingServletRequestParameterException exception
+  ) {
+    log.error("Missing request parameter: {}", exception.getParameterName());
+
+    ErrorResponse errorResponse = ErrorResponse.of(exception, HttpStatus.BAD_REQUEST.value());
+    return ResponseEntity.badRequest()
+        .body(errorResponse);
+  }
+
   @ExceptionHandler(MissingServletRequestPartException.class)
   public ResponseEntity<ErrorResponse> handleMissingPart(
-      MissingServletRequestPartException exception) {
+      MissingServletRequestPartException exception
+  ) {
     log.error("Missing multipart part: {}", exception.getRequestPartName());
 
     ErrorResponse errorResponse = ErrorResponse.of(exception, HttpStatus.BAD_REQUEST.value());
@@ -48,10 +62,12 @@ public class GlobalControllerExceptionHandler {
 
   @ExceptionHandler(StyleMyClosetException.class)
   public ResponseEntity<ErrorResponse> handleStyleMyClosetException(
-      StyleMyClosetException exception) {
+      StyleMyClosetException exception
+  ) {
     log.error("커스텀 예외 발생: errorCodeName={}, message={}", exception.getErrorCode(),
         exception.getMessage(),
         exception);
+
     HttpStatus status = exception.getErrorCode().getHttpStatus();
     ErrorResponse errorResponse = ErrorResponse.of(exception, status.value());
     return ResponseEntity.status(status)

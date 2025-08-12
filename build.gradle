@@ -3,9 +3,7 @@ plugins {
     id 'org.springframework.boot' version '3.5.4'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'jacoco'
-
 }
-
 
 group = 'com.stylemycloset'
 version = '0.0.1-SNAPSHOT'
@@ -34,7 +32,6 @@ dependencies {
 
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
     // @Lombok과 @MapStruct간의 충돌 방지
-
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.projectlombok:lombok'
@@ -76,20 +73,13 @@ dependencies {
     annotationProcessor "jakarta.annotation:jakarta.annotation-api"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
-    testImplementation 'org.mockito:mockito-core:5.11.0'
-    testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
-
-
     implementation 'org.springframework.boot:spring-boot-starter-batch'
-    runtimeOnly 'org.postgresql:postgresql'
-
-    implementation 'org.springframework.boot:spring-boot-starter-aop'
-
 }
 
 test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
+    jvmArgs '-XX:+EnableDynamicAgentLoading'
 }
 
 jacocoTestReport {

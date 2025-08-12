@@ -15,7 +15,7 @@ import com.stylemycloset.notification.util.TestUserFactory;
 import com.stylemycloset.sse.dto.SseInfo;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
-import com.stylemycloset.testutil.IntegrationTestSupport;
+import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import java.util.Deque;
@@ -69,7 +69,7 @@ public class NewClothAttributeNotificationEventListenerIntegrationTest extends I
     Deque<SseInfo> queue2 = new ConcurrentLinkedDeque<>();
     given(sseRepository.findOrCreateEvents(insertUser1.getId())).willReturn(queue1);
     given(sseRepository.findOrCreateEvents(insertUser2.getId())).willReturn(queue2);
-    
+
     String now = String.valueOf(System.currentTimeMillis());
     sseService.connect(insertUser1.getId(), now, null);
     sseService.connect(insertUser2.getId(), now, null);
@@ -84,4 +84,5 @@ public class NewClothAttributeNotificationEventListenerIntegrationTest extends I
     assertThat(queue1).isNotEmpty();
     assertThat(queue2).isNotEmpty();
   }
+
 }

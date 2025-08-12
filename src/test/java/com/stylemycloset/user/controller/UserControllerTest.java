@@ -1,13 +1,12 @@
 package com.stylemycloset.user.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.stylemycloset.testutil.IntegrationTestSupport;
+import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
 import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.entity.Gender;
@@ -19,16 +18,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 @AutoConfigureMockMvc
-@SpringBootTest
 @Transactional
-@Profile("test")
 public class UserControllerTest extends IntegrationTestSupport {
 
   @Autowired
@@ -72,9 +67,9 @@ public class UserControllerTest extends IntegrationTestSupport {
   void getUsersApiTest() throws Exception {
     //given
     userRepository.saveAndFlush(
-        new User(userRequest1));
+        new User(userRequest1.name(), userRequest1.email(), userRequest1.password()));
     userRepository.saveAndFlush(
-        new User(userRequest2));
+        new User(userRequest2.name(), userRequest2.email(), userRequest2.password()));
 
     //when & then
     mockMvc.perform(get("/api/users")
@@ -186,7 +181,7 @@ public class UserControllerTest extends IntegrationTestSupport {
   @WithMockUser
   void getProfileApiTest() throws Exception {
     // given
-    User user = new User(userRequest1);
+    User user = new User(userRequest1.name(), userRequest1.email(), userRequest1.password());
     user.updateProfile(profileRequest);
     User savedUser = userRepository.saveAndFlush(user);
 

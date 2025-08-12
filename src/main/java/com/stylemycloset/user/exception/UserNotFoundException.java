@@ -7,6 +7,6 @@ import java.util.Map;
 public class UserNotFoundException extends StyleMyClosetException {
 
   public UserNotFoundException() {
-    super(ErrorCode.USER_NOT_FOUND, Map.of());
+    super(ErrorCode.USER_NOT_FOUND);
   }
 }

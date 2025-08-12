@@ -3,7 +3,6 @@ package com.stylemycloset.ootd.service;
 import com.stylemycloset.cloth.entity.AttributeOption;
 import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingAttribute;
-import static com.stylemycloset.ootd.entity.QFeed.feed;
 
 import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.common.exception.ErrorCode;
@@ -16,7 +15,6 @@ import com.stylemycloset.ootd.dto.CommentDto;
 import com.stylemycloset.ootd.dto.CommentSearchRequest;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
-import com.stylemycloset.weather.dto.*;
 import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
 import com.stylemycloset.ootd.dto.FeedSearchRequest;
 import com.stylemycloset.ootd.dto.FeedUpdateRequest;
@@ -117,7 +115,7 @@ public class FeedServiceImpl implements FeedService {
   @Override
   @Transactional
   public FeedDto toggleLike(Long userId, Long feedId) {
-    User user = userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(userId)
+    User user = userRepository.findByIdAndDeletedAtIsNullAndLockedIsFalse(userId)
         .orElseThrow(() -> new StyleMyClosetException(ErrorCode.USER_NOT_FOUND,
             Map.of("userId", userId)));
 
@@ -306,7 +304,7 @@ public class FeedServiceImpl implements FeedService {
       throw new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("reason", "댓글을 작성할 권한이 없습니다."));
     }
 
-    User author = userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(request.authorId())
+    User author = userRepository.findByIdAndDeletedAtIsNullAndLockedIsFalse(request.authorId())
         .orElseThrow(() -> new StyleMyClosetException(ErrorCode.USER_NOT_FOUND,
             Map.of("userId", request.authorId())));
 
