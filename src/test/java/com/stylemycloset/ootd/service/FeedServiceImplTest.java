@@ -1,6 +1,7 @@
 package com.stylemycloset.ootd.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -11,6 +12,8 @@ import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingCategory;
 import com.stylemycloset.cloth.entity.ClothingCategoryType;
 import com.stylemycloset.cloth.repository.ClothRepository;
+import com.stylemycloset.common.exception.ErrorCode;
+import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
 import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
@@ -228,7 +231,6 @@ class FeedServiceImplTest {
     verify(feedLikeRepository, times(1)).delete(mockFeedLike);
     verify(feedLikeRepository, times(0)).save(any());
   }
-}
 
   @Nested
   @DisplayName("피드 수정")
