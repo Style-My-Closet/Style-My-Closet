@@ -304,7 +304,7 @@ public class FeedServiceImpl implements FeedService {
       throw new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("reason", "댓글을 작성할 권한이 없습니다."));
     }
 
-    User author = userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(request.authorId())
+    User author = userRepository.findByIdAndDeletedAtIsNullAndLockedIsFalse(request.authorId())
         .orElseThrow(() -> new StyleMyClosetException(ErrorCode.USER_NOT_FOUND,
             Map.of("userId", request.authorId())));
 
