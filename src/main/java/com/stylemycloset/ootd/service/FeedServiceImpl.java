@@ -9,6 +9,7 @@ import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.ootd.dto.AuthorDto;
 import com.stylemycloset.ootd.dto.ClothesAttributeWithDefDto;
+import com.stylemycloset.ootd.dto.CommentCreateRequest;
 import com.stylemycloset.ootd.dto.CommentCursorResponse;
 import com.stylemycloset.ootd.dto.CommentDto;
 import com.stylemycloset.ootd.dto.CommentSearchRequest;
@@ -294,6 +295,27 @@ public class FeedServiceImpl implements FeedService {
     // TODO: totalCount 로직 추가 필요
     return new CommentCursorResponse(commentDtos, nextCursor, nextIdAfter, hasNext, 0L, "createdAt",
         "DESC");
+  }
+
+  @Override
+  @Transactional
+  public CommentDto createComment(CommentCreateRequest request, Long currentUserId) {
+    if (!request.authorId().equals(currentUserId)) {
+      throw new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("reason", "댓글을 작성할 권한이 없습니다."));
+    }
+
+    User author = userRepository.findByIdAndDeleteAtIsNullAndLockedIsFalse(request.authorId())
+        .orElseThrow(() -> new StyleMyClosetException(ErrorCode.USER_NOT_FOUND,
+            Map.of("userId", request.authorId())));
+
+    Feed feed = feedRepository.findById(request.feedId())
+        .orElseThrow(() -> new StyleMyClosetException(ErrorCode.FEED_NOT_FOUND,
+            Map.of("feedId", request.feedId())));
+
+    FeedComment newComment = new FeedComment(feed, author, request.content());
+    FeedComment savedComment = feedCommentRepository.save(newComment);
+
+    return toCommentDto(savedComment);
   }
 
   private CommentDto toCommentDto(FeedComment comment) {

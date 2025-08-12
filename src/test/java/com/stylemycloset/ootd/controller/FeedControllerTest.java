@@ -19,6 +19,7 @@ import com.stylemycloset.cloth.entity.ClothingCategoryType;
 import com.stylemycloset.cloth.repository.ClosetRepository;
 import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.cloth.repository.ClothingCategoryRepository;
+import com.stylemycloset.ootd.dto.CommentCreateRequest;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedUpdateRequest;
 import com.stylemycloset.ootd.entity.Feed;
@@ -266,6 +267,59 @@ public class FeedControllerTest extends IntegrationTestSupport {
               .with(csrf()))
           .andDo(print())
           .andExpect(status().isNotFound());
+    }
+  }
+
+  @Nested
+  @DisplayName("피드 댓글 등록 API")
+  class FeedCommentCreateApi {
+
+    @Test
+    @DisplayName("새로운 댓글을 등록하면 201 Created 상태와 함께 생성된 댓글 정보를 반환한다")
+    @WithMockUser
+    void createComment_Success() throws Exception {
+      // given (준비)
+      // 1. 댓글을 달 피드 생성
+      Feed feed = feedRepository.save(Feed.createFeed(testUser, null, "댓글 등록용 피드"));
+
+      // 2. 등록할 댓글 정보 DTO 생성 (Swagger 명세 기준)
+      CommentCreateRequest request = new CommentCreateRequest(
+          feed.getId(),
+          testUser.getId(),
+          "새로운 댓글입니다!"
+      );
+      String requestJson = objectMapper.writeValueAsString(request);
+
+      // when & then (실행 및 검증)
+      mockMvc.perform(post("/api/feeds/{feedId}/comments", feed.getId())
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(requestJson)
+              .with(csrf()))
+          .andDo(print())
+          .andExpect(status().isCreated())
+          .andExpect(jsonPath("$.content").value("새로운 댓글입니다!"))
+          .andExpect(jsonPath("$.author.userId").value(testUser.getId()))
+          .andExpect(jsonPath("$.feedId").value(feed.getId()));
+    }
+
+    @Test
+    @DisplayName("댓글 내용이 비어있는 요청을 보내면 400 Bad Request를 반환한다")
+    @WithMockUser
+    void createComment_Fail_BlankContent() throws Exception {
+      // given
+      Feed feed = feedRepository.save(Feed.createFeed(testUser, null, "댓글 등록용 피드"));
+
+      CommentCreateRequest request = new CommentCreateRequest(feed.getId(), testUser.getId(),
+          " "); // 내용이 공백
+      String requestJson = objectMapper.writeValueAsString(request);
+
+      // when & then
+      mockMvc.perform(post("/api/feeds/{feedId}/comments", feed.getId())
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(requestJson)
+              .with(csrf()))
+          .andDo(print())
+          .andExpect(status().isBadRequest());
     }
   }
 }
