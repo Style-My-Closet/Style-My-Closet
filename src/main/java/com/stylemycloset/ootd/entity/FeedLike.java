@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -20,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "feed_likes", uniqueConstraints = @UniqueConstraint(name = "uk_feed_like_user_feed",
     columnNames = {"user_id", "feed_id"}))
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class FeedLike extends CreatedAtEntity {
 
   @Id
@@ -35,5 +36,14 @@ public class FeedLike extends CreatedAtEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "feed_id", nullable = false)
   private Feed feed;
+
+  private FeedLike(User user, Feed feed) {
+    this.user = user;
+    this.feed = feed;
+  }
+
+  public static FeedLike createFeedLike(User user, Feed feed) {
+    return new FeedLike(user, feed);
+  }
 
 }

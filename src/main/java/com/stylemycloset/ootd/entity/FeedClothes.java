@@ -44,9 +44,7 @@ public class FeedClothes extends CreatedAtEntity {
   }
 
   public static FeedClothes createFeedClothes(Feed feed, Cloth clothes) {
-    FeedClothes feedClothes = new FeedClothes(feed, clothes);
-    feed.getFeedClothes().add(feedClothes);
-    return feedClothes;
+    return new FeedClothes(feed, clothes);
   }
 
 }
