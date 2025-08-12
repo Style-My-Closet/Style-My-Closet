@@ -28,5 +28,4 @@ public abstract class SoftDeletableEntity extends BaseTimeEntity {
     this.deletedAt = null;
   }
 
-
 }
