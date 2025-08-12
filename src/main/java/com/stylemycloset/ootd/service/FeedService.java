@@ -17,4 +17,6 @@ public interface FeedService {
   FeedDto toggleLike(Long userId, Long feedId);
 
   FeedDto updateFeed(Long userId, Long feedId, FeedUpdateRequest request);
+
+  void deleteFeed(Long userId, Long feedId);
 }
