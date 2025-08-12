@@ -1,6 +1,6 @@
 package com.stylemycloset.cloth.entity;
 
-import com.stylemycloset.binarycontent.BinaryContent;
+import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

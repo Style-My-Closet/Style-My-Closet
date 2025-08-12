@@ -1,8 +1,11 @@
 package com.stylemycloset.weather.service;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -21,6 +24,7 @@ import com.stylemycloset.weather.repository.WeatherRepository;
 import com.stylemycloset.weather.util.WeatherApiFetcher;
 import com.stylemycloset.weather.util.WeatherBuilderHelperContext;
 import com.stylemycloset.weather.util.WeatherItemDeduplicator;
+import com.stylemycloset.weather.utils.FakeWeatherApiFetcher;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -43,19 +48,18 @@ class ForecastApiServiceTest {
     private LocationRepository locationRepository;
 
     @Mock
-    private WeatherApiFetcher apiFetcher;
-
-    @Mock
     private WeatherItemDeduplicator deduplicator;
 
-    @Mock private TmpProcessor tmpProcessor;
-    @Mock private HumidityProcessor humidProcessor;
+    private TmpProcessor tmpProcessor;
+    private HumidityProcessor humidProcessor;
 
-    @InjectMocks
+    @Mock
+    private WeatherBuilderHelperContext ctx;
+
+    private FakeWeatherApiFetcher apiFetcher;
+
+
     private ForecastApiService forecastApiService;
-
-    private final String baseDate = "20250801";
-    private final String baseTime = "0200";
 
     private final Location location = Location.builder()
         .x(55).y(127)
@@ -64,77 +68,51 @@ class ForecastApiServiceTest {
         .locationNames(List.of("서울", "중구"))
         .build();
 
-    private final List<JsonNode> rawItems = new ArrayList<>();
-    private final List<JsonNode> dedupedItems = new ArrayList<>();
-
     @BeforeEach
-    void setUp() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
+    void setUp() {
+        // weatherRepository는 Mockito mock 상태
+        // processor는 실제 객체 생성, weatherRepository 주입
+        tmpProcessor = Mockito.spy(new TmpProcessor(weatherRepository));
+        humidProcessor = Mockito.spy(new HumidityProcessor(weatherRepository));
 
-        JsonNode node1 = objectMapper.readTree("""
-            {
-                "baseDate": "20250801",
-                "baseTime": "0200",
-                "category": "TMP",
-                "fcstDate": "20250801",
-                "fcstTime": "0300",
-                "fcstValue": "25.4",
-                "nx": 55,
-                "ny": 127
-            }
-        """);
+        apiFetcher = new FakeWeatherApiFetcher(new ObjectMapper());
+        List<WeatherCategoryProcessor> processors = List.of(tmpProcessor, humidProcessor);
 
-        JsonNode node2 = objectMapper.readTree("""
-            {
-                "baseDate": "20250801",
-                "baseTime": "0200",
-                "category": "REH",
-                "fcstDate": "20250801",
-                "fcstTime": "0300",
-                "fcstValue": "80",
-                "nx": 55,
-                "ny": 127
-            }
-        """);
+        forecastApiService = new ForecastApiService(
+            apiFetcher,
+            deduplicator,
+            locationRepository,
+            processors
+        );
 
-        rawItems.add(node1);
-        rawItems.add(node2);
+        // deduplicator 설정 (mock)
+        when(deduplicator.deduplicate(anyList())).thenAnswer(inv -> inv.getArgument(0));
 
-        // 중복 제거 후에도 동일한 데이터라고 가정
-        dedupedItems.addAll(rawItems);
-
-        when(apiFetcher.fetchAllPages(baseDate, baseTime, location)).thenReturn(rawItems);
-        when(deduplicator.deduplicate(rawItems)).thenReturn(dedupedItems);
-
-        // TMP processor 설정
-        when(tmpProcessor.supports("TMP")).thenReturn(true);
+        // 필요하면 processor 내 특정 메서드만 mock 처리 가능
+        doReturn(true).when(tmpProcessor).supports("TMP");
         doAnswer(invocation -> {
             WeatherBuilderHelperContext ctx = invocation.getArgument(0);
-            String value = invocation.getArgument(1);
+            String value = invocation.getArgument(2);
             ctx.temperature = new Temperature(Double.parseDouble(value), null, null, null);
             return null;
-        }).when(tmpProcessor).process(any(), anyString());
+        }).when(tmpProcessor).process(any(), eq("TMP"), anyString());
 
-        // REH processor 설정
-        when(humidProcessor.supports("REH")).thenReturn(true);
+        doReturn(true).when(humidProcessor).supports("REH");
         doAnswer(invocation -> {
             WeatherBuilderHelperContext ctx = invocation.getArgument(0);
-            String value = invocation.getArgument(1);
+            String value = invocation.getArgument(2);
             ctx.humidity = new Humidity(Double.parseDouble(value), null);
             return null;
-        }).when(humidProcessor).process(any(), anyString());
-
-        // processors 리스트를 OpenApiService에 반영
-        List<WeatherCategoryProcessor> processors = List.of(tmpProcessor, humidProcessor);
-        ReflectionTestUtils.setField(forecastApiService, "processors", processors);
-
+        }).when(humidProcessor).process(any(), eq("REH"), anyString());
     }
+
 
     @Test
     void fetchData_shouldSaveWeatherAndLocation() {
         // when
-        forecastApiService.fetchData(baseDate, baseTime, location);
+        Weather weather = forecastApiService.fetchData(location);
 
+        weatherRepository.save(weather);
         // then
         verify(weatherRepository).save(any(Weather.class));
         verify(locationRepository).save(any(Location.class));

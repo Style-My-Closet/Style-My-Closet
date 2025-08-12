@@ -1,22 +1,21 @@
 package com.stylemycloset.user.repository;
 
 import com.stylemycloset.user.entity.User;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
 
-import java.util.Optional;
-
-@Repository
 public interface UserRepository extends JpaRepository<User, Long>, UserRepositoryCustom {
-    
-    Optional<User> findByName(String name);
-    
-    Optional<User> findByEmail(String email);
-    
-    boolean existsByEmail(String email);
 
+  boolean existsByEmail(String email);
 
-  // User 엔티티에 deleteAt 컬럼이 없으므로, 테스트/리스너에서 사용 가능한 대체 메서드로 교체
-  Set<User> findByLockedFalse();
+  @Query("SELECT u.id FROM User u WHERE u.deletedAt is null")
+  Set<Long> findActiveUserIds();
+
+  Optional<User> findByEmail(String email);
+
+  // ID로 활성화된(삭제되지 않고, 잠기지 않은) 유저만 찾는 메서드
+  Optional<User> findByIdAndDeletedAtIsNullAndLockedIsFalse(Long id);
+
 }

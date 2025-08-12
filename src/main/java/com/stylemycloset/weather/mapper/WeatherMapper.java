@@ -1,10 +1,12 @@
 package com.stylemycloset.weather.mapper;
 
 import com.stylemycloset.weather.dto.WeatherDto;
+import com.stylemycloset.weather.dto.WindSpeedDto;
 import com.stylemycloset.weather.entity.Weather;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -20,10 +22,10 @@ public class WeatherMapper {
             weather.getForecastAt(),
             weather.getLocation(),
             weather.getSkyStatus(),
-            weather.getPrecipitation(),
-            weather.getHumidity(),
-            weather.getTemperature(),
-            weather.getWindSpeed()
+            WeatherInfosMapper.toDto(weather.getPrecipitation()) ,
+            WeatherInfosMapper.toDto(weather.getHumidity())  ,
+            WeatherInfosMapper.toDto(weather.getTemperature()) ,
+            WeatherInfosMapper.toDto(weather.getWindSpeed())
         );
     }
 

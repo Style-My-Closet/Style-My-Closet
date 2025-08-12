@@ -1,11 +1,15 @@
 package com.stylemycloset.weather.entity;
 
 import com.stylemycloset.location.Location;
+import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import jakarta.persistence.*; // JPA 어노테이션 전반
-import java.util.UUID;
 import lombok.*; // Lombok 어노테이션
 import java.time.LocalDateTime; // 시간 관련
 import com.stylemycloset.common.entity.CreatedAtEntity;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
+import org.springframework.data.annotation.CreatedDate;
 
 @Entity
 @Table(name = "weather")
@@ -13,6 +17,7 @@ import com.stylemycloset.common.entity.CreatedAtEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+
 public class Weather extends CreatedAtEntity {
 
   @Id
@@ -21,9 +26,11 @@ public class Weather extends CreatedAtEntity {
   private Long id;
 
   @Column(name = "forecasted_at", nullable = false)
+  @CreatedDate
   private LocalDateTime forecastedAt;
 
   @Column(name = "forecast_at", nullable = false)
+  @CreatedDate
   private LocalDateTime forecastAt;
 
   //forecastedAt: 예보가 생성된 시점 (기상청이 예보 발표한 시점)
@@ -36,6 +43,7 @@ public class Weather extends CreatedAtEntity {
   /*위치 정보  */
 
   @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
   @Column(name = "sky_status", nullable = false)
   private SkyStatus skyStatus;
   // 하늘 상태 (맑음, 흐림 등)
@@ -69,13 +77,10 @@ public class Weather extends CreatedAtEntity {
   //알림이 발생했다면 그 타입 (예: 비, 폭우, 고온, 강풍 등)
 
   @Builder
-  public Weather(LocalDateTime forecastedAt, LocalDateTime forecastAt,
-                 Location location, SkyStatus skyStatus,
+  public Weather( Location location, SkyStatus skyStatus,
                  Precipitation precipitation, Temperature temperature,
                  Humidity humidity, WindSpeed windSpeed,
                  Boolean isAlertTriggered, AlertType alertType) {
-    this.forecastedAt = forecastedAt;
-    this.forecastAt = forecastAt;
     this.location = location;
     this.skyStatus = skyStatus;
     this.precipitation = precipitation;
@@ -91,7 +96,7 @@ public class Weather extends CreatedAtEntity {
   }
 
   public enum AlertType {
-    NONE, RAIN, HEAVY_RAIN, HIGH_TEMP, LOW_TEMP, STRONG_WIND
+    NONE, RAIN, HEAVY_RAIN,SNOW_RAIN ,SNOW, SHOWER,HIGH_TEMP, LOW_TEMP, STRONG_WIND
   }
 
 }

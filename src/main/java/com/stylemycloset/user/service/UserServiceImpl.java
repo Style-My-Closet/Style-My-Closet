@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
       throw new EmailDuplicateException();
     }
 
-    User user = new User(request);
+    User user = new User(request.name(), request.email(), request.password());
     User savedUser = userRepository.save(user);
     // 사용자 생성 시 기본 옷장 자동 생성
     Closet closet = new Closet(savedUser);

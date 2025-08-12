@@ -2,6 +2,7 @@ package com.stylemycloset.location;
 
 
 import com.stylemycloset.common.entity.BaseTimeEntity;
+import com.stylemycloset.common.entity.CreatedAtEntity;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,7 +31,7 @@ public class Location extends BaseTimeEntity {
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "locations_seq_gen")
   @SequenceGenerator(
       name = "locations_seq_gen",
-      sequenceName = "public.locations_id_seq", // 스키마 명까지 명시
+      sequenceName = "locations_id_seq", // 스키마 명까지 명시
       allocationSize = 1
   )
   private Long id;
@@ -46,6 +47,8 @@ public class Location extends BaseTimeEntity {
 
   @Column(nullable = false)
   private Integer y;
+
+
 
   @Type(value = JsonType.class)
   @Column(name = "location_names", columnDefinition = "json", nullable = false)

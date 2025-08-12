@@ -1,89 +1,119 @@
 package com.stylemycloset.user.entity;
 
-import com.stylemycloset.common.entity.BaseTimeEntity;
+import com.stylemycloset.binarycontent.entity.BinaryContent;
+import com.stylemycloset.common.entity.SoftDeletableEntity;
+import com.stylemycloset.common.util.StringListJsonConverter;
 import com.stylemycloset.location.Location;
-import jakarta.persistence.*;
 import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
-import com.stylemycloset.user.dto.request.UserCreateRequest;
-import lombok.AccessLevel;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import java.time.LocalDate;
+import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "users")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User extends BaseTimeEntity {
+@NoArgsConstructor
+@AllArgsConstructor
+public class User extends SoftDeletableEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq_gen")
-    @SequenceGenerator(name = "users_seq_gen", sequenceName = "users_id_seq", allocationSize = 1)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq_gen")
+  @SequenceGenerator(name = "users_seq_gen", sequenceName = "users_id_seq", allocationSize = 1)
+  private Long id;
 
-    @Column(nullable = false, length = 20)
-    private String name;
+  @Column(name = "name", nullable = false)
+  private String name;
 
-    @Column(nullable = false, unique = true, length = 30)
-    private String email;
+  @Column(name = "email", nullable = false, unique = true)
+  private String email;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
-    private Role role = Role.USER;
+  @Column(name = "password", nullable = false)
+  private String password;
 
-    @Column(nullable = false)
-    private Boolean locked = false;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "role", nullable = false)
+  private Role role;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 10)
-    private Gender gender;
+  @Column(name = "locked", nullable = false)
+  private boolean locked;
 
-    @Column(name = "birth_date")
-    private java.time.LocalDate birthDate;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "gender")
+  private Gender gender;
 
-    @Column(name = "temperature_sensitivity")
-    private Integer temperatureSensitivity;
+  @Column(name = "birth_date")
+  private LocalDate birthDate;
 
-    @Column(name = "location_id")
-    private Long locationId;
+  @Column(name = "temperature_sensitivity")
+  private Integer temperatureSensitivity;
 
-    public User(String name, String email, Role role, Gender gender) {
-        this.name = name;
-        this.email = email;
-        this.role = role;
-        this.gender = gender;
-        this.locked = false;
+  @Transient
+  @Convert(converter = StringListJsonConverter.class)
+  private List<String> linkedOAuthProviders;
+
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "location_id")
+  private Location location;
+
+  @OneToOne
+  @JoinColumn(name = "profile_id")
+  private BinaryContent profileImage; // 나중에 추가해주시면 감사하겠습니다.
+
+  public User(String name, String email, String password) {
+    this.name = name;
+    this.email = email;
+    this.password = password;
+    this.role = Role.USER;
+    this.linkedOAuthProviders = List.of("google");
+    this.locked = false;
+  }
+
+  public void updateRole(Role newRole) {
+    this.role = newRole;
+  }
+
+  public void changePassword(String newPassword) {
+    this.password = newPassword;
+  }
+
+  public void lockUser(boolean newLocked) {
+    if (this.locked != newLocked) {
+      this.locked = newLocked;
     }
+  }
 
-    public User(UserCreateRequest request) {
-        this.name = request.name();
-        this.email = request.email();
-        this.role = Role.USER;
-        this.locked = false;
+  public void updateProfile(ProfileUpdateRequest request) {
+    if (request.name() != null) {
+      this.name = request.name();
     }
+    if (request.gender() != null) {
+      this.gender = request.gender();
+    }
+    if (request.birthDate() != null) {
+      this.birthDate = request.birthDate();
+    }
+    if (request.temperatureSensitivity() != null) {
+      this.temperatureSensitivity = request.temperatureSensitivity();
+    }
+  }
 
-    public void updateRole(Role newRole) {
-        if (newRole != null) {
-            this.role = newRole;
-        }
-    }
-
-    public void changePassword(String newPassword) {
-        // 패스워드 컬럼이 아직 없으므로 no-op (확장 시 필드 추가)
-    }
-
-    public void lockUser(boolean locked) {
-        this.locked = locked;
-    }
-
-    public void softDelete() {
-        // Soft delete 정책이 별도 컬럼 없어서 no-op (확장 포인트)
-    }
-
-    public void updateProfile(ProfileUpdateRequest request) {
-        if (request == null) return;
-        if (request.name() != null) this.name = request.name();
-        if (request.gender() != null) this.gender = request.gender();
-        if (request.birthDate() != null) this.birthDate = request.birthDate();
-        if (request.temperatureSensitivity() != null) this.temperatureSensitivity = request.temperatureSensitivity();
-    }
+  public void setId(Long id) {// 테스트 때문에 넣었습니다. // 이 부분은 제거해주세요
+    this.id = id;
+  }
 }

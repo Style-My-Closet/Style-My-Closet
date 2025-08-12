@@ -18,4 +18,15 @@ public class WindSpeed {
   @Column(name = "wind_speed_compared_to_day_before")
   private Double comparedToDayBefore;
 
+  public String mapWindStrength(Double speed) {
+    if (speed == null) {
+      return "UNKNOWN";
+    } else if (speed < 3.4) {
+      return "WEAK";
+    } else if (speed < 6.7) {
+      return "MODERATE";
+    } else {
+      return "STRONG";
+    }
+  }
 }
