@@ -248,9 +248,7 @@ CREATE TABLE comment_likes
     id         BIGSERIAL PRIMARY KEY,
     user_id    BIGINT                   NOT NULL,
     comment_id BIGINT                   NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    deleted_at TIMESTAMP WITH TIME ZONE
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
 

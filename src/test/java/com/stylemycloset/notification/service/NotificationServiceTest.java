@@ -14,7 +14,7 @@ import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.notification.repository.NotificationQueryRepository;
 import com.stylemycloset.notification.repository.NotificationRepository;
 import com.stylemycloset.notification.service.impl.NotificationServiceImpl;
-import com.stylemycloset.testutil.IntegrationTestSupport;
+import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.entity.User;
 import java.time.Instant;
@@ -42,7 +42,7 @@ public class NotificationServiceTest extends IntegrationTestSupport {
 
   User createUser(String name, String email, Long id) {
     UserCreateRequest request = new UserCreateRequest(name, email, "test");
-    User user = new User(request);
+    User user = new User(request.name(), request.email(), request.password());
     ReflectionTestUtils.setField(user, "id", id);
     return user;
   }

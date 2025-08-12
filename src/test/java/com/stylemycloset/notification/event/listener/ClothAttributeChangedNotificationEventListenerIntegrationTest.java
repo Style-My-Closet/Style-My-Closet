@@ -11,7 +11,7 @@ import com.stylemycloset.notification.event.domain.ClothAttributeChangedEvent;
 import com.stylemycloset.notification.repository.NotificationRepository;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
-import com.stylemycloset.testutil.IntegrationTestSupport;
+import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
@@ -48,7 +48,7 @@ public class ClothAttributeChangedNotificationEventListenerIntegrationTest exten
 
   User createUser(String name, String email, Long id) {
     UserCreateRequest request = new UserCreateRequest(name, email, "test");
-    User user = new User(request);
+    User user = new User(request.name(), request.email(), request.password());
     ReflectionTestUtils.setField(user, "id", id);
     return user;
   }
@@ -67,7 +67,7 @@ public class ClothAttributeChangedNotificationEventListenerIntegrationTest exten
 
     AtomicLong idGenerator = new AtomicLong();
 
-    given(userRepository.findByLockedFalseAndDeleteAtIsNull()).willReturn(users);
+    given(userRepository.findByLockedFalseAndDeletedAtIsNull()).willReturn(users);
     given(notificationRepository.saveAll(anyList()))
         .willAnswer(invocation -> {
           List<Notification> notifications = invocation.getArgument(0);

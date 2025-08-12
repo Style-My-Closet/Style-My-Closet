@@ -13,7 +13,7 @@ import com.stylemycloset.notification.repository.NotificationRepository;
 import com.stylemycloset.sse.dto.SseInfo;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
-import com.stylemycloset.testutil.IntegrationTestSupport;
+import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.entity.User;
@@ -76,7 +76,7 @@ public class RoleChangedNotificationEventListenerIntegrationTest extends Integra
   void handler_createsAndSendsNotification() {
     // given
     UserCreateRequest request = new UserCreateRequest("name", "test@test.email", "test");
-    User user = new User(request);
+    User user = new User(request.name(), request.email(), request.password());
     ReflectionTestUtils.setField(user, "id", 1L);
     ReflectionTestUtils.setField(user, "role", Role.USER);
 

@@ -7,7 +7,7 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.SseSender;
-import com.stylemycloset.testutil.IntegrationTestSupport;
+import com.stylemycloset.IntegrationTestSupport;
 import java.io.IOException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -123,13 +123,13 @@ public class UserServiceTest {
     final Long userId = 1L;
     User testUser = createTestUser(testUserCreateRequest);
     given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
-    assertNull(testUser.getDeleteAt());
+    assertNull(testUser.getDeletedAt());
 
     //when
     userService.deleteUser(userId);
 
     //then
-    assertNotNull(testUser.getDeleteAt());
+    assertNotNull(testUser.getDeletedAt());
   }
 
   @Test
@@ -188,7 +188,7 @@ public class UserServiceTest {
       for (int i = 0; i < 6; i++) {
         UserCreateRequest request = new UserCreateRequest("tester" + i, "test" + i + "@naver.com",
             "test123!");
-        User user = new User(request);
+        User user = new User(request.name(), request.email(), request.password());
         user.setId((long) i + 1);
         testUsers.add(user);
       }
@@ -227,7 +227,7 @@ public class UserServiceTest {
       for (int i = 0; i < 3; i++) {
         UserCreateRequest request = new UserCreateRequest("tester" + i, "test" + i + "@naver.com",
             "test123!");
-        User user = new User(request);
+        User user = new User(request.name(), request.email(), request.password());
         user.setId((long) i + 1);
         testUsers.add(user);
       }
@@ -259,7 +259,7 @@ public class UserServiceTest {
 
   //헬퍼 메소드
   private User createTestUser(UserCreateRequest request) {
-    return new User(request);
+    return new User(request.name(), request.email(), request.password());
   }
 
   private UserDto createTestUserDto(User user) {

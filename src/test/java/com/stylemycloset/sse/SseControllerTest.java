@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.stylemycloset.sse.dto.SseInfo;
 import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
-import com.stylemycloset.testutil.IntegrationTestSupport;
+import com.stylemycloset.IntegrationTestSupport;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +25,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-@SpringBootTest
 @AutoConfigureMockMvc
 @Profile("test")
 public class SseControllerTest extends IntegrationTestSupport {
