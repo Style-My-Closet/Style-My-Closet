@@ -19,6 +19,7 @@ import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import java.time.LocalDate;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +55,11 @@ public class UserControllerTest extends IntegrationTestSupport {
 
   private ProfileUpdateRequest profileRequest = new ProfileUpdateRequest(
       "testName", Gender.MALE, LocalDate.of(2000, 1, 1), null, 3);
+
+  @BeforeEach
+  void setUp() {
+    userRepository.deleteAllInBatch();
+  }
 
   @Test
   @DisplayName("유저 생성 API를 호출하면 유저가 생성되고 200 OK를 반환한다")
