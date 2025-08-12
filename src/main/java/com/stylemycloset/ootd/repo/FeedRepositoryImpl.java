@@ -10,6 +10,7 @@ import com.stylemycloset.ootd.dto.FeedSearchRequest;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.QFeed;
 import com.stylemycloset.ootd.tempEnum.PrecipitationType;
+import com.stylemycloset.weather.entity.Weather.AlertType;
 import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -116,6 +117,6 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
     if (type == null) {
       return null;
     }
-    return feed.weather.precipitation.type.eq(type.name());
+    return feed.weather.precipitation.alertType.eq(AlertType.valueOf(type.name()));
   }
 }

@@ -12,6 +12,7 @@ import com.stylemycloset.ootd.dto.AuthorDto;
 import com.stylemycloset.ootd.dto.ClothesAttributeWithDefDto;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
+import com.stylemycloset.weather.dto.*;
 import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
 import com.stylemycloset.ootd.dto.FeedSearchRequest;
 import com.stylemycloset.ootd.dto.FeedUpdateRequest;
@@ -179,7 +180,7 @@ public class FeedServiceImpl implements FeedService {
       return null;
     }
     PrecipitationDto precipitationDto = new PrecipitationDto(
-        Weather.AlertType.valueOf(weather.getPrecipitation().getType().toUpperCase()),
+        Weather.AlertType.valueOf(weather.getPrecipitation().getAlertType().name().toUpperCase()),
         weather.getPrecipitation().getAmount(),
         weather.getPrecipitation().getProbability()
     );

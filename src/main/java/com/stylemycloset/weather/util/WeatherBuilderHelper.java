@@ -33,7 +33,7 @@ public class WeatherBuilderHelper {
     public void setCategoryValue(String category, String fcstValue) {
         for (WeatherCategoryProcessor processor : processors) {
             if (processor.supports(category)) {
-                processor.process(context, fcstValue);
+                processor.process(context, category, fcstValue);
                 return;
             }
         }
@@ -42,8 +42,6 @@ public class WeatherBuilderHelper {
 
     public Weather build() {
         return Weather.builder()
-            .forecastedAt(context.forecastedAt)
-            .forecastAt(context.forecastAt)
             .location(context.location)
             .skyStatus(context.skyStatus)
             .precipitation(context.precipitation)

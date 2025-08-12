@@ -8,12 +8,15 @@ import com.stylemycloset.location.LocationRepository;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.processor.WeatherCategoryProcessor;
 import com.stylemycloset.weather.repository.WeatherRepository;
+import com.stylemycloset.weather.util.DateTimeUtils;
 import com.stylemycloset.weather.util.WeatherApiFetcher;
 import com.stylemycloset.weather.util.WeatherBuilderHelper;
 import com.stylemycloset.weather.util.WeatherItemDeduplicator;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,11 +29,16 @@ public class ForecastApiService {
 
     private final WeatherApiFetcher apiFetcher;
     private final WeatherItemDeduplicator deduplicator;
-    private final WeatherRepository weatherRepository;
     private final LocationRepository locationRepository;
     private final List<WeatherCategoryProcessor> processors;
 
-    public void fetchData(String baseDate, String baseTime, Location location) {
+    public Weather fetchData(Location location) {
+
+        LocalDateTime now = LocalDateTime.now();
+        List<String> forecastTime = DateTimeUtils.toBaseDateAndTime(now);
+        String baseDate = forecastTime.get(0);
+        String baseTime = forecastTime.get(1);
+
         List<JsonNode> rawItems = apiFetcher.fetchAllPages(baseDate, baseTime, location);
         List<JsonNode> deduplicatedItems = deduplicator.deduplicate(rawItems);
         Map<String, WeatherBuilderHelper> builders = new HashMap<>();
@@ -55,8 +63,8 @@ public class ForecastApiService {
             log.info("Weather built: {}", latestWeather);
         }
 
-        weatherRepository.save(Optional.ofNullable(latestWeather).orElseThrow(() ->
-            new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("location", location))));
-        locationRepository.save(latestWeather.getLocation());
+        locationRepository.save(Objects.requireNonNull(latestWeather).getLocation());
+        return latestWeather;
+
     }
 }
