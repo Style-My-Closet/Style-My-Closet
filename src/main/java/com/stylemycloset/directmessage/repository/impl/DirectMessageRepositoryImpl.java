@@ -1,9 +1,10 @@
 package com.stylemycloset.directmessage.repository.impl;
 
+import static com.stylemycloset.directmessage.entity.QDirectMessage.directMessage;
+
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.stylemycloset.directmessage.entity.DirectMessage;
-import com.stylemycloset.directmessage.entity.QDirectMessage;
 import com.stylemycloset.directmessage.repository.DirectMessageRepositoryCustom;
 import com.stylemycloset.directmessage.repository.cursor.CursorStrategy;
 import com.stylemycloset.directmessage.repository.cursor.strategy.DirectMessageField;
@@ -30,18 +31,17 @@ public class DirectMessageRepositoryImpl implements DirectMessageRepositoryCusto
       String sortBy,
       String sortDirection
   ) {
-    QDirectMessage directMessage = QDirectMessage.directMessage;
     CursorStrategy<?> cursorStrategy = DirectMessageField.resolveStrategy(sortBy);
     CursorStrategy<?> idAfterStrategy = DirectMessageField.resolveStrategy(
         directMessage.id.getMetadata().getName()
     );
 
     List<DirectMessage> directMessages = queryFactory
-        .selectFrom(QDirectMessage.directMessage)
-        .join(QDirectMessage.directMessage.sender).fetchJoin()
-        .join(QDirectMessage.directMessage.receiver).fetchJoin()
+        .selectFrom(directMessage)
+        .join(directMessage.sender).fetchJoin()
+        .join(directMessage.receiver).fetchJoin()
         .where(
-            buildConversationCondition(senderId, receiverId, directMessage),
+            buildConversationCondition(senderId, receiverId),
             cursorStrategy.buildPredicate(sortDirection, cursor),
             idAfterStrategy.buildPredicate(sortDirection, idAfter),
             directMessage.deletedAt.isNull(),
@@ -60,15 +60,14 @@ public class DirectMessageRepositoryImpl implements DirectMessageRepositoryCusto
 
   private BooleanExpression buildConversationCondition(
       Long senderId,
-      Long receiverId,
-      QDirectMessage dm
+      Long receiverId
   ) {
     if (senderId == null || receiverId == null) {
       return null;
     }
 
-    return dm.sender.id.eq(senderId).and(dm.receiver.id.eq(receiverId))
-        .or(dm.sender.id.eq(receiverId).and(dm.receiver.id.eq(senderId)));
+    return directMessage.sender.id.eq(senderId).and(directMessage.receiver.id.eq(receiverId))
+        .or(directMessage.sender.id.eq(receiverId).and(directMessage.receiver.id.eq(senderId)));
   }
 
   private SliceImpl<DirectMessage> convertToSlice(

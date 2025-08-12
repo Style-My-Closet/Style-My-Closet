@@ -42,7 +42,7 @@ public enum DirectMessageField {
     return Arrays.stream(DirectMessageField.values())
         .filter(field -> isSameName(field, sortBy.trim()))
         .findFirst()
-        .map(followCursorField -> followCursorField.cursorStrategy)
+        .map(messageCursorField -> messageCursorField.cursorStrategy)
         .orElseThrow(() -> new IllegalArgumentException("요청하신 정렬 기준 필드명에 맞는 필드명이 없습니다."));
   }
 

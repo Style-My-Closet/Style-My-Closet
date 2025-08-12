@@ -24,7 +24,7 @@ public record NumberCursorStrategy<T extends Number & Comparable<T>>(
   @Override
   public T extract(DirectMessage instance) {
     if (instance == null) {
-      throw new IllegalArgumentException("follow 인스턴스 값이 비어있습니다.");
+      throw new IllegalArgumentException("값을 추출할 인스턴스 값이 비어있습니다.");
     }
     return extractor.apply(instance);
   }

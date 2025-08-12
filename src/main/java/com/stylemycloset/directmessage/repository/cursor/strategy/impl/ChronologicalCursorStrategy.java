@@ -23,11 +23,11 @@ public record ChronologicalCursorStrategy(
   }
 
   @Override
-  public Instant extract(DirectMessage follow) {
-    if (follow == null) {
-      throw new IllegalArgumentException("follow 인스턴스 값이 비어있습니다.");
+  public Instant extract(DirectMessage directMessage) {
+    if (directMessage == null) {
+      throw new IllegalArgumentException("값을 추출할 인스턴스 값이 비어있습니다.");
     }
-    return extractor.apply(follow);
+    return extractor.apply(directMessage);
   }
 
   @Override

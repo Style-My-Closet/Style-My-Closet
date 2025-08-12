@@ -1,21 +1,20 @@
 package com.stylemycloset.follow.repository.impl;
 
+import static com.stylemycloset.follow.entity.QFollow.follow;
+
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.stylemycloset.follow.entity.Follow;
-import com.stylemycloset.follow.entity.QFollow;
 import com.stylemycloset.follow.repository.FollowRepositoryCustom;
-import com.stylemycloset.follow.repository.cursor.strategy.CursorStrategy;
 import com.stylemycloset.follow.repository.cursor.FollowCursorField;
+import com.stylemycloset.follow.repository.cursor.strategy.CursorStrategy;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 public class FollowRepositoryImpl implements FollowRepositoryCustom {
@@ -34,20 +33,20 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
   ) {
     CursorStrategy<?> cursorStrategy = FollowCursorField.resolveStrategy(sortBy);
     CursorStrategy<?> idAfterStrategy = FollowCursorField.resolveStrategy(
-        QFollow.follow.id.getMetadata().getName()
+        follow.id.getMetadata().getName()
     );
 
     List<Follow> follows = queryFactory
-        .selectFrom(QFollow.follow)
-        .join(QFollow.follow.followee).fetchJoin()
-        .join(QFollow.follow.follower).fetchJoin()
+        .selectFrom(follow)
+        .join(follow.followee).fetchJoin()
+        .join(follow.follower).fetchJoin()
         .where(
-            QFollow.follow.follower.id.eq(followerId),
+            follow.follower.id.eq(followerId),
             buildFolloweeNameLikeCondition(nameLike),
             cursorStrategy.buildPredicate(sortDirection, cursor),
             idAfterStrategy.buildPredicate(sortDirection, idAfter),
-            QFollow.follow.deletedAt.isNull(),
-            QFollow.follow.followee.deletedAt.isNull()
+            follow.deletedAt.isNull(),
+            follow.followee.deletedAt.isNull()
         )
         .orderBy(
             cursorStrategy.buildOrder(sortDirection, cursor),
@@ -71,20 +70,20 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
   ) {
     CursorStrategy<?> cursorStrategy = FollowCursorField.resolveStrategy(sortBy);
     CursorStrategy<?> idAfterStrategy = FollowCursorField.resolveStrategy(
-        QFollow.follow.id.getMetadata().getName()
+        follow.id.getMetadata().getName()
     );
 
     List<Follow> follows = queryFactory
-        .selectFrom(QFollow.follow)
-        .join(QFollow.follow.followee).fetchJoin()
-        .join(QFollow.follow.follower).fetchJoin()
+        .selectFrom(follow)
+        .join(follow.followee).fetchJoin()
+        .join(follow.follower).fetchJoin()
         .where(
-            QFollow.follow.followee.id.eq(followerId),
+            follow.followee.id.eq(followerId),
             buildFollowerNameLikeCondition(nameLike),
             cursorStrategy.buildPredicate(sortDirection, cursor),
             idAfterStrategy.buildPredicate(sortDirection, idAfter),
-            QFollow.follow.deletedAt.isNull(),
-            QFollow.follow.follower.deletedAt.isNull()
+            follow.deletedAt.isNull(),
+            follow.follower.deletedAt.isNull()
         )
         .orderBy(
             cursorStrategy.buildOrder(sortDirection, cursor),
@@ -98,14 +97,14 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
 
   private BooleanExpression buildFollowerNameLikeCondition(String nameLike) {
     if (nameLike != null && !nameLike.isBlank()) {
-      return QFollow.follow.follower.name.containsIgnoreCase(nameLike);
+      return follow.follower.name.containsIgnoreCase(nameLike);
     }
     return null;
   }
 
   private BooleanExpression buildFolloweeNameLikeCondition(String nameLike) {
     if (nameLike != null && !nameLike.isBlank()) {
-      return QFollow.follow.followee.name.containsIgnoreCase(nameLike);
+      return follow.followee.name.containsIgnoreCase(nameLike);
     }
     return null;
   }
