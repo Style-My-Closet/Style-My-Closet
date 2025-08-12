@@ -1,6 +1,7 @@
 package com.stylemycloset.ootd.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -11,10 +12,13 @@ import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingCategory;
 import com.stylemycloset.cloth.entity.ClothingCategoryType;
 import com.stylemycloset.cloth.repository.ClothRepository;
+import com.stylemycloset.common.exception.ErrorCode;
+import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
 import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
 import com.stylemycloset.ootd.dto.FeedSearchRequest;
+import com.stylemycloset.ootd.dto.FeedUpdateRequest;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.FeedLike;
 import com.stylemycloset.ootd.repo.FeedClothesRepository;
@@ -226,5 +230,72 @@ class FeedServiceImplTest {
     // then
     verify(feedLikeRepository, times(1)).delete(mockFeedLike);
     verify(feedLikeRepository, times(0)).save(any());
+  }
+
+  @Nested
+  @DisplayName("피드 수정")
+  class UpdateFeed {
+
+    @Test
+    @DisplayName("성공 : 작성자가 자신의 피드를 수정한다.")
+    void updateFeedSuccess() {
+      Long currentUserId = 1L;
+      Long feedId = 10L;
+      String newContent = "새롭게 수정된 내용";
+      FeedUpdateRequest request = new FeedUpdateRequest(newContent);
+
+      User mockAuthor = mock(User.class);
+      Feed mockFeed = mock(Feed.class);
+
+      when(feedRepository.findById(feedId)).thenReturn(Optional.of(mockFeed));
+      when(mockFeed.getAuthor()).thenReturn(mockAuthor);
+      when(mockAuthor.getId()).thenReturn(currentUserId);
+      when(userRepository.findById(currentUserId)).thenReturn(Optional.of(mockAuthor));
+      when(mockFeed.getFeedClothes()).thenReturn(Collections.emptyList());
+      when(mockFeed.getContent()).thenReturn(newContent);
+
+      FeedDto result = feedService.updateFeed(currentUserId, feedId, request);
+
+      verify(mockFeed, times(1)).updateContent(newContent);
+
+      assertThat(result.content()).isEqualTo(newContent);
+
+    }
+
+    @Test
+    @DisplayName("실패 - 작성자가 아닌 사용자가 수정을 시도")
+    void updatedFeedFail_Anotherperson() {
+      Long currentUserId = 1L;
+      Long authorId = 2L;
+      Long feedId = 10L;
+      FeedUpdateRequest request = new FeedUpdateRequest("작성자가 아닌 사람이 수정중");
+
+      User mockAuthor = mock(User.class);
+      Feed mockFeed = mock(Feed.class);
+
+      when(feedRepository.findById(feedId)).thenReturn(Optional.of(mockFeed));
+      when(mockFeed.getAuthor()).thenReturn(mockAuthor);
+      when(mockAuthor.getId()).thenReturn(authorId);
+
+      assertThatThrownBy(() -> feedService.updateFeed(currentUserId, feedId, request))
+          .isInstanceOf(StyleMyClosetException.class)
+          .extracting("errorCode")
+          .isEqualTo(ErrorCode.ERROR_CODE);
+    }
+
+    @Test
+    @DisplayName("실패 - 존재하지 않는 피드를 수정하려고 한다")
+    void updateFeedFail_FeedNotFound() {
+      Long currentUserId = 1L;
+      Long feedId = 999L;
+      FeedUpdateRequest request = new FeedUpdateRequest("수정할 내용");
+
+      when(feedRepository.findById(feedId)).thenReturn(Optional.empty());
+
+      assertThatThrownBy(() -> feedService.updateFeed(currentUserId, feedId, request))
+          .isInstanceOf(StyleMyClosetException.class)
+          .extracting("errorCode")
+          .isEqualTo(ErrorCode.FEED_NOT_FOUND);
+    }
   }
 }

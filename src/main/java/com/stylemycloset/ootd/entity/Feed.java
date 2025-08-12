@@ -69,4 +69,10 @@ public class Feed extends SoftDeletableEntity {
     this.feedClothes.add(feedClothes);
     return feedClothes;
   }
+
+  public void updateContent(String content) {
+    if (content != null) {
+      this.content = content;
+    }
+  }
 }

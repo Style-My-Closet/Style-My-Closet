@@ -3,6 +3,8 @@ package com.stylemycloset.ootd.service;
 import com.stylemycloset.cloth.entity.AttributeOption;
 import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingAttribute;
+import static com.stylemycloset.ootd.entity.QFeed.feed;
+
 import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
@@ -12,6 +14,7 @@ import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
 import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
 import com.stylemycloset.ootd.dto.FeedSearchRequest;
+import com.stylemycloset.ootd.dto.FeedUpdateRequest;
 import com.stylemycloset.ootd.dto.OotdItemDto;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.FeedClothes;
@@ -219,5 +222,25 @@ public class FeedServiceImpl implements FeedService {
 
     return new OotdItemDto(cloth.getId(), cloth.getName(), null, // TODO: 이미지 URL 로직
         ClothesType.valueOf(cloth.getCategory().getName().name()), attributes);
+  }
+
+  @Override
+  @Transactional
+  public FeedDto updateFeed(Long currentUserId, Long feedId, FeedUpdateRequest request) {
+    Feed feed = feedRepository.findById(feedId)
+        .orElseThrow(() -> new StyleMyClosetException(ErrorCode.FEED_NOT_FOUND,
+            Map.of("feedId", feedId)));
+
+    if (!feed.getAuthor().getId().equals(currentUserId)) {
+      throw new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("reason", "수정 권한이 없습니다."));
+    }
+
+    feed.updateContent(request.content());
+
+    User currentUser = userRepository.findById(currentUserId)
+        .orElseThrow(() -> new StyleMyClosetException(ErrorCode.USER_NOT_FOUND,
+            Map.of("userId", currentUserId)));
+
+    return mapToFeedResponse(feed, currentUser);
   }
 }
