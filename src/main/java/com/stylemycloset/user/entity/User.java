@@ -2,18 +2,29 @@ package com.stylemycloset.user.entity;
 
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import com.stylemycloset.common.util.StringListJsonConverter;
+import com.stylemycloset.location.Location;
 import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
 import com.stylemycloset.user.dto.request.UserCreateRequest;
-import com.stylemycloset.user.dto.request.UserLockUpdateRequest;
-import jakarta.persistence.*;
-import com.stylemycloset.location.Location;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -65,6 +76,15 @@ public class User extends SoftDeletableEntity {
     this.name = request.name();
     this.email = request.email();
     this.password = request.password();
+    this.role = Role.USER;
+    this.linkedOAuthProviders = List.of("google");
+    this.locked = false;
+  }
+
+  public User(String name, String email, String password) {
+    this.name = name;
+    this.email = email;
+    this.password = password;
     this.role = Role.USER;
     this.linkedOAuthProviders = List.of("google");
     this.locked = false;
