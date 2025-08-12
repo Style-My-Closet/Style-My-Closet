@@ -29,11 +29,7 @@ public enum ErrorCode {
   SSE_SEND_FAILURE("SSE 전송에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
   // Message
-  MESSAGE_NOT_FOUND("메시지 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-
-  // Feed
-  FEED_NOT_FOUND("피드 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-  ALREADY_LIKED_FEED("이미 좋아요를 눌렀습니다.", HttpStatus.NOT_FOUND);
+  MESSAGE_NOT_FOUND("메시지 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
   private final String message;
   private final HttpStatus httpStatus;
 
