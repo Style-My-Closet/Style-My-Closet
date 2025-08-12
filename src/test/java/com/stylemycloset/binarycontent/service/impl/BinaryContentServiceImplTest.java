@@ -19,7 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 class BinaryContentServiceImplTest extends IntegrationTestSupport {
 
@@ -28,7 +28,7 @@ class BinaryContentServiceImplTest extends IntegrationTestSupport {
   @Autowired
   private BinaryContentService binaryContentService;
 
-  @MockitoBean
+  @MockBean
   private BinaryContentStorage binaryContentStorage;
 
   @BeforeEach

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Collection;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,9 +18,9 @@ public interface ClothingAttributeRepository extends JpaRepository<ClothingAttri
 
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("update AttributeOption o set o.deleteAt = CURRENT_TIMESTAMP " +
-           "where o.attribute.id = :attributeId and o.deleteAt is null " +
+    @Query("update AttributeOption o set o.deletedAt = CURRENT_TIMESTAMP " +
+           "where o.attribute.id = :attributeId and o.deletedAt is null " +
            "and o.value not in :targetValues")
     void softDeleteMissingOptions(@Param("attributeId") Long attributeId,
-                                  @Param("targetValues") java.util.Collection<String> targetValues);
+                                  @Param("targetValues") Collection<String> targetValues);
 } 

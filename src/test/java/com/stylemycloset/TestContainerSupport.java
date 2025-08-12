@@ -46,10 +46,13 @@ abstract class TestContainerSupport {
     registry.add("spring.datasource.url", POSTGRES_CONTAINER::getJdbcUrl);
     registry.add("spring.datasource.username", POSTGRES_CONTAINER::getUsername);
     registry.add("spring.datasource.password", POSTGRES_CONTAINER::getPassword);
+    registry.add("spring.datasource.hikari.maximum-pool-size", () -> 5);
 
     registry.add("style-my-closet.storage.s3.access-key", LOCAL_STACK_CONTAINER::getAccessKey);
     registry.add("style-my-closet.storage.s3.secret-key", LOCAL_STACK_CONTAINER::getSecretKey);
     registry.add("style-my-closet.storage.s3.region", LOCAL_STACK_CONTAINER::getRegion);
+    registry.add("spring.batch.job.enabled", () -> false);
+    registry.add("spring.batch.jdbc.initialize-schema", () -> "never");
   }
 
   @TestConfiguration

@@ -15,6 +15,8 @@ import com.stylemycloset.cloth.repository.ClothingAttributeValueRepository;
 import com.stylemycloset.cloth.mapper.AttributeResponseMapper;
 import com.stylemycloset.cloth.mapper.ClothesAttributeDefMapper;
 import lombok.RequiredArgsConstructor;
+import com.stylemycloset.notification.event.domain.NewClothAttributeEvent;
+import com.stylemycloset.notification.event.domain.ClothAttributeChangedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -174,9 +176,10 @@ public class ClothAttributeService {
 
     private void publishNewAttributeEvent(ClothingAttribute saved) {
         try {
+            Long attrId = saved.getId() != null ? saved.getId() : 0L;
             eventPublisher.publishEvent(
-                new com.stylemycloset.notification.event.domain.NewClothAttributeEvent(
-                    saved.getId(), saved.getName()
+                new NewClothAttributeEvent(
+                    attrId, saved.getName()
                 )
             );
         } catch (Exception ignore) {}
@@ -225,9 +228,10 @@ public class ClothAttributeService {
 
     private void publishAttributeChangedEvent(ClothingAttribute saved) {
         try {
+            Long attrId = saved.getId() != null ? saved.getId() : 0L;
             eventPublisher.publishEvent(
-                new com.stylemycloset.notification.event.domain.ClothAttributeChangedEvent(
-                    saved.getId(), saved.getName()
+                new ClothAttributeChangedEvent(
+                    attrId, saved.getName()
                 )
             );
         } catch (Exception ignore) {}

@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.stylemycloset.binarycontent.QBinaryContent.binaryContent;
+import static com.stylemycloset.binarycontent.entity.QBinaryContent.binaryContent;
 import static com.stylemycloset.cloth.entity.QCloset.closet;
 import static com.stylemycloset.cloth.entity.QCloth.cloth;
 import static com.stylemycloset.cloth.entity.QClothingAttribute.clothingAttribute;
@@ -121,8 +121,8 @@ public class ClothRepositoryImpl implements ClothRepositoryCustom {
                 .leftJoin(clothingAttributeValue.option, selectedOption)
                 .where(
                     clothingAttributeValue.cloth.id.in(ids),
-                    clothingAttributeValue.deleteAt.isNull(),
-                    selectedOption.deleteAt.isNull()
+                    clothingAttributeValue.deletedAt.isNull(),
+                    selectedOption.deletedAt.isNull()
                 )
                 .fetch();
 
@@ -226,8 +226,8 @@ public class ClothRepositoryImpl implements ClothRepositoryCustom {
                 .leftJoin(clothingAttributeValue.option, selectedOption)
                 .where(
                     clothingAttributeValue.cloth.id.eq(clothId),
-                    clothingAttributeValue.deleteAt.isNull(),
-                    selectedOption.deleteAt.isNull()
+                    clothingAttributeValue.deletedAt.isNull(),
+                    selectedOption.deletedAt.isNull()
                 )
                 .fetch();
     }

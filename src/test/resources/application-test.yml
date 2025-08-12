@@ -1,4 +1,7 @@
 spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 5
   flyway:
     enabled: true
   jpa:
@@ -15,9 +18,24 @@ spring:
   sql:
     init:
       mode: never
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: never
   cloud:
     compatibility-verifier:
       enabled: false
+  main:
+    allow-bean-definition-overriding: true
+
+app:
+  aws:
+    s3:
+      bucket: test-bucket
+    region: us-east-1
+    accessKeyId: test-access-key
+    secretAccessKey: test-secret-key
 
 resilience4j:
   circuitbreaker:
@@ -41,20 +59,18 @@ resilience4j:
         waitDuration: 500ms
         retryExceptions:
           - org.springframework.web.client.ResourceAccessException
-  main:
-    allow-bean-definition-overriding: true
 
 style-my-closet:
   storage:
-    type: ${STORAGE_TYPE:s3}  # local | s3 (테스트를 위해서 현재는 s3: local)
+    type: s3
     local:
-      root-path: ${STORAGE_LOCAL_ROOT_PATH:.stylemycloset/storage/test}
+      root-path: .stylemycloset/storage/test
     s3:
-#      access-key: ${AWS_S3_ACCESS_KEY:access-key}
-#      secret-key: ${AWS_S3_SECRET_KEY:secret-key}
-#      region: ${AWS_S3_REGION:region}
-      bucket: ${AWS_S3_BUCKET:bucket}
-      presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION_SECOND:600}
+      access-key: test-access-key
+      secret-key: test-secret-key
+      region: us-east-1
+      bucket: test-bucket
+      presigned-url-expiration: 600
   batch:
     jdbc:
       initialize-schema: never

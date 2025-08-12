@@ -1,7 +1,7 @@
 package com.stylemycloset.cloth.service;
 
-import com.stylemycloset.binarycontent.BinaryContent;
-import com.stylemycloset.binarycontent.BinaryContentRepository;
+import com.stylemycloset.binarycontent.entity.BinaryContent;
+import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
 import com.stylemycloset.binarycontent.service.ImageDownloadService;
 import com.stylemycloset.cloth.dto.AttributeDto;
 import com.stylemycloset.cloth.dto.ClothCreateRequestDto;

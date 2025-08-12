@@ -51,3 +51,5 @@ storage/.DS_Store
 ### Local-Binary-File ###
 .stylemycloset/storage
 .stylemycloset/storage/test
+/storage
+/Dockerfile

@@ -1,6 +1,6 @@
 package com.stylemycloset.binarycontent.entity;
 
-import com.stylemycloset.common.entity.CreatedAtEntity;
+import com.stylemycloset.common.entity.SoftDeletableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "binary_contents")
-public class BinaryContent extends CreatedAtEntity {
+public class BinaryContent extends SoftDeletableEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -31,10 +31,27 @@ public class BinaryContent extends CreatedAtEntity {
   @Column(name = "size", nullable = false)
   private Long size;
 
+
+  @Column(name = "image_url")
+  private String imageUrl;
+
+  // key
+  @Column(name = "object_key")
+  private String objectKey;
+
   public BinaryContent(String originalFileName, String contentType, Long size) {
     this.originalFileName = originalFileName;
     this.contentType = contentType;
     this.size = size;
   }
 
+  // 파일 경로를 요구할 때 objectKey 반환
+  public String getFileName() {
+    return this.objectKey;
+  }
+
+  public void updateFileInfo(String objectKey, String publicUrl) {
+    this.objectKey = objectKey;
+    this.imageUrl = publicUrl;
+  }
 }

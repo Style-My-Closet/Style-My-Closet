@@ -104,7 +104,7 @@ public class ClothingAttribute extends SoftDeletableEntity {
   // 삭제되지 않은 활성 옵션들만 반환
   public List<AttributeOption> getActiveOptions() {
     return options.stream()
-            .filter(option -> !option.isDeleted())
+            .filter(option -> !option.isSoftDeleted())
             .toList();
   }
 
@@ -122,7 +122,7 @@ public class ClothingAttribute extends SoftDeletableEntity {
   // 옵션들을 제거하고 메모리상에서도 삭제된 것들을 정리
   public void removeOptionsWithCleanup(List<String> values) {
     this.removeOptions(values);
-    this.options.removeIf(AttributeOption::isDeleted);
+    this.options.removeIf(AttributeOption::isSoftDeleted);
   }
 
 }

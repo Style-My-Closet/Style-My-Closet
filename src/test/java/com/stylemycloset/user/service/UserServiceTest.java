@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.stylemycloset.user.dto.data.ProfileDto;
+import com.stylemycloset.cloth.repository.ClosetRepository;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.dto.request.ChangePasswordRequest;
 import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
@@ -42,6 +43,8 @@ public class UserServiceTest {
 
   @Mock
   private UserMapper userMapper;
+  @Mock
+  private ClosetRepository closetRepository;
 
   private final UserCreateRequest testUserCreateRequest = new UserCreateRequest("tester",
       "test@naver.com", "testtest123!");

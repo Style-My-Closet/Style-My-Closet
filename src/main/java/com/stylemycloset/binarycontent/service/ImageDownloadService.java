@@ -1,7 +1,7 @@
 package com.stylemycloset.binarycontent.service;
 
-import com.stylemycloset.binarycontent.BinaryContent;
-import com.stylemycloset.binarycontent.BinaryContentRepository;
+import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
+import com.stylemycloset.binarycontent.entity.BinaryContent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,9 +28,10 @@ public class ImageDownloadService {
     
     private final BinaryContentRepository binaryContentRepository;
     private final RestTemplate restTemplate;
+    private final ImageStoragePort imageStoragePort;
     
-    @Value("${app.image.storage.path:storage/images}")
-    private String baseStoragePath;
+    @Value("${app.image.s3.prefix:images}")
+    private String s3Prefix;
 
     @Transactional
     public List<BinaryContent> downloadAndSaveImages(List<String> imageUrls) {
@@ -50,26 +51,23 @@ public class ImageDownloadService {
 
         try {
             byte[] imageData = file.getBytes();
-            
+
             String contentType = file.getContentType() != null ? file.getContentType() : "image/jpeg";
             BinaryContent binaryContent = new BinaryContent(
-                "temp", // 임시 파일명
-                null,
-                contentType, 
+                file.getOriginalFilename() != null ? file.getOriginalFilename() : "upload",
+                contentType,
                 (long) imageData.length
             );
             binaryContent = binaryContentRepository.save(binaryContent);
-            
+
             String extension = getFileExtensionFromFilename(file.getOriginalFilename());
-            String finalFileName = binaryContent.getId().toString() + "." + extension;
             String dateFolder = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-            String finalLocalPath = saveToLocalFile(imageData, finalFileName, dateFolder);
-            String publicUrl = "/files/images/" + dateFolder + "/" + finalFileName;
-            
-            // 4. 파일명 및 공개 URL 업데이트
-            binaryContent.updateFileInfo(finalLocalPath, publicUrl);
+            String objectKey = s3Prefix + "/" + dateFolder + "/" + binaryContent.getId() + "." + extension;
+
+            ImageStoragePort.UploadResult uploaded = imageStoragePort.upload(imageData, objectKey, contentType);
+            binaryContent.updateFileInfo(uploaded.objectKey(), uploaded.publicUrl());
             binaryContent = binaryContentRepository.save(binaryContent);
-            
+
             return binaryContent;
             
         } catch (Exception e) {
@@ -96,32 +94,28 @@ public class ImageDownloadService {
     private BinaryContent downloadSingleImage(String imageUrl) {
         try {
             byte[] imageData = downloadImageData(imageUrl);
-            
+
             String contentType = getContentTypeFromUrl(imageUrl);
             BinaryContent binaryContent = new BinaryContent(
-                "temp", // 임시 파일명
-                imageUrl, // 원본 이미지 URL 저장
-                contentType, 
+                generateFileName(imageUrl),
+                contentType,
                 (long) imageData.length
             );
             binaryContent = binaryContentRepository.save(binaryContent);
-            
+
             String extension = getFileExtensionFromUrl(imageUrl);
-            String finalFileName = binaryContent.getId().toString() + "." + extension;
             String dateFolder = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-            String finalLocalPath = saveToLocalFile(imageData, finalFileName, dateFolder);
-            String publicUrl = "/files/images/" + dateFolder + "/" + finalFileName;
-            
-            // 4. 파일명 업데이트 (로컬 경로 + 공개 URL)
-            binaryContent.updateFileInfo(finalLocalPath, publicUrl);
+            String objectKey = s3Prefix + "/" + dateFolder + "/" + binaryContent.getId() + "." + extension;
+
+            ImageStoragePort.UploadResult uploaded = imageStoragePort.upload(imageData, objectKey, contentType);
+            binaryContent.updateFileInfo(uploaded.objectKey(), uploaded.publicUrl());
             binaryContent = binaryContentRepository.save(binaryContent);
-            
+
             return binaryContent;
             
         } catch (Exception e) {
             BinaryContent failedContent = new BinaryContent(
                 "FAILED_" + generateFileName(imageUrl),
-                imageUrl, // 원본 URL은 저장
                 "image/jpeg",
                 0L
             );
@@ -142,17 +136,7 @@ public class ImageDownloadService {
     }
     
 
-    private String saveToLocalFile(byte[] imageData, String fileName, String dateFolder) throws IOException {
-        Path directoryPath = Paths.get(baseStoragePath, dateFolder);
-        Files.createDirectories(directoryPath);
-        
-        Path filePath = directoryPath.resolve(fileName);
-        try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
-            fos.write(imageData);
-        }
-        
-        return filePath.toString();
-    }
+    // 로컬 저장 로직 제거 (S3 사용)
     
     private String generateFileName(String imageUrl) {
         String extension = getFileExtensionFromUrl(imageUrl);

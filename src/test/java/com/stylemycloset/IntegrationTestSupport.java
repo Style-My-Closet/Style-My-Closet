@@ -49,11 +49,26 @@ public abstract class IntegrationTestSupport extends TestContainerSupport {
       baseEntityManager.createNativeQuery("DELETE FROM follows").executeUpdate();
       baseEntityManager.createNativeQuery("ALTER SEQUENCE follows_id_seq RESTART WITH 1").executeUpdate();
       baseEntityManager.createNativeQuery("TRUNCATE TABLE binary_contents RESTART IDENTITY CASCADE").executeUpdate();
+      baseEntityManager.createNativeQuery("TRUNCATE TABLE batch_job_execution_context RESTART IDENTITY CASCADE").executeUpdate();
+      baseEntityManager.createNativeQuery("TRUNCATE TABLE batch_step_execution_context RESTART IDENTITY CASCADE").executeUpdate();
+      baseEntityManager.createNativeQuery("TRUNCATE TABLE batch_step_execution RESTART IDENTITY CASCADE").executeUpdate();
+      baseEntityManager.createNativeQuery("TRUNCATE TABLE batch_job_execution_params RESTART IDENTITY CASCADE").executeUpdate();
+      baseEntityManager.createNativeQuery("TRUNCATE TABLE batch_job_execution RESTART IDENTITY CASCADE").executeUpdate();
+      baseEntityManager.createNativeQuery("TRUNCATE TABLE batch_job_instance RESTART IDENTITY CASCADE").executeUpdate();
       baseEntityManager.createNativeQuery("SET session_replication_role = 'origin'").executeUpdate();
 
-      baseEntityManager.createNativeQuery("INSERT INTO users(id,name,email,role,locked,gender,password,created_at) VALUES (1,'tester','tester@example.com','USER',false,'MALE','testpass', now()) ON CONFLICT (id) DO NOTHING").executeUpdate();
+      baseEntityManager.createNativeQuery("INSERT INTO users(id,name,email,role,locked,gender,password,created_at) VALUES (1,'tester','tester@example.com','ADMIN',false,'MALE','testpass', now()) ON CONFLICT (id) DO NOTHING").executeUpdate();
+      baseEntityManager.createNativeQuery("INSERT INTO users(id,name,email,role,locked,gender,password,created_at) VALUES (2,'followee','followee@example.com','ADMIN',false,'MALE','testpass', now()) ON CONFLICT (id) DO NOTHING").executeUpdate();
+      baseEntityManager.createNativeQuery("INSERT INTO users(id,name,email,role,locked,gender,password,created_at) VALUES (3,'follower','follower@example.com','ADMIN',false,'MALE','testpass', now()) ON CONFLICT (id) DO NOTHING").executeUpdate();
+      // users 시퀀스를 시드 이후 다음 값으로 맞춘다(중복 키 방지)
+      baseEntityManager.createNativeQuery("ALTER SEQUENCE users_id_seq RESTART WITH 4").executeUpdate();
       baseEntityManager.createNativeQuery("INSERT INTO closets(id,user_id,created_at) VALUES (1,1, now()) ON CONFLICT (id) DO NOTHING").executeUpdate();
-      baseEntityManager.createNativeQuery("INSERT INTO clothes_categories(id,name,created_at) VALUES (1,'TOP', now()) ON CONFLICT (id) DO NOTHING").executeUpdate();
+      baseEntityManager.createNativeQuery("INSERT INTO closets(id,user_id,created_at) VALUES (2,2, now()) ON CONFLICT (id) DO NOTHING").executeUpdate();
+      baseEntityManager.createNativeQuery("INSERT INTO closets(id,user_id,created_at) VALUES (3,3, now()) ON CONFLICT (id) DO NOTHING").executeUpdate();
+      // closets 시퀀스도 시드 이후 다음 값으로 맞춘다
+      baseEntityManager.createNativeQuery("ALTER SEQUENCE closets_id_seq RESTART WITH 4").executeUpdate();
+      // 카테고리는 테스트 케이스에서 직접 생성하므로 사전 시드하지 않음 (중복 unique:name 방지)
+      baseEntityManager.createNativeQuery("ALTER SEQUENCE clothes_categories_id_seq RESTART WITH 1").executeUpdate();
       return null;
     });
   }

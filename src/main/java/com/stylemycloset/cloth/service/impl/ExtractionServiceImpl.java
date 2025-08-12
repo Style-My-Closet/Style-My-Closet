@@ -1,6 +1,8 @@
 package com.stylemycloset.cloth.service.impl;
 
-import com.stylemycloset.binarycontent.BinaryContent;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.binarycontent.service.ImageDownloadService;
 import com.stylemycloset.cloth.dto.ClothCreateRequestDto;
 import com.stylemycloset.cloth.dto.ClothResponseDto;
@@ -12,6 +14,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -47,18 +55,18 @@ public class ExtractionServiceImpl implements ClothProductExtractionService {
         return (ex != null) ? ex : ClothExtractionResponseDto.createFailureResponse(productUrl);
     }
 
-    private java.util.List<BinaryContent> downloadFirstImage(ClothExtractionResponseDto ex) {
+    private List<BinaryContent> downloadFirstImage(ClothExtractionResponseDto ex) {
         if (ex == null || ex.getImages() == null || ex.getImages().isEmpty()) {
-            return java.util.List.of();
+            return List.of();
         }
         try {
-            return imageDownloadService.downloadAndSaveImages(java.util.List.of(ex.getImages().getFirst()));
+            return imageDownloadService.downloadAndSaveImages(List.of(ex.getImages().getFirst()));
         } catch (Exception ignore) {
-            return java.util.List.of();
+            return List.of();
         }
     }
 
-    private ClothCreateRequestDto buildCreateRequest(ClothExtractionResponseDto ex, java.util.List<BinaryContent> images) {
+    private ClothCreateRequestDto buildCreateRequest(ClothExtractionResponseDto ex, List<BinaryContent> images) {
         ClothCreateRequestDto req = new ClothCreateRequestDto();
         req.setName(ex != null ? ex.getProductName() : null);
         req.setType(ex != null ? ex.getCategory() : null);
@@ -68,14 +76,10 @@ public class ExtractionServiceImpl implements ClothProductExtractionService {
         return req;
     }
 
-    private String chooseImageUrl(java.util.List<BinaryContent> images, ClothExtractionResponseDto ex) {
+    private String chooseImageUrl(List<BinaryContent> images, ClothExtractionResponseDto ex) {
         try {
-            if (images != null && !images.isEmpty() && images.getFirst().getFileName() != null) {
-                java.nio.file.Path p = java.nio.file.Paths.get(images.getFirst().getFileName());
-                byte[] bytes = java.nio.file.Files.readAllBytes(p);
-                String ct = images.getFirst().getContentType() != null ? images.getFirst().getContentType() : "image/jpeg";
-                String b64 = java.util.Base64.getEncoder().encodeToString(bytes);
-                return "data:" + ct + ";base64," + b64;
+            if (images != null && !images.isEmpty() && images.getFirst().getImageUrl() != null) {
+                return images.getFirst().getImageUrl();
             }
             if (ex != null && ex.getImages() != null && !ex.getImages().isEmpty() && ex.getImages().getFirst().startsWith("http")) {
                 return ex.getImages().getFirst();
@@ -97,7 +101,6 @@ public class ExtractionServiceImpl implements ClothProductExtractionService {
             clothService.upsertAttributesByName(clothId, attrs);
             return clothService.getClothResponseById(clothId);
         } catch (Exception e) {
-            log.info("AI 분석 생략 또는 실패: {}", e.getMessage());
             return created;
         }
     }
@@ -123,16 +126,16 @@ public class ExtractionServiceImpl implements ClothProductExtractionService {
     private void parseJsonLd(String ld, ParsedProduct parsed) {
         if (ld == null || ld.isBlank()) return;
         try {
-            com.fasterxml.jackson.databind.JsonNode meta = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ld.trim());
+            JsonNode meta = new ObjectMapper().readTree(ld.trim());
             parsed.name = meta.path("name").asText("");
             parsed.brand = meta.path("brand").path("name").asText("");
             String p = meta.path("offers").path("price").asText("");
             if (p != null) {
                 try { parsed.price = new java.math.BigDecimal(p.replaceAll("[^0-9]", "")); } catch (Exception ignore) {}
             }
-            com.fasterxml.jackson.databind.JsonNode imageNode = meta.path("image");
+            JsonNode imageNode = meta.path("image");
             if (imageNode.isArray()) {
-                for (com.fasterxml.jackson.databind.JsonNode img : imageNode) {
+                for (JsonNode img : imageNode) {
                     String u = img.asText(""); if (!u.isBlank()) parsed.images.add(u);
                 }
             }
@@ -142,10 +145,10 @@ public class ExtractionServiceImpl implements ClothProductExtractionService {
     private void fillFallbackMeta(String html, ParsedProduct parsed) {
         if (parsed.name == null || parsed.name.isBlank()) parsed.name = extractMeta(html, "og:title");
         if (parsed.brand == null || parsed.brand.isBlank()) parsed.brand = extractMeta(html, "product:brand");
-        if (parsed.price.compareTo(java.math.BigDecimal.ZERO) == 0) {
+        if (parsed.price.compareTo(BigDecimal.ZERO) == 0) {
             String p = extractMeta(html, "product:price:amount");
             if (p != null) {
-                try { parsed.price = new java.math.BigDecimal(p.replaceAll("[^0-9]", "")); } catch (Exception ignore) {}
+                try { parsed.price = new BigDecimal(p.replaceAll("[^0-9]", "")); } catch (Exception ignore) {}
             }
         }
         if (parsed.images.isEmpty()) {
@@ -160,7 +163,7 @@ public class ExtractionServiceImpl implements ClothProductExtractionService {
     }
 
     private ClothExtractionResponseDto buildFastResponse(String productUrl, ParsedProduct p) {
-        if ((p.name != null && !p.name.isBlank()) || p.price.compareTo(java.math.BigDecimal.ZERO) > 0) {
+        if ((p.name != null && !p.name.isBlank()) || p.price.compareTo(BigDecimal.ZERO) > 0) {
             return ClothExtractionResponseDto.builder()
                     .productName(p.name != null ? p.name : "")
                     .brand((p.brand != null && !p.brand.isBlank()) ? p.brand : "알 수 없음")
@@ -181,8 +184,8 @@ public class ExtractionServiceImpl implements ClothProductExtractionService {
     private static class ParsedProduct {
         String name;
         String brand;
-        java.math.BigDecimal price = java.math.BigDecimal.ZERO;
-        java.util.List<String> images = new java.util.ArrayList<>();
+        BigDecimal price = BigDecimal.ZERO;
+        List<String> images = new ArrayList<>();
     }
 
     private static String getString(String html) {
@@ -204,7 +207,8 @@ public class ExtractionServiceImpl implements ClothProductExtractionService {
 
     private String extractMeta(String html, String property) {
         try {
-            java.util.regex.Matcher m = java.util.regex.Pattern.compile("<meta[^>]*property\\s*=\\s*\\\"" + java.util.regex.Pattern.quote(property) + "\\\"[^>]*content\\s*=\\s*\\\"([^\\\"]+)\\\"", java.util.regex.Pattern.CASE_INSENSITIVE).matcher(html);
+            Matcher m = Pattern.compile("<meta[^>]*property\\s*=\\s*\"" + Pattern.quote(property) +
+                    "\"[^>]*content\\s*=\\s*\"([^\"]+)\"", java.util.regex.Pattern.CASE_INSENSITIVE).matcher(html);
             if (m.find()) return m.group(1);
         } catch (Exception ignore) {}
         return null;

@@ -16,7 +16,7 @@ public interface ClothingAttributeValueRepository extends JpaRepository<Clothing
     List<ClothingAttributeValue> findByAttributeId(Long attributeId);
     
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("update ClothingAttributeValue v set v.deleteAt = CURRENT_TIMESTAMP where v.cloth.id = :clothId and v.deleteAt is null")
+    @Query("update ClothingAttributeValue v set v.deletedAt = CURRENT_TIMESTAMP where v.cloth.id = :clothId and v.deletedAt is null")
     void softDeleteAllByClothId(@Param("clothId") Long clothId);
     
 }

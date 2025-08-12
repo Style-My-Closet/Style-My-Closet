@@ -8,7 +8,7 @@ import com.stylemycloset.cloth.dto.response.AttributeResponseDto;
 import com.stylemycloset.cloth.entity.ClothingAttribute;
 import com.stylemycloset.cloth.exception.ClothesException;
 import com.stylemycloset.cloth.repository.ClothingAttributeRepository;
-import com.stylemycloset.testutil.IntegrationTestSupport;
+import com.stylemycloset.IntegrationTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

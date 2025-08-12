@@ -18,8 +18,15 @@ repositories {
     mavenCentral()
 }
 
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2024.0.0"
+    }
+}
+
 ext {
     JJWT_VERSION = "0.12.3"
+    SPRING_CLOUD_VERSION = "2025.0.0"
 }
 
 dependencies {
@@ -80,6 +87,12 @@ dependencies {
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
     implementation 'org.springframework.boot:spring-boot-starter-batch'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${SPRING_CLOUD_VERSION}"
+    }
 }
 
 test {

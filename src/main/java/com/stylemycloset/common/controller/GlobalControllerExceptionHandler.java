@@ -6,12 +6,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import jakarta.validation.ConstraintViolationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @RestControllerAdvice
@@ -27,6 +30,26 @@ public class GlobalControllerExceptionHandler {
     List<ErrorResponse> errorResponses = ErrorResponse.of(exception, fieldErrors);
     return ResponseEntity.badRequest()
         .body(errorResponses);
+  }
+
+  @ExceptionHandler(BindException.class)
+  public ResponseEntity<List<ErrorResponse>> handleBindErrors(
+      BindException exception
+  ) {
+    List<FieldError> fieldErrors = exception.getBindingResult().getFieldErrors();
+    log.error("Bind error: {}", exception.getMessage());
+
+    List<ErrorResponse> errorResponses = ErrorResponse.of(exception, fieldErrors);
+    return ResponseEntity.badRequest().body(errorResponses);
+  }
+
+  @ExceptionHandler(ConstraintViolationException.class)
+  public ResponseEntity<ErrorResponse> handleConstraintViolation(
+      ConstraintViolationException exception
+  ) {
+    log.error("Constraint violation: {}", exception.getMessage());
+    ErrorResponse errorResponse = ErrorResponse.of(exception, HttpStatus.BAD_REQUEST.value());
+    return ResponseEntity.badRequest().body(errorResponse);
   }
 
   @ExceptionHandler(MissingServletRequestParameterException.class)
@@ -82,6 +105,13 @@ public class GlobalControllerExceptionHandler {
         HttpStatus.INTERNAL_SERVER_ERROR.value());
     return ResponseEntity.internalServerError()
         .body(errorResponse);
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException exception) {
+    log.error("Type mismatch: {}", exception.getMessage());
+    ErrorResponse errorResponse = ErrorResponse.of(exception, HttpStatus.BAD_REQUEST.value());
+    return ResponseEntity.badRequest().body(errorResponse);
   }
 
 }

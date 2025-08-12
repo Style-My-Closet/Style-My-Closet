@@ -1,14 +1,14 @@
 package com.stylemycloset.cloth.service;
 
-import com.stylemycloset.binarycontent.BinaryContent;
-import com.stylemycloset.binarycontent.BinaryContentRepository;
+import com.stylemycloset.binarycontent.entity.BinaryContent;
+import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
 import com.stylemycloset.cloth.dto.ClothCreateRequestDto;
 import com.stylemycloset.cloth.dto.ClothResponseDto;
 import com.stylemycloset.cloth.dto.ClothUpdateRequestDto;
 import com.stylemycloset.cloth.dto.AttributeDto;
 import com.stylemycloset.cloth.entity.*;
 import com.stylemycloset.cloth.repository.*;
-import com.stylemycloset.testutil.IntegrationTestSupport;
+import com.stylemycloset.IntegrationTestSupport;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +52,6 @@ class ClothServiceIntegrationTest extends IntegrationTestSupport {
         em.createNativeQuery("SET session_replication_role = 'origin'").executeUpdate();
 
         // user/closet
-        com.stylemycloset.user.entity.User u = new com.stylemycloset.user.entity.User("tester","tester@example.com", com.stylemycloset.user.entity.Role.USER, com.stylemycloset.user.entity.Gender.MALE);
         // users.password NOT NULL 컬럼 대응: insert 시점에 바로 기본 비밀번호를 넣는다
         em.createNativeQuery("INSERT INTO users(id,name,email,role,locked,gender,password,created_at) VALUES (nextval('users_id_seq'),:name,:email,:role,false,:gender,:password, now())")
                 .setParameter("name","tester")
@@ -81,7 +80,8 @@ class ClothServiceIntegrationTest extends IntegrationTestSupport {
         // 이미지 더미 파일(다운로드 서비스 경로를 쓰지 않고 BinaryContent 직접 생성)
         Path temp = Files.createTempFile("test-img", ".jpg");
         Files.writeString(temp, "dummy");
-        BinaryContent bin = new BinaryContent(temp.toString(), "/files/images/2025/08/09/dummy.jpg", "image/jpeg", 5L);
+        BinaryContent bin = new BinaryContent(temp.toString(), "image/jpeg", 5L);
+        bin.updateFileInfo("images/2025/08/09/dummy.jpg", "https://example.com/images/2025/08/09/dummy.jpg");
         bin = binaryContentRepository.save(bin);
 
         ClothCreateRequestDto req = new ClothCreateRequestDto();
