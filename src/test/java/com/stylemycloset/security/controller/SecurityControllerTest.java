@@ -2,6 +2,7 @@ package com.stylemycloset.security.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.security.dto.request.SigninRequest;
+import com.stylemycloset.testutil.IntegrationTestSupport;
 import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
@@ -22,7 +23,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class SecurityControllerTest {
+class SecurityControllerTest extends IntegrationTestSupport {
 
   @Autowired
   private TestRestTemplate restTemplate; // 실제 HTTP 요청을 보내는 클라이언트
