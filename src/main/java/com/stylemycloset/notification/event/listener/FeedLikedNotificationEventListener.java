@@ -36,6 +36,10 @@ public class FeedLikedNotificationEventListener {
         .orElseThrow(() -> new FeedNotFoundException(event.feedId()));
     User likeUser = userRepository.findById(event.likeUserId())
         .orElseThrow(UserNotFoundException::new);
+    if(feed.getAuthor().getId().equals(likeUser.getId())) {
+      log.info("셀프 좋아요 알림 스킵: feedId={}, likeUserId={}", event.feedId(), event.likeUserId());
+      return;
+    }
     try {
       String title = String.format(FEED_LIKED, likeUser.getName());
       NotificationDto notificationDto =
