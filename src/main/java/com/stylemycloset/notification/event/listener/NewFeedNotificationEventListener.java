@@ -1,6 +1,6 @@
 package com.stylemycloset.notification.event.listener;
 
-import com.stylemycloset.follow.entity.repository.FollowRepository;
+import com.stylemycloset.follow.repository.FollowRepository;
 import com.stylemycloset.notification.dto.NotificationDto;
 import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.notification.event.domain.NewFeedEvent;

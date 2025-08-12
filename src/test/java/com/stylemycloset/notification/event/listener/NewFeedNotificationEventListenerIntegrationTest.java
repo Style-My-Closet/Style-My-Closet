@@ -8,7 +8,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.verify;
 
-import com.stylemycloset.follow.entity.repository.FollowRepository;
+import com.stylemycloset.follow.repository.FollowRepository;
 import com.stylemycloset.notification.event.domain.NewFeedEvent;
 import com.stylemycloset.notification.repository.NotificationRepository;
 import com.stylemycloset.notification.util.NotificationStubHelper;
