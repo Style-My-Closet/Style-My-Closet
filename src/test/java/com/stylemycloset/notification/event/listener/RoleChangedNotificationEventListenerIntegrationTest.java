@@ -76,7 +76,7 @@ public class RoleChangedNotificationEventListenerIntegrationTest extends Integra
   void handler_createsAndSendsNotification() {
     // given
     UserCreateRequest request = new UserCreateRequest("name", "test@test.email", "test");
-    User user = new User(request);
+    User user = new User(request.name(), request.email(), request.password());
     ReflectionTestUtils.setField(user, "id", 1L);
     ReflectionTestUtils.setField(user, "role", Role.USER);
 
@@ -91,7 +91,8 @@ public class RoleChangedNotificationEventListenerIntegrationTest extends Integra
           ReflectionTestUtils.setField(n, "createdAt", Instant.now());
           return n;
         });
-    given(sseRepository.findByUserId(user.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
+    given(sseRepository.findByUserId(user.getId())).willReturn(
+        new CopyOnWriteArrayList<>(List.of(emitter)));
 
     RoleChangedEvent roleChangedEvent = new RoleChangedEvent(user.getId(), Role.ADMIN);
 

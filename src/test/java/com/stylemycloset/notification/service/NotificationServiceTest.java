@@ -42,7 +42,7 @@ public class NotificationServiceTest extends IntegrationTestSupport {
 
   User createUser(String name, String email, Long id) {
     UserCreateRequest request = new UserCreateRequest(name, email, "test");
-    User user = new User(request);
+    User user = new User(request.name(), request.email(), request.password());
     ReflectionTestUtils.setField(user, "id", id);
     return user;
   }
@@ -94,12 +94,13 @@ public class NotificationServiceTest extends IntegrationTestSupport {
   void deleteNotification_shouldReturnVoid() throws Exception {
     // given
     User user1 = createUser("test", "test@test.test", 1L);
-    Notification notification = new Notification(user1, "testTitle", "testContent", NotificationLevel.INFO);
+    Notification notification = new Notification(user1, "testTitle", "testContent",
+        NotificationLevel.INFO);
     ReflectionTestUtils.setField(notification, "id", 1L);
     given(notificationRepository.findById(1L)).willReturn(Optional.of(notification));
 
     // when
-    notificationService.delete(1,1);
+    notificationService.delete(1, 1);
 
     // then
     verify(notificationRepository).delete(notification);
@@ -111,7 +112,7 @@ public class NotificationServiceTest extends IntegrationTestSupport {
   @Test
   void deleteNotification_whenNotificationIsNull_shouldLogInfo() throws Exception {
     // when
-    notificationService.delete(1,1);
+    notificationService.delete(1, 1);
 
     // then
     verify(notificationRepository, never()).delete(any(Notification.class));
@@ -124,9 +125,10 @@ public class NotificationServiceTest extends IntegrationTestSupport {
   void findAllNotification_shouldReturnNotificationDtoCursorResponse() throws Exception {
     // given
     User user1 = createUser("test", "test@test.test", 1L);
-    Notification n1 =  new Notification(user1, "testTitle", "testContent", NotificationLevel.INFO);
-    Notification n2 =  new Notification(user1, "testTitle", "testContent", NotificationLevel.INFO);
-    Notification n3 =  new Notification(user1, "testTitle", "testContent", NotificationLevel.WARNING);
+    Notification n1 = new Notification(user1, "testTitle", "testContent", NotificationLevel.INFO);
+    Notification n2 = new Notification(user1, "testTitle", "testContent", NotificationLevel.INFO);
+    Notification n3 = new Notification(user1, "testTitle", "testContent",
+        NotificationLevel.WARNING);
 
     Instant createdAt1 = Instant.parse("2025-07-01T10:15:30.00Z");
     Instant createdAt2 = Instant.parse("2025-07-02T10:15:30.00Z");
@@ -147,7 +149,7 @@ public class NotificationServiceTest extends IntegrationTestSupport {
     given(notificationRepository.countByReceiverId(1)).willReturn(3L);
 
     // when
-    NotificationDtoCursorResponse result = notificationService.findAllByCursor(1,  request);
+    NotificationDtoCursorResponse result = notificationService.findAllByCursor(1, request);
 
     // then
     assertThat(result.data().size()).isEqualTo(2);

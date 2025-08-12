@@ -36,27 +36,28 @@ public class NotificationControllerTest extends IntegrationTestSupport {
 
   @DisplayName("알림 삭제 요청을 보낼 시 204응답이 온다")
   @Test
-  void deleteNotifications_ReturnIsNoContent() throws Exception{
+  void deleteNotifications_ReturnIsNoContent() throws Exception {
     // given
     UserCreateRequest request1 = new UserCreateRequest("test", "test@test.test", "test");
-    User user1 = userRepository.save(new User(request1));
+    User user1 = userRepository.save(
+        new User(request1.name(), request1.email(), request1.password()));
 
     Notification notification = notificationRepository.save(
         new Notification(user1, "testTitle", "testContent", NotificationLevel.INFO));
 
     // when & then
     mockMvc.perform(
-        delete("/api/notifications/{receiverId}/{notificationId}",
-            user1.getId(), notification.getId()))
+            delete("/api/notifications/{receiverId}/{notificationId}",
+                user1.getId(), notification.getId()))
         .andExpect(status().isNoContent());
   }
 
   @DisplayName("알림 조회 요청을 보낼 시 NotificationDtoCursorResponse가 응답으로 온다")
   @Test
-  void findAllByReceiverId_shouldReturnNotificationDtoCursorResponse() throws Exception{
+  void findAllByReceiverId_shouldReturnNotificationDtoCursorResponse() throws Exception {
     // given
     UserCreateRequest request4 = new UserCreateRequest("test", "test@test.test", "test");
-    User user4 = new User(request4);
+    User user4 = new User(request4.name(), request4.email(), request4.password());
     userRepository.save(user4);
 
     notificationRepository.save(
@@ -70,9 +71,9 @@ public class NotificationControllerTest extends IntegrationTestSupport {
 
     // when & then
     mockMvc.perform(
-        get("/api/notifications/{userId}", user4.getId())
-            .param("limit", String.valueOf(2))
-    ).andExpect(status().isOk())
+            get("/api/notifications/{userId}", user4.getId())
+                .param("limit", String.valueOf(2))
+        ).andExpect(status().isOk())
         .andExpect(jsonPath("$.hasNext").value(true))
         .andExpect(jsonPath("$.totalCount").value(3));
   }

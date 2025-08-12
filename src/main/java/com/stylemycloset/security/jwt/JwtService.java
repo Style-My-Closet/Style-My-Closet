@@ -17,12 +17,16 @@ import com.stylemycloset.security.dto.data.JwtObject;
 import com.stylemycloset.security.dto.data.TokenInfo;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.entity.Role;
+import com.stylemycloset.user.exception.UserNotFoundException;
+import com.stylemycloset.user.mapper.UserMapper;
+import com.stylemycloset.user.repository.UserRepository;
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,6 +51,8 @@ public class JwtService {
 
   private final JwtSessionRepository jwtSessionRepository;
   private final ObjectMapper objectMapper;
+  private final UserRepository userRepository;
+  private final UserMapper userMapper;
 
   @Transactional
   public JwtSession createJwtSession(UserDto userDto) {
@@ -89,6 +95,32 @@ public class JwtService {
 
     String token = signedJWT.serialize();
     return new JwtObject(issueTime, expirationTime, userDto, token);
+  }
+
+  @Transactional
+  public JwtSession refreshJwtSession(String refreshToken) {
+    if (!validate(refreshToken)) {
+      throw new StyleMyClosetException(ErrorCode.INVALID_TOKEN,
+          Map.of("refreshToken", refreshToken));
+    }
+    JwtSession session = jwtSessionRepository.findByRefreshToken(refreshToken)
+        .orElseThrow(() -> new StyleMyClosetException(ErrorCode.TOKEN_NOT_FOUND,
+            Map.of("refreshToken", refreshToken)));
+
+    Long userId = parse(refreshToken).userId();
+    UserDto userDto = userRepository.findById(userId)
+        .map(userMapper::UsertoUserDto)
+        .orElseThrow(UserNotFoundException::new);
+    JwtObject accessJwtObject = generateJwtObject(userDto, accessTokenValiditySeconds);
+    JwtObject refreshJwtObject = generateJwtObject(userDto, refreshTokenValiditySeconds);
+
+    session.update(
+        accessJwtObject.token(),
+        refreshJwtObject.token(),
+        accessJwtObject.expirationTime()
+    );
+
+    return session;
   }
 
   public JwtSession getJwtSession(String refreshToken) {

@@ -51,7 +51,7 @@ public class FeedCommentNotificationEventListenerIntegrationTest extends Integra
   void handleCommentEvent_sendSseMessage() throws Exception {
     // given
     UserCreateRequest request = new UserCreateRequest("name", "test@test.email", "test");
-    User user = new User(request);
+    User user = new User(request.name(), request.email(), request.password());
     ReflectionTestUtils.setField(user, "id", 7L);
 
     String now = String.valueOf(System.currentTimeMillis());
@@ -65,7 +65,8 @@ public class FeedCommentNotificationEventListenerIntegrationTest extends Integra
           ReflectionTestUtils.setField(n, "createdAt", Instant.now());
           return n;
         });
-    given(sseRepository.findByUserId(user.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
+    given(sseRepository.findByUserId(user.getId())).willReturn(
+        new CopyOnWriteArrayList<>(List.of(emitter)));
 
     FeedCommentEvent event = new FeedCommentEvent(1L, "user2", "피드 좋아요 테스트", user.getId());
 

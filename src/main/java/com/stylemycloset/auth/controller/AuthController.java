@@ -7,6 +7,8 @@ import com.stylemycloset.security.jwt.JwtSession;
 import com.stylemycloset.user.dto.request.ChangePasswordRequest;
 import com.stylemycloset.user.dto.request.ResetPasswordRequest;
 import com.stylemycloset.user.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -37,4 +39,25 @@ public class AuthController {
         .status(HttpStatus.OK)
         .body(jwtSession.getAccessToken());
   }
+
+  @PostMapping("refresh")
+  public ResponseEntity<String> refresh(
+      @CookieValue(JwtService.REFRESH_TOKEN_COOKIE_NAME) String refreshToken,
+      HttpServletResponse response
+  ) {
+    log.info("토큰 재발급 요청");
+    JwtSession jwtSession = jwtService.refreshJwtSession(refreshToken);
+
+    Cookie refreshTokenCookie = new Cookie(JwtService.REFRESH_TOKEN_COOKIE_NAME,
+        jwtSession.getRefreshToken());
+    refreshTokenCookie.setHttpOnly(true);
+    response.addCookie(refreshTokenCookie);
+
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .body(jwtSession.getAccessToken())
+        ;
+  }
+
+
 }

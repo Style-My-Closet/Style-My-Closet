@@ -28,7 +28,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-public class NewClothAttributeNotificationEventListenerIntegrationTest extends IntegrationTestSupport {
+public class NewClothAttributeNotificationEventListenerIntegrationTest extends
+    IntegrationTestSupport {
 
   @Autowired
   NewClothAttributeNotificationEventListener listener;
@@ -47,7 +48,7 @@ public class NewClothAttributeNotificationEventListenerIntegrationTest extends I
 
   User createUser(String name, String email, Long id) {
     UserCreateRequest request = new UserCreateRequest(name, email, "test");
-    User user = new User(request);
+    User user = new User(request.name(), request.email(), request.password());
     ReflectionTestUtils.setField(user, "id", id);
     return user;
   }
@@ -72,14 +73,16 @@ public class NewClothAttributeNotificationEventListenerIntegrationTest extends I
           List<Notification> notifications = invocation.getArgument(0);
           Instant createdAt = Instant.now();
 
-          for(Notification notification : notifications) {
+          for (Notification notification : notifications) {
             ReflectionTestUtils.setField(notification, "id", idGenerator.getAndIncrement());
             ReflectionTestUtils.setField(notification, "createdAt", createdAt);
           }
           return notifications;
         });
-    given(sseRepository.findByUserId(insertUser1.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter)));
-    given(sseRepository.findByUserId(insertUser2.getId())).willReturn(new CopyOnWriteArrayList<>(List.of(emitter2)));
+    given(sseRepository.findByUserId(insertUser1.getId())).willReturn(
+        new CopyOnWriteArrayList<>(List.of(emitter)));
+    given(sseRepository.findByUserId(insertUser2.getId())).willReturn(
+        new CopyOnWriteArrayList<>(List.of(emitter2)));
 
     NewClothAttributeEvent event = new NewClothAttributeEvent(1L, "속성 추가");
 
