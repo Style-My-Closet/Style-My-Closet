@@ -1,15 +1,14 @@
 package com.stylemycloset.notification.event.domain;
 
-import com.stylemycloset.user.entity.Role;
 import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
 
-public record RoleChangedEvent (
+public record FollowEvent(
     @NotNull Long receiverId,
-    @NotNull Role previousRole
+    @NotNull String followUsername
 ) {
-  public RoleChangedEvent {
+  public FollowEvent {
     Objects.requireNonNull(receiverId, "receiverId는 null일 수 없음");
-    Objects.requireNonNull(previousRole, "previousRole는 null일 수 없음");
+    Objects.requireNonNull(followUsername, "followUsername는 null일 수 없음");
   }
 }

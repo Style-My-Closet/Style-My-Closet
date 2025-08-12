@@ -9,12 +9,10 @@ import static org.mockito.Mockito.verify;
 
 import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.entity.NotificationLevel;
-import com.stylemycloset.notification.event.domain.FeedCommentEvent;
+import com.stylemycloset.notification.event.domain.FollowEvent;
 import com.stylemycloset.notification.repository.NotificationRepository;
 import com.stylemycloset.notification.util.NotificationStubHelper;
 import com.stylemycloset.notification.util.TestUserFactory;
-import com.stylemycloset.ootd.entity.Feed;
-import com.stylemycloset.ootd.repo.FeedRepository;
 import com.stylemycloset.sse.dto.SseInfo;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
@@ -30,13 +28,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-public class FeedCommentNotificationEventListenerIntegrationTest extends IntegrationTestSupport {
+public class NewFollowerNotificationEventListenerIntegrationTest extends IntegrationTestSupport {
 
   @Autowired
-  FeedCommentNotificationEventListener listener;
+  NewFollowerNotificationEventListener listener;
 
   @MockitoBean
   NotificationRepository notificationRepository;
@@ -44,54 +41,46 @@ public class FeedCommentNotificationEventListenerIntegrationTest extends Integra
   @MockitoBean
   UserRepository userRepository;
 
-  @MockitoBean
-  FeedRepository feedRepository;
-
   @Autowired
   SseServiceImpl sseService;
 
   @MockitoBean
   SseRepository sseRepository;
 
-  @DisplayName("피드 댓글 이벤트가 호출되면 알림을 생성하고 SSE로 전송 후 로그를 띄운다")
+  @DisplayName("팔로우 이벤트가 호출되면 알림을 생성하고 SSE로 전송 후 로그를 띄운다")
   @Test
-  void handleCommentEvent_sendSseMessage() throws Exception {
+  void handleNewFollowerNotificationEvent_sendSseMessage() throws Exception {
     // given
-    User user = TestUserFactory.createUser("name", "test@test.email", 7L);
-    User commentUser = TestUserFactory.createUser("commentUsername", "test@test.email", 77L);
+    User followee = TestUserFactory.createUser("followeeUser", "followeeUser@test.test", 15L);
 
-    Feed feed = Feed.createFeed(user, null, "피드 내용");
-    ReflectionTestUtils.setField(feed, "id", 7L);
-
-    given(feedRepository.findWithUserById(feed.getId())).willReturn(Optional.of(feed));
-    given(userRepository.findById(commentUser.getId())).willReturn(Optional.of(commentUser));
+    given(userRepository.findById(followee.getId())).willReturn(Optional.of(followee));
     NotificationStubHelper.stubSave(notificationRepository);
 
     CopyOnWriteArrayList<SseEmitter> list1 = new CopyOnWriteArrayList<>();
-    given(sseRepository.findOrCreateEmitters(user.getId())).willReturn(list1);
+    given(sseRepository.findOrCreateEmitters(followee.getId())).willReturn(list1);
     willAnswer(inv -> { list1.add(inv.getArgument(1)); return null; })
-        .given(sseRepository).addEmitter(eq(user.getId()), any(SseEmitter.class));
+        .given(sseRepository).addEmitter(eq(followee.getId()), any(SseEmitter.class));
 
     Deque<SseInfo> queue1 = new ConcurrentLinkedDeque<>();
-    given(sseRepository.findOrCreateEvents(user.getId())).willReturn(queue1);
+    given(sseRepository.findOrCreateEvents(followee.getId())).willReturn(queue1);
 
     String now = String.valueOf(System.currentTimeMillis());
-    sseService.connect(user.getId(), now, null);
+    sseService.connect(followee.getId(), now, null);
 
-    FeedCommentEvent event = new FeedCommentEvent(7L, 77L);
+    FollowEvent followEvent = new FollowEvent(followee.getId(), "user");
 
     // when
-    listener.handler(event);
+    listener.handler(followEvent);
 
     // then
     ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
     verify(notificationRepository).save(captor.capture());
 
     Notification saved = captor.getValue();
-    assertThat(saved.getReceiverId()).isEqualTo(user.getId());
+    assertThat(saved.getReceiverId()).isEqualTo(followee.getId());
     assertThat(saved.getId()).isNotNull();
     assertThat(saved.getCreatedAt()).isNotNull();
-    assertThat(saved.getTitle()).isEqualTo("commentUsername님이 댓글을 달았어요.");
+    assertThat(saved.getTitle()).isEqualTo("user님이 나를 팔로우했어요.");
     assertThat(saved.getLevel()).isEqualTo(NotificationLevel.INFO);
     assertThat(queue1).isNotEmpty();
   }

@@ -9,12 +9,10 @@ import static org.mockito.Mockito.verify;
 
 import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.entity.NotificationLevel;
-import com.stylemycloset.notification.event.domain.FeedCommentEvent;
+import com.stylemycloset.notification.event.domain.WeatherAlertEvent;
 import com.stylemycloset.notification.repository.NotificationRepository;
 import com.stylemycloset.notification.util.NotificationStubHelper;
 import com.stylemycloset.notification.util.TestUserFactory;
-import com.stylemycloset.ootd.entity.Feed;
-import com.stylemycloset.ootd.repo.FeedRepository;
 import com.stylemycloset.sse.dto.SseInfo;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
@@ -30,13 +28,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-public class FeedCommentNotificationEventListenerIntegrationTest extends IntegrationTestSupport {
+public class WeatherAlertNotificationEventListenerIntegrationTest extends IntegrationTestSupport {
 
   @Autowired
-  FeedCommentNotificationEventListener listener;
+  WeatherAlertNotificationEventListener listener;
 
   @MockitoBean
   NotificationRepository notificationRepository;
@@ -44,55 +41,48 @@ public class FeedCommentNotificationEventListenerIntegrationTest extends Integra
   @MockitoBean
   UserRepository userRepository;
 
-  @MockitoBean
-  FeedRepository feedRepository;
-
   @Autowired
   SseServiceImpl sseService;
 
   @MockitoBean
   SseRepository sseRepository;
 
-  @DisplayName("피드 댓글 이벤트가 호출되면 알림을 생성하고 SSE로 전송 후 로그를 띄운다")
+  @DisplayName("날씨 변화 이벤트가 호출되면 알림을 생성하고 SSE로 전송 후 로그를 띄운다")
   @Test
-  void handleCommentEvent_sendSseMessage() throws Exception {
+  void handleWeatherAlertNotificationEvent_sendSseMessage() throws Exception {
     // given
-    User user = TestUserFactory.createUser("name", "test@test.email", 7L);
-    User commentUser = TestUserFactory.createUser("commentUsername", "test@test.email", 77L);
+    User weatherSender = TestUserFactory.createUser("weatherSender", "weatherSender@test.test", 17L);
 
-    Feed feed = Feed.createFeed(user, null, "피드 내용");
-    ReflectionTestUtils.setField(feed, "id", 7L);
-
-    given(feedRepository.findWithUserById(feed.getId())).willReturn(Optional.of(feed));
-    given(userRepository.findById(commentUser.getId())).willReturn(Optional.of(commentUser));
+    given(userRepository.findById(weatherSender.getId())).willReturn(Optional.of(weatherSender));
     NotificationStubHelper.stubSave(notificationRepository);
 
     CopyOnWriteArrayList<SseEmitter> list1 = new CopyOnWriteArrayList<>();
-    given(sseRepository.findOrCreateEmitters(user.getId())).willReturn(list1);
+    given(sseRepository.findOrCreateEmitters(weatherSender.getId())).willReturn(list1);
     willAnswer(inv -> { list1.add(inv.getArgument(1)); return null; })
-        .given(sseRepository).addEmitter(eq(user.getId()), any(SseEmitter.class));
+        .given(sseRepository).addEmitter(eq(weatherSender.getId()), any(SseEmitter.class));
 
     Deque<SseInfo> queue1 = new ConcurrentLinkedDeque<>();
-    given(sseRepository.findOrCreateEvents(user.getId())).willReturn(queue1);
+    given(sseRepository.findOrCreateEvents(weatherSender.getId())).willReturn(queue1);
 
     String now = String.valueOf(System.currentTimeMillis());
-    sseService.connect(user.getId(), now, null);
+    sseService.connect(weatherSender.getId(), now, null);
 
-    FeedCommentEvent event = new FeedCommentEvent(7L, 77L);
+    WeatherAlertEvent weatherAlertEvent = new WeatherAlertEvent(weatherSender.getId(), 1L, "날씨 변화 테스트");
 
     // when
-    listener.handler(event);
+    listener.handler(weatherAlertEvent);
 
     // then
     ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
     verify(notificationRepository).save(captor.capture());
 
     Notification saved = captor.getValue();
-    assertThat(saved.getReceiverId()).isEqualTo(user.getId());
+    assertThat(saved.getReceiverId()).isEqualTo(weatherSender.getId());
     assertThat(saved.getId()).isNotNull();
     assertThat(saved.getCreatedAt()).isNotNull();
-    assertThat(saved.getTitle()).isEqualTo("commentUsername님이 댓글을 달았어요.");
-    assertThat(saved.getLevel()).isEqualTo(NotificationLevel.INFO);
+    assertThat(saved.getTitle()).isEqualTo("급격한 날씨 변화가 발생했습니다.");
+    assertThat(saved.getContent()).isEqualTo("날씨 변화 테스트");
+    assertThat(saved.getLevel()).isEqualTo(NotificationLevel.WARNING);
     assertThat(queue1).isNotEmpty();
   }
 }

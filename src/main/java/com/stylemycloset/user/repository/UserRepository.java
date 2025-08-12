@@ -4,12 +4,14 @@ import com.stylemycloset.user.entity.User;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 public interface UserRepository extends JpaRepository<User, Long>, UserRepositoryCustom {
 
   boolean existsByEmail(String email);
 
-  Set<User> findByLockedFalseAndDeletedAtIsNull();
+  @Query("SELECT u.id FROM User u WHERE u.deletedAt is null")
+  Set<Long> findActiveUserIds();
 
   Optional<User> findByEmail(String email);
 
