@@ -1,6 +1,8 @@
 package com.stylemycloset.directmessage;
 
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -10,6 +12,8 @@ import com.stylemycloset.directmessage.dto.DirectMessageResult;
 import com.stylemycloset.directmessage.dto.request.DirectMessageCreateRequest;
 import com.stylemycloset.directmessage.entity.DirectMessageKey;
 import com.stylemycloset.directmessage.repository.DirectMessageRepository;
+import com.stylemycloset.notification.dto.NotificationDto;
+import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import java.time.Duration;
@@ -31,6 +35,8 @@ import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
@@ -46,6 +52,9 @@ class DirectMessageIntegrationTest extends IntegrationTestSupport {
   private UserRepository userRepository;
   @Autowired
   private DirectMessageRepository messageRepository;
+
+  @MockitoBean
+  private SseService sseService;
 
   @LocalServerPort
   private int port;
@@ -84,6 +93,11 @@ class DirectMessageIntegrationTest extends IntegrationTestSupport {
         new DirectMessageCreateRequest(sender.getId(), receiver.getId(), content);
     senderSession.send("/pub/direct-messages_send", request);
 
+    if (TestTransaction.isActive()) {
+      TestTransaction.flagForCommit();
+      TestTransaction.end();
+    }
+
     // then
     await()
         .atMost(Duration.ofSeconds(10))
@@ -97,6 +111,7 @@ class DirectMessageIntegrationTest extends IntegrationTestSupport {
             DirectMessageResult::content
         )
         .containsExactly(sender.getId(), receiver.getId(), content);
+    verify(sseService).sendNotification(any(NotificationDto.class));
   }
 
   private StompSession createClientSession()

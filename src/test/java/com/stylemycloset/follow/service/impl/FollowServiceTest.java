@@ -1,5 +1,8 @@
 package com.stylemycloset.follow.service.impl;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+
 import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
 import com.stylemycloset.follow.dto.FollowListResponse;
 import com.stylemycloset.follow.dto.FollowResult;
@@ -16,6 +19,8 @@ import com.stylemycloset.follow.exception.FollowSelfForbiddenException;
 import com.stylemycloset.follow.repository.FollowRepository;
 import com.stylemycloset.follow.service.FollowService;
 import com.stylemycloset.IntegrationTestSupport;
+import com.stylemycloset.notification.dto.NotificationDto;
+import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import org.assertj.core.api.Assertions;
@@ -25,6 +30,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.transaction.TestTransaction;
 
 class FollowServiceTest extends IntegrationTestSupport {
 
@@ -37,6 +43,8 @@ class FollowServiceTest extends IntegrationTestSupport {
 
   @MockitoBean
   private BinaryContentStorage binaryContentStorage;
+  @MockitoBean
+  private SseService sseService;
 
   @AfterEach
   void tearDown() {
@@ -55,12 +63,19 @@ class FollowServiceTest extends IntegrationTestSupport {
     // when
     FollowResult followResult = followService.startFollowing(followCreateRequest);
 
+    if (TestTransaction.isActive()) {
+      TestTransaction.flagForCommit();
+      TestTransaction.end();
+    }
+
     // then
     SoftAssertions.assertSoftly(softly -> {
       softly.assertThat(followRepository.findAll()).hasSize(1);
       softly.assertThat(followResult.follower().userId()).isEqualTo(userA.getId());
       softly.assertThat(followResult.followee().userId()).isEqualTo(userB.getId());
     });
+
+    verify(sseService).sendNotification(any(NotificationDto.class));
   }
 
   @DisplayName("자신은 스스로를 팔로우 할 수 없다")
