@@ -1,10 +1,10 @@
 package com.stylemycloset.recommendation.util;
 
-import com.stylemycloset.cloth.entity.AttributeOption;
 import com.stylemycloset.recommendation.entity.Color;
 import com.stylemycloset.recommendation.entity.PantsLength;
 import com.stylemycloset.recommendation.entity.SleeveLength;
 import java.util.Arrays;
+
 
 public class ClothingVectorizer {
 

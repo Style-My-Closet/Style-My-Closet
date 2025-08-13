@@ -7,7 +7,7 @@ import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.recommendation.dto.RecommendationDto;
 import com.stylemycloset.recommendation.entity.ClothingCondition;
 import com.stylemycloset.recommendation.mapper.ClothingConditionMapper;
-import com.stylemycloset.recommendation.repository.ClothingFeatureRepository;
+import com.stylemycloset.recommendation.repository.ClothingConditionRepository;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import com.stylemycloset.weather.entity.Weather;
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class VectorCosineSimilarityMeter {
 
-    private final ClothingFeatureRepository repository;
+    private final ClothingConditionRepository repository;
     private final WeatherRepository weatherRepository;
     private final UserRepository userRepository;
 
