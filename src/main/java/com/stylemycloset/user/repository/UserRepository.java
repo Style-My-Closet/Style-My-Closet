@@ -9,11 +9,10 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
 
   boolean existsByEmail(String email);
 
-  Optional<User> findByemail(String email);
+  Optional<User> findByEmail(String email);
 
   Set<User> findByLockedFalseAndDeleteAtIsNull();
 
-  Optional<User> findByEmail(String email);
 
   // ID로 활성화된(삭제되지 않고, 잠기지 않은) 유저만 찾는 메서드
   Optional<User> findByIdAndDeleteAtIsNullAndLockedIsFalse(Long id);

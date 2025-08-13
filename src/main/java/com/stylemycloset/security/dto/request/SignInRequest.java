@@ -1,6 +1,6 @@
 package com.stylemycloset.security.dto.request;
 
-public record SigninRequest(
+public record SignInRequest(
     String email,
     String password
 ) {

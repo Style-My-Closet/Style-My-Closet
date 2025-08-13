@@ -47,7 +47,7 @@ public class UserDetailServiceTest {
         null, false);
 
     // Mock 객체 동작 정의
-    when(userRepository.findByemail(user.getEmail())).thenReturn(Optional.of(user));
+    when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
     when(userMapper.UsertoUserDto(user)).thenReturn(userDto);
 
     //when
@@ -60,7 +60,7 @@ public class UserDetailServiceTest {
     assertThat(userDetails.getUsername()).isEqualTo(user.getName());
     assertThat(userDetails.getPassword()).isEqualTo(user.getPassword());
 
-    verify(userRepository, times(1)).findByemail(user.getEmail());
+    verify(userRepository, times(1)).findByEmail(user.getEmail());
     verify(userMapper, times(1)).UsertoUserDto(user);
   }
 }

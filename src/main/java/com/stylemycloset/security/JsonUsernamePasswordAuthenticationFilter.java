@@ -2,7 +2,7 @@ package com.stylemycloset.security;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.stylemycloset.security.dto.request.SigninRequest;
+import com.stylemycloset.security.dto.request.SignInRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -32,8 +32,8 @@ public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAu
     }
 
     try {
-      SigninRequest signinRequest = objectMapper.readValue(request.getInputStream(),
-          SigninRequest.class);
+      SignInRequest signinRequest = objectMapper.readValue(request.getInputStream(),
+          SignInRequest.class);
 
       UsernamePasswordAuthenticationToken authRequest =
           new UsernamePasswordAuthenticationToken(signinRequest.email(), signinRequest.password());
