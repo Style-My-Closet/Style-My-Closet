@@ -6,8 +6,8 @@ import com.stylemycloset.directmessage.dto.response.DirectMessageResponse;
 import com.stylemycloset.directmessage.dto.response.DirectMessageResponse.NextCursorInfo;
 import com.stylemycloset.directmessage.dto.response.DirectMessageUserInfo;
 import com.stylemycloset.directmessage.entity.DirectMessage;
-import com.stylemycloset.directmessage.repository.cursor.CursorStrategy;
-import com.stylemycloset.directmessage.repository.cursor.strategy.DirectMessageField;
+import com.stylemycloset.common.repository.cursor.CursorStrategy;
+import com.stylemycloset.directmessage.repository.cursor.DirectMessageField;
 import com.stylemycloset.user.entity.User;
 import java.net.URL;
 import java.util.List;
@@ -83,7 +83,7 @@ public class DirectMessageMapper {
 
     DirectMessage lastMessage = messages.getContent().get(messages.getContent().size() - 1);
 
-    CursorStrategy<?> cursorStrategy = DirectMessageField.resolveStrategy(sortBy);
+    CursorStrategy<?, DirectMessage> cursorStrategy = DirectMessageField.resolveStrategy(sortBy);
     String cursor = cursorStrategy.extract(lastMessage).toString();
     String idAfter = lastMessage.getId().toString();
 

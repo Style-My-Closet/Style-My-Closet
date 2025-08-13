@@ -1,11 +1,11 @@
-package com.stylemycloset.follow.repository.cursor.strategy.impl;
+package com.stylemycloset.follow.repository.cursor.strategy;
 
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberPath;
+import com.stylemycloset.common.repository.cursor.CursorStrategy;
 import com.stylemycloset.follow.entity.Follow;
-import com.stylemycloset.follow.repository.cursor.strategy.CursorStrategy;
 import java.util.function.Function;
 import org.springframework.data.domain.Sort.Direction;
 
@@ -13,8 +13,7 @@ public record NumberCursorStrategy<T extends Number & Comparable<T>>(
     NumberPath<T> path,
     Function<String, T> parser,
     Function<Follow, T> extractor
-) implements CursorStrategy<T> {
-
+) implements CursorStrategy<T, Follow> {
 
   @Override
   public T parse(String rawCursor) {
@@ -30,7 +29,7 @@ public record NumberCursorStrategy<T extends Number & Comparable<T>>(
   }
 
   @Override
-  public BooleanExpression buildPredicate(String rawDirection, String rawCursor) {
+  public BooleanExpression buildInequalityPredicate(String rawDirection, String rawCursor) {
     if (rawCursor == null || rawCursor.isBlank()) {
       return null;
     }
@@ -49,6 +48,15 @@ public record NumberCursorStrategy<T extends Number & Comparable<T>>(
       return new OrderSpecifier<>(Order.DESC, path);
     }
     return new OrderSpecifier<>(Order.ASC, path);
+  }
+
+  @Override
+  public BooleanExpression buildEq(String rawCursor) {
+    if (rawCursor == null || rawCursor.isBlank()) {
+      return null;
+    }
+    T parsed = parse(rawCursor);
+    return path.eq(parsed);
   }
 
 }

@@ -1,4 +1,4 @@
-package com.stylemycloset.directmessage;
+package com.stylemycloset.directmessage.controller;
 
 import com.stylemycloset.directmessage.dto.request.DirectMessageCreateRequest;
 import com.stylemycloset.directmessage.dto.DirectMessageResult;

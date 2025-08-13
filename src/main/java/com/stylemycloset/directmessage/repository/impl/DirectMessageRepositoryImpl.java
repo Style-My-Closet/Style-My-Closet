@@ -4,10 +4,10 @@ import static com.stylemycloset.directmessage.entity.QDirectMessage.directMessag
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.stylemycloset.common.repository.cursor.CursorStrategy;
 import com.stylemycloset.directmessage.entity.DirectMessage;
 import com.stylemycloset.directmessage.repository.DirectMessageRepositoryCustom;
-import com.stylemycloset.directmessage.repository.cursor.CursorStrategy;
-import com.stylemycloset.directmessage.repository.cursor.strategy.DirectMessageField;
+import com.stylemycloset.directmessage.repository.cursor.DirectMessageField;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -31,8 +31,9 @@ public class DirectMessageRepositoryImpl implements DirectMessageRepositoryCusto
       String sortBy,
       String sortDirection
   ) {
-    CursorStrategy<?> cursorStrategy = DirectMessageField.resolveStrategy(sortBy);
-    CursorStrategy<?> idAfterStrategy = DirectMessageField.resolveStrategy(
+    CursorStrategy<?, DirectMessage> cursorStrategy = DirectMessageField.resolveStrategy(
+        sortBy);
+    CursorStrategy<?, DirectMessage> idAfterStrategy = DirectMessageField.resolveStrategy(
         directMessage.id.getMetadata().getName()
     );
 
@@ -42,8 +43,7 @@ public class DirectMessageRepositoryImpl implements DirectMessageRepositoryCusto
         .join(directMessage.receiver).fetchJoin()
         .where(
             buildConversationCondition(senderId, receiverId),
-            cursorStrategy.buildPredicate(sortDirection, cursor),
-            idAfterStrategy.buildPredicate(sortDirection, idAfter),
+            buildPredicate(cursor, idAfter, sortDirection, cursorStrategy, idAfterStrategy),
             directMessage.deletedAt.isNull(),
             directMessage.sender.deletedAt.isNull(),
             directMessage.receiver.deletedAt.isNull()
@@ -58,6 +58,24 @@ public class DirectMessageRepositoryImpl implements DirectMessageRepositoryCusto
     return convertToSlice(limit, directMessages, cursorStrategy, sortDirection);
   }
 
+  private BooleanExpression buildPredicate( // 추출 예정
+      String cursor,
+      String idAfter,
+      String sortDirection,
+      CursorStrategy<?, DirectMessage> cursorStrategy,
+      CursorStrategy<?, DirectMessage> idAfterStrategy
+  ) {
+    BooleanExpression booleanExpression = cursorStrategy.buildInequalityPredicate(sortDirection,
+        cursor);
+    BooleanExpression buildEq = cursorStrategy.buildEq(cursor);
+    BooleanExpression buildSecondary = idAfterStrategy.buildInequalityPredicate(sortDirection,
+        idAfter);
+    if (buildEq != null && buildSecondary != null) {
+      booleanExpression.or(buildEq.and(buildSecondary));
+    }
+    return booleanExpression;
+  }
+
   private BooleanExpression buildConversationCondition(
       Long senderId,
       Long receiverId
@@ -65,7 +83,6 @@ public class DirectMessageRepositoryImpl implements DirectMessageRepositoryCusto
     if (senderId == null || receiverId == null) {
       return null;
     }
-
     return directMessage.sender.id.eq(senderId).and(directMessage.receiver.id.eq(receiverId))
         .or(directMessage.sender.id.eq(receiverId).and(directMessage.receiver.id.eq(senderId)));
   }
@@ -73,7 +90,7 @@ public class DirectMessageRepositoryImpl implements DirectMessageRepositoryCusto
   private SliceImpl<DirectMessage> convertToSlice(
       Integer limit,
       List<DirectMessage> directMessages,
-      CursorStrategy<?> cursorStrategy,
+      CursorStrategy<?, DirectMessage> cursorStrategy,
       String sortDirection
   ) {
     Objects.requireNonNull(limit, "limit은 null이 될 수 없습니다");

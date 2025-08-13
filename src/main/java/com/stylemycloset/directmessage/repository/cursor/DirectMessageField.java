@@ -1,16 +1,16 @@
-package com.stylemycloset.directmessage.repository.cursor.strategy;
+package com.stylemycloset.directmessage.repository.cursor;
 
+import com.stylemycloset.common.repository.cursor.CursorStrategy;
 import com.stylemycloset.directmessage.entity.DirectMessage;
 import com.stylemycloset.directmessage.entity.QDirectMessage;
-import com.stylemycloset.directmessage.repository.cursor.CursorStrategy;
-import com.stylemycloset.directmessage.repository.cursor.strategy.impl.ChronologicalCursorStrategy;
-import com.stylemycloset.directmessage.repository.cursor.strategy.impl.NumberCursorStrategy;
+import com.stylemycloset.directmessage.repository.cursor.strategy.ChronologicalCursorStrategy;
+import com.stylemycloset.directmessage.repository.cursor.strategy.DirectMessageNumberCursorStrategy;
 import java.time.Instant;
 import java.util.Arrays;
 
 public enum DirectMessageField {
 
-  ID(new NumberCursorStrategy<>(
+  ID(new DirectMessageNumberCursorStrategy<>(
       QDirectMessage.directMessage.id,
       Long::parseLong,
       DirectMessage::getId)
@@ -28,13 +28,13 @@ public enum DirectMessageField {
       DirectMessage::getUpdatedAt)
   );
 
-  private final CursorStrategy<?> cursorStrategy;
+  private final CursorStrategy<?, DirectMessage> cursorStrategy;
 
-  DirectMessageField(CursorStrategy<?> cursorStrategy) {
+  DirectMessageField(CursorStrategy<?, DirectMessage> cursorStrategy) {
     this.cursorStrategy = cursorStrategy;
   }
 
-  public static CursorStrategy<?> resolveStrategy(String sortBy) {
+  public static CursorStrategy<?, DirectMessage> resolveStrategy(String sortBy) {
     if (sortBy == null || sortBy.isBlank()) {
       return CREATED_AT.cursorStrategy;
     }

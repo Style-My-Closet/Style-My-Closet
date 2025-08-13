@@ -1,9 +1,9 @@
 package com.stylemycloset.follow.repository.impl.cursorstrategy;
 
 import com.querydsl.core.types.Path;
+import com.stylemycloset.common.repository.cursor.CursorStrategy;
 import com.stylemycloset.follow.entity.QFollow;
 import com.stylemycloset.follow.repository.cursor.FollowCursorField;
-import com.stylemycloset.follow.repository.cursor.strategy.CursorStrategy;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +33,7 @@ class FollowCursorFieldTest {
   @ValueSource(strings = {"   "})
   void nullOrBlankSortBy_returnsCreatedAtStrategy(String sortBy) {
     // given & when
-    CursorStrategy<?> strategy = FollowCursorField.resolveStrategy(sortBy);
+    CursorStrategy<?, ?> strategy = FollowCursorField.resolveStrategy(sortBy);
 
     // then
     Assertions.assertThat(strategy.path().getMetadata().getName())
@@ -45,7 +45,7 @@ class FollowCursorFieldTest {
   @MethodSource("resolveFollowField")
   void strategyMappingTest(String sortBy, Path<?> path) {
     // when
-    CursorStrategy<?> cursorStrategy = FollowCursorField.resolveStrategy(sortBy);
+    CursorStrategy<?, ?> cursorStrategy = FollowCursorField.resolveStrategy(sortBy);
 
     // then
     Assertions.assertThat(cursorStrategy.path()).isEqualTo(path);

@@ -83,17 +83,17 @@ class DirectMessageRepositoryTest extends IntegrationTestSupport {
     DirectMessage directMessageAtoB = save(userA, userB, "hello");
     DirectMessage directMessageBtoA = save(userB, userA, "hi");
 
-    Slice<DirectMessage> s1 = directMessageRepository.findMessagesBetweenParticipants(
+    Slice<DirectMessage> firstPage = directMessageRepository.findMessagesBetweenParticipants(
         userA.getId(), userB.getId(), null, null, 10,
         QDirectMessage.directMessage.createdAt.getMetadata().getName(), "DESC"
     );
-    Slice<DirectMessage> s2 = directMessageRepository.findMessagesBetweenParticipants(
+    Slice<DirectMessage> secondPage = directMessageRepository.findMessagesBetweenParticipants(
         userB.getId(), userA.getId(), null, null, 10,
         QDirectMessage.directMessage.createdAt.getMetadata().getName(), "DESC"
     );
 
-    Assertions.assertThat(s1.getContent()).extracting(DirectMessage::getId)
-        .containsExactlyElementsOf(s2.getContent().stream().map(DirectMessage::getId).toList());
+    Assertions.assertThat(firstPage.getContent()).extracting(DirectMessage::getId)
+        .containsExactlyElementsOf(secondPage.getContent().stream().map(DirectMessage::getId).toList());
   }
 
   @DisplayName("생성 날짜 기준 ASC 정렬도 동작한다 (과거→최신)")
@@ -106,14 +106,14 @@ class DirectMessageRepositoryTest extends IntegrationTestSupport {
     DirectMessage secondMessage = save(userB, userA, "2");
     DirectMessage thirdMessage = save(userA, userB, "3");
 
-    Slice<DirectMessage> s = directMessageRepository.findMessagesBetweenParticipants(
+    Slice<DirectMessage> messages = directMessageRepository.findMessagesBetweenParticipants(
         userA.getId(), userB.getId(),
         null, null, 10,
         QDirectMessage.directMessage.createdAt.getMetadata().getName(),
         "ASC"
     );
 
-    Assertions.assertThat(s.getContent()).extracting(DirectMessage::getId)
+    Assertions.assertThat(messages.getContent()).extracting(DirectMessage::getId)
         .containsExactly(firstMessage.getId(), secondMessage.getId(), thirdMessage.getId());
   }
 
@@ -128,12 +128,12 @@ class DirectMessageRepositoryTest extends IntegrationTestSupport {
     deletedMessage.softDelete();
     directMessageRepository.save(deletedMessage);
 
-    Slice<DirectMessage> s = directMessageRepository.findMessagesBetweenParticipants(
+    Slice<DirectMessage> messages = directMessageRepository.findMessagesBetweenParticipants(
         userA.getId(), userB.getId(), null, null, 10,
         QDirectMessage.directMessage.createdAt.getMetadata().getName(), "DESC"
     );
 
-    Assertions.assertThat(s.getContent()).extracting(DirectMessage::getId)
+    Assertions.assertThat(messages.getContent()).extracting(DirectMessage::getId)
         .containsExactly(activeMessage.getId());
   }
 
