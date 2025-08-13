@@ -28,7 +28,8 @@ abstract class TestContainerSupport {
       .withDatabaseName("testdb")
       .withUsername("testuser")
       .withPassword("testpass")
-      .withTmpFs(Map.of("/var/lib/postgresql/data", "rw"));
+      .withTmpFs(Map.of("/var/lib/postgresql/data", "rw"))
+      .withCommand("postgres", "-c", "max_connections=200");
 
   private static final LocalStackContainer LOCAL_STACK_CONTAINER = new LocalStackContainer(
       DockerImageName.parse("localstack/localstack:3.5.0"))

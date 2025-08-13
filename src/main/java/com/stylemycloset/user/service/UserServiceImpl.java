@@ -1,7 +1,12 @@
 package com.stylemycloset.user.service;
 
+
 import com.stylemycloset.cloth.entity.Closet;
 import com.stylemycloset.cloth.repository.ClosetRepository;
+
+import com.stylemycloset.notification.event.domain.RoleChangedEvent;
+import com.stylemycloset.security.jwt.JwtService;
+
 import com.stylemycloset.user.dto.data.ProfileDto;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.dto.request.ChangePasswordRequest;
@@ -11,6 +16,7 @@ import com.stylemycloset.user.dto.request.UserLockUpdateRequest;
 import com.stylemycloset.user.dto.request.UserPageRequest;
 import com.stylemycloset.user.dto.request.UserRoleUpdateRequest;
 import com.stylemycloset.user.dto.response.UserCursorResponse;
+import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.exception.EmailDuplicateException;
 import com.stylemycloset.user.exception.UserNotFoundException;
@@ -19,6 +25,9 @@ import com.stylemycloset.user.repository.UserRepository;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,8 +37,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserServiceImpl implements UserService {
 
   private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final ApplicationEventPublisher publisher;
   private final UserMapper userMapper;
+
   private final ClosetRepository closetRepository;
+
+  private final JwtService jwtService;
 
 
   @Transactional
@@ -38,8 +52,9 @@ public class UserServiceImpl implements UserService {
     if (userRepository.existsByEmail(request.email())) {
       throw new EmailDuplicateException();
     }
+    String encodedPassword = passwordEncoder.encode(request.password());
 
-    User user = new User(request.name(), request.email(), request.password());
+    User user = new User(request.name(), request.email(), encodedPassword);
     User savedUser = userRepository.save(user);
     // 사용자 생성 시 기본 옷장 자동 생성
     Closet closet = new Closet(savedUser);
@@ -47,13 +62,17 @@ public class UserServiceImpl implements UserService {
     return userMapper.UsertoUserDto(savedUser);
   }
 
+  @PreAuthorize("hasRole('ADMIN')")
   @Transactional
   @Override
   public UserDto updateRole(Long userId, UserRoleUpdateRequest updateRequest) {
     User user = userRepository.findById(userId)
         .orElseThrow(UserNotFoundException::new);
 
+    Role previousRole = user.getRole();
+
     user.updateRole(updateRequest.role());
+    publisher.publishEvent(new RoleChangedEvent(userId, previousRole));
     return userMapper.UsertoUserDto(user);
   }
 
@@ -63,9 +82,12 @@ public class UserServiceImpl implements UserService {
     User user = userRepository.findById(userId)
         .orElseThrow(UserNotFoundException::new);
 
-    user.changePassword(request.password());
+    String encodedPassword = passwordEncoder.encode(request.password());
+
+    user.changePassword(encodedPassword);
   }
 
+  @PreAuthorize("hasRole('ADMIN')")
   @Transactional
   @Override
   public void changeLockUser(Long userId, UserLockUpdateRequest updateRequest) {
@@ -73,6 +95,10 @@ public class UserServiceImpl implements UserService {
         .orElseThrow(UserNotFoundException::new);
     boolean locked = updateRequest.locked();
     user.lockUser(locked);
+
+    if (locked) {
+      jwtService.invalidateJwtSession(userId);
+    }
   }
 
 

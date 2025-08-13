@@ -87,3 +87,16 @@ external:
   kakao:
     rest-api-key: ${REST_API_KEY:2441}
     base-url: https://dapi.kakao.com/v2/local/geo/coord2regioncode.json
+
+
+closet:
+  admin:
+    username: ${CLOSET_ADMIN_USERNAME:admin}
+    email: ${CLOSET_ADMIN_EMAIL:admin@closet.com}
+    password: ${CLOSET_ADMIN_PASSWORD:admin123!}
+
+security:
+  jwt:
+    secret: ${SECURITY_JWT_SECRET:myVerySecretJWTKeyThatShouldBeLongEnough}
+    access-token-validity-seconds: ${SECURITY_JWT_ACCESS_TOKEN_VALIDITY_SECONDS:3600}
+    refresh-token-validity-seconds: ${SECURITY_JWT_REFRESH_TOKEN_VALIDITY_SECONDS:86400}

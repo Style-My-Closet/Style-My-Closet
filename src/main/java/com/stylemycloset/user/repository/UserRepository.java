@@ -15,6 +15,9 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
 
   Optional<User> findByEmail(String email);
 
+  Set<User> findByLockedFalseAndDeletedAtIsNull();
+
+
   // ID로 활성화된(삭제되지 않고, 잠기지 않은) 유저만 찾는 메서드
   Optional<User> findByIdAndDeletedAtIsNullAndLockedIsFalse(Long id);
 

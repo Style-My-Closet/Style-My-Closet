@@ -7,8 +7,9 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.verify;
 
-import com.stylemycloset.directmessage.entity.Message;
-import com.stylemycloset.directmessage.entity.repository.MessageRepository;
+import com.stylemycloset.IntegrationTestSupport;
+import com.stylemycloset.directmessage.entity.DirectMessage;
+import com.stylemycloset.directmessage.repository.DirectMessageRepository;
 import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.notification.event.domain.DMSentEvent;
@@ -18,10 +19,8 @@ import com.stylemycloset.notification.util.TestUserFactory;
 import com.stylemycloset.sse.dto.SseInfo;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
-import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
-import java.time.Instant;
 import java.util.Deque;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -46,7 +45,7 @@ public class DMReceivedNotificationEventListenerIntegrationTest extends Integrat
   UserRepository userRepository;
 
   @MockitoBean
-  MessageRepository messageRepository;
+  DirectMessageRepository messageRepository;
 
   @Autowired
   SseServiceImpl sseService;
@@ -59,8 +58,9 @@ public class DMReceivedNotificationEventListenerIntegrationTest extends Integrat
   void handleDMReceivedNotificationEvent_sendSseMessage() throws Exception {
     // given
     User dmSender = TestUserFactory.createUser("dmSenderUser", "dmSenderUser@test.test", 16L);
-    User dmReceiver = TestUserFactory.createUser("dmReceiverUser", "dmReceiverUser@test.test", 160L);
-    Message message = new Message(dmSender, dmReceiver, "test", Instant.now());
+    User dmReceiver = TestUserFactory.createUser("dmReceiverUser", "dmReceiverUser@test.test",
+        160L);
+    DirectMessage message = new DirectMessage(dmSender, dmReceiver, "test");
     ReflectionTestUtils.setField(message, "id", 1L);
 
     given(messageRepository.findWithReceiverById(message.getId())).willReturn(Optional.of(message));
@@ -68,8 +68,10 @@ public class DMReceivedNotificationEventListenerIntegrationTest extends Integrat
 
     CopyOnWriteArrayList<SseEmitter> list1 = new CopyOnWriteArrayList<>();
     given(sseRepository.findOrCreateEmitters(dmReceiver.getId())).willReturn(list1);
-    willAnswer(inv -> { list1.add(inv.getArgument(1)); return null; })
-        .given(sseRepository).addEmitter(eq(dmReceiver.getId()), any(SseEmitter.class));
+    willAnswer(inv -> {
+      list1.add(inv.getArgument(1));
+      return null;
+    }).given(sseRepository).addEmitter(eq(dmReceiver.getId()), any(SseEmitter.class));
 
     Deque<SseInfo> queue1 = new ConcurrentLinkedDeque<>();
     given(sseRepository.findOrCreateEvents(dmReceiver.getId())).willReturn(queue1);

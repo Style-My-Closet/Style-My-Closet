@@ -2,7 +2,6 @@ package com.stylemycloset.location;
 
 
 import com.stylemycloset.common.entity.BaseTimeEntity;
-import com.stylemycloset.common.entity.CreatedAtEntity;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
