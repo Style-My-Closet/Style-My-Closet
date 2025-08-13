@@ -140,13 +140,13 @@ public class UserServiceTest {
     final Long userId = 1L;
     User testUser = createTestUser(testUserCreateRequest);
     given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
-    assertNull(testUser.getDeleteAt());
+    assertNull(testUser.getDeletedAt());
 
     //when
     userService.deleteUser(userId);
 
     //then
-    assertNotNull(testUser.getDeleteAt());
+    assertNotNull(testUser.getDeletedAt());
   }
 
   @Test

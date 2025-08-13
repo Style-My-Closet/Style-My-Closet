@@ -2,7 +2,7 @@ package com.stylemycloset.security.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.security.dto.request.SignInRequest;
-import com.stylemycloset.testutil.IntegrationTestSupport;
+import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import java.util.Map;

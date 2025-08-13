@@ -1,19 +1,13 @@
 package com.stylemycloset.notification.entity;
 
 import com.stylemycloset.common.entity.CreatedAtEntity;
-import com.stylemycloset.user.entity.User;
-import jakarta.persistence.ConstraintMode;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Column;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -35,13 +29,8 @@ public class Notification extends CreatedAtEntity {
   )
   private Long id;
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(
-      name = "receiver_id",
-      nullable = false,
-      foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT)
-  )
-  private User receiver;
+  @Column(name = "receiver_id", nullable = false)
+  private Long receiverId;
 
   @Column(nullable = false, length = 100)
   private String title;
@@ -53,8 +42,8 @@ public class Notification extends CreatedAtEntity {
   @Column(nullable = false)
   private NotificationLevel level;
 
-  public Notification(User receiver, String title, String content, NotificationLevel level) {
-    this.receiver = receiver;
+  public Notification(Long receiverId, String title, String content, NotificationLevel level) {
+    this.receiverId = receiverId;
     this.title = title;
     this.content = content;
     this.level = level;

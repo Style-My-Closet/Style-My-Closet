@@ -1,19 +1,30 @@
 package com.stylemycloset.user.entity;
 
+import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import com.stylemycloset.common.util.StringListJsonConverter;
-import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
-import com.stylemycloset.user.dto.request.UserCreateRequest;
-import com.stylemycloset.user.dto.request.UserLockUpdateRequest;
-import jakarta.persistence.*;
 import com.stylemycloset.location.Location;
+import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import java.time.LocalDate;
+import java.util.List;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -65,6 +76,9 @@ public class User extends SoftDeletableEntity {
 
   private Instant resetPasswordTime;
 
+  @OneToOne
+  @JoinColumn(name = "profile_id")
+  private BinaryContent profileImage; // 나중에 추가해주시면 감사하겠습니다.
 
   public User(String name, String email, String password) {
     this.name = name;
@@ -89,10 +103,6 @@ public class User extends SoftDeletableEntity {
     }
   }
 
-  public void softDelete() {
-    super.setDeleteAt(Instant.now());
-  }
-
   public void updateProfile(ProfileUpdateRequest request) {
     if (request.name() != null) {
       this.name = request.name();
@@ -108,7 +118,7 @@ public class User extends SoftDeletableEntity {
     }
   }
 
-  public void setId(Long id) {// 테스트 때문에 넣었습니다.
+  public void setId(Long id) {// 테스트 때문에 넣었습니다. // 이 부분은 제거해주세요
     this.id = id;
   }
 

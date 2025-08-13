@@ -44,16 +44,25 @@ management:
       exposure:
         include: health, metrics
 
-closet:
+style-my-closet:
+  storage:
+    type: ${STORAGE_TYPE:s3}  # local | s3 (기본값: local) 현재 s3로만 진행합니다.
+    local:
+      root-path: ${STORAGE_LOCAL_ROOT_PATH:.stylemycloset/storage}
+    s3:
+      access-key: ${AWS_S3_ACCESS_KEY:access-key}
+      secret-key: ${AWS_S3_SECRET_KEY:secret-key}
+      region: ${AWS_S3_REGION:region}
+      bucket: ${AWS_S3_BUCKET:bucket}
+      presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION_SECOND:600}
   admin:
     username: ${CLOSET_ADMIN_USERNAME}
     email: ${CLOSET_ADMIN_EMAIL}
     password: ${CLOSET_ADMIN_PASSWORD}
 
-
 external:
   market-index:
-    service-key: ${SERVICE_KEY}
+    service-key: ${SERVICE_KEY:service-key}
     base-url: https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0
     num-of-rows: 100
   kakao:

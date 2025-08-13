@@ -20,7 +20,7 @@ public class NotificationQueryRepository {
   public List<Notification> findAllByCursor(NotificationFindAllRequest request, long receiverId) {
     BooleanBuilder builder = new BooleanBuilder();
 
-    builder.and(qNotification.receiver.id.eq(receiverId));
+    builder.and(qNotification.receiverId.eq(receiverId));
 
     if(request.cursor() != null && request.idAfter() != null) {
       Instant cursor = request.cursor();

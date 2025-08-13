@@ -10,10 +10,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 import com.stylemycloset.location.Location;
+import com.stylemycloset.weather.dto.HumidityDto;
+import com.stylemycloset.weather.dto.PrecipitationDto;
+import com.stylemycloset.weather.dto.TemperatureDto;
 import com.stylemycloset.weather.dto.WeatherDto;
+import com.stylemycloset.weather.dto.WindSpeedDto;
 import com.stylemycloset.weather.entity.*;
 import com.stylemycloset.weather.entity.Weather.AlertType;
 import com.stylemycloset.weather.entity.Weather.SkyStatus;
+import com.stylemycloset.weather.mapper.WeatherInfosMapper;
 import com.stylemycloset.weather.mapper.WeatherMapper;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import com.stylemycloset.weather.service.WeatherService;
@@ -21,6 +26,7 @@ import com.stylemycloset.weather.service.WeatherServiceImpl;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -61,15 +67,17 @@ class WeatherControllerTest {
 
 
     @Test
+    @DisplayName("날씨 리스트 리턴")
     void getWeathers_shouldReturnWeatherList() throws Exception {
         // given
         double latitude = 37.5;
         double longitude = 127.0;
 
         Humidity humidity = new Humidity(65.0, 3.0);
-        Precipitation precipitation = new Precipitation("RAIN", 2.0, 70.0);
+        Precipitation precipitation = new Precipitation(AlertType.RAIN, 2.0, 70.0);
         Temperature temperature = new Temperature(23.0, -1.0, 20.0, 25.0);
         WindSpeed windSpeed = new WindSpeed(5.5, 1.2);
+
 
         Location location = Location.builder()
             .latitude(37.5)
@@ -101,10 +109,10 @@ class WeatherControllerTest {
             LocalDateTime.now(),
             location,
             SkyStatus.CLOUDY,
-            precipitation,
-            humidity,
-            temperature,
-            windSpeed
+            WeatherInfosMapper.toDto(precipitation) ,
+            WeatherInfosMapper.toDto( humidity),
+            WeatherInfosMapper.toDto(temperature) ,
+            WeatherInfosMapper.toDto(windSpeed)
         );
 
 
@@ -141,7 +149,7 @@ class WeatherControllerTest {
             .andExpect(jsonPath("$[0].temperature.max").value(25.0))
 
             // WindSpeed
-            .andExpect(jsonPath("$[0].windSpeed.current").value(5.5))
-            .andExpect(jsonPath("$[0].windSpeed.comparedToDayBefore").value(1.2));
+            .andExpect(jsonPath("$[0].windSpeed.speed").value(5.5))
+            .andExpect(jsonPath("$[0].windSpeed.asWord").value("MODERATE"));
     }
 }

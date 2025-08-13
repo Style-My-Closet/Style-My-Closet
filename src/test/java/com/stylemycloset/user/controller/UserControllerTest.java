@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.stylemycloset.testutil.IntegrationTestSupport;
+import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.user.dto.request.ChangePasswordRequest;
 import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
 import com.stylemycloset.user.dto.request.UserCreateRequest;
@@ -175,7 +175,7 @@ public class UserControllerTest extends IntegrationTestSupport {
         .andExpect(status().isNoContent());
 
     User deletedUser = userRepository.findById(user.getId()).get();
-    assertThat(deletedUser.getDeleteAt()).isNotNull();
+    assertThat(deletedUser.getDeletedAt()).isNotNull();
   }
 
 

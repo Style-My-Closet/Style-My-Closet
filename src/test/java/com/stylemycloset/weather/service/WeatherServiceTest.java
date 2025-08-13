@@ -1,16 +1,12 @@
 package com.stylemycloset.weather.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.location.Location;
 import com.stylemycloset.location.LocationRepository;
-import com.stylemycloset.weather.dto.WeatherAlertEvent;
 import com.stylemycloset.weather.dto.WeatherDto;
 import com.stylemycloset.weather.entity.Humidity;
 import com.stylemycloset.weather.entity.Precipitation;
@@ -19,18 +15,17 @@ import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.entity.Weather.AlertType;
 import com.stylemycloset.weather.entity.WindSpeed;
 import com.stylemycloset.weather.mapper.LocationMapper;
+import com.stylemycloset.weather.mapper.WeatherInfosMapper;
 import com.stylemycloset.weather.mapper.WeatherMapper;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -61,7 +56,7 @@ public class WeatherServiceTest {
     void testGetWeatherByCoordinates() {
         // given
         Humidity humidity = new Humidity(65.0, 3.0);
-        Precipitation precipitation = new Precipitation("RAIN", 2.0, 70.0);
+        Precipitation precipitation = new Precipitation(AlertType.RAIN, 2.0, 70.0);
         Temperature temperature = new Temperature(23.0, -1.0, 20.0, 25.0);
         WindSpeed windSpeed = new WindSpeed(5.5, 1.2);
 
@@ -94,18 +89,18 @@ public class WeatherServiceTest {
             weather.getForecastAt(),
             weather.getLocation(),
             weather.getSkyStatus(),
-            weather.getPrecipitation(),
-            weather.getHumidity(),
-            weather.getTemperature(),
-            weather.getWindSpeed()
+            WeatherInfosMapper.toDto(weather.getPrecipitation()) ,
+            WeatherInfosMapper.toDto(weather.getHumidity()) ,
+            WeatherInfosMapper.toDto(weather.getTemperature()) ,
+            WeatherInfosMapper.toDto(weather.getWindSpeed())
         ));
 
         // when
         List<WeatherDto> result = weatherService.getWeatherByCoordinates(37.5665, 126.9780);
         // then
         assertEquals(1, result.size());
-        assertEquals(23.0, result.get(0).temperature().getCurrent());
-        assertEquals("RAIN", result.get(0).precipitation().getType());
+        assertEquals(23.0, result.get(0).temperature().current());
+        assertEquals(AlertType.RAIN, result.get(0).precipitation().type());
     }
 
     @Test

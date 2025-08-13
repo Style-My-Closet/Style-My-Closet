@@ -1,21 +1,64 @@
 package com.stylemycloset.weather.processor;
 
 import com.stylemycloset.weather.entity.Temperature;
+import com.stylemycloset.weather.entity.Weather;
+import com.stylemycloset.weather.repository.WeatherRepository;
 import com.stylemycloset.weather.util.WeatherBuilderHelperContext;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class TmpProcessor implements WeatherCategoryProcessor {
+
+    private static final Set<String> SUPPORTED = Set.of("TMP", "TMN", "TMX");
+    private final WeatherRepository repository;
 
     @Override
     public boolean supports(String category) {
-        return "TMP".equals(category);
+        return SUPPORTED.contains(category);
     }
 
     @Override
-    public void process(WeatherBuilderHelperContext ctx, String value) {
-        double current = parseDoubleSafe(value);
-        ctx.temperature = new Temperature(current, ctx.temperature.getComparedToDayBefore(), ctx.temperature.getMin(), ctx.temperature.getMax());
+    public void process(WeatherBuilderHelperContext ctx, String category, String value) {
+        double parsedValue = parseDoubleSafe(value);
+        Temperature oldTemp = ctx.temperature;
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfYesterday = today.minusDays(1).atStartOfDay();
+        LocalDateTime endOfYesterday = today.atStartOfDay().minusNanos(1);
+
+
+        // 기존 값 유지, 해당 위치에만 값을 채운 Temperature 생성
+        double current =0.0;
+
+        List<Weather> weathers = repository.findWeathersByForecastedAtYesterday(startOfYesterday, endOfYesterday);
+
+
+        double yesterday;
+        if (weathers.isEmpty()) {
+            yesterday = 0;
+        } else {
+            // 예시: weathers에서 어떤 값을 계산
+            // (실제 계산 로직에 맞게 수정하세요)
+            yesterday = weathers.getFirst().getTemperature().getCurrent();
+        }
+
+        double min = 0.0;
+        double max = 0.0;
+
+        switch (category) {
+            case "TMP" -> current = parsedValue;
+            case "TMN" -> min = parsedValue;
+            case "TMX" -> max = parsedValue;
+        }
+
+        ctx.temperature = new Temperature(current, current-yesterday, min, max);
     }
 
     private double parseDoubleSafe(String value) {
@@ -26,3 +69,4 @@ public class TmpProcessor implements WeatherCategoryProcessor {
         }
     }
 }
+

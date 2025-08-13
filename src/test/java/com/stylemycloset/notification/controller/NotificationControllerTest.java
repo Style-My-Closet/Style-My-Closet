@@ -8,8 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.notification.repository.NotificationRepository;
-import com.stylemycloset.testutil.IntegrationTestSupport;
-import com.stylemycloset.user.dto.request.UserCreateRequest;
+import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -36,44 +35,41 @@ public class NotificationControllerTest extends IntegrationTestSupport {
 
   @DisplayName("알림 삭제 요청을 보낼 시 204응답이 온다")
   @Test
-  void deleteNotifications_ReturnIsNoContent() throws Exception {
+  void deleteNotifications_ReturnIsNoContent() throws Exception{
     // given
-    UserCreateRequest request1 = new UserCreateRequest("test", "test@test.test", "test");
-    User user1 = userRepository.save(
-        new User(request1.name(), request1.email(), request1.password()));
+    User user1 = userRepository.save(new User("test", "test@test.test", "test"));
 
     Notification notification = notificationRepository.save(
-        new Notification(user1, "testTitle", "testContent", NotificationLevel.INFO));
+        new Notification(user1.getId(), "testTitle", "testContent", NotificationLevel.INFO));
 
     // when & then
     mockMvc.perform(
-            delete("/api/notifications/{receiverId}/{notificationId}",
-                user1.getId(), notification.getId()))
+        delete("/api/notifications/{receiverId}/{notificationId}",
+            user1.getId(), notification.getId()))
         .andExpect(status().isNoContent());
   }
 
   @DisplayName("알림 조회 요청을 보낼 시 NotificationDtoCursorResponse가 응답으로 온다")
   @Test
-  void findAllByReceiverId_shouldReturnNotificationDtoCursorResponse() throws Exception {
+  void findAllByReceiverId_shouldReturnNotificationDtoCursorResponse() throws Exception{
     // given
-    UserCreateRequest request4 = new UserCreateRequest("test", "test@test.test", "test");
-    User user4 = new User(request4.name(), request4.email(), request4.password());
+    User user4 = new User("test", "test@test.test", "test");
     userRepository.save(user4);
 
     notificationRepository.save(
-        new Notification(user4, "testTitle", "testContent", NotificationLevel.INFO));
+        new Notification(user4.getId(), "testTitle", "testContent", NotificationLevel.INFO));
     notificationRepository.save(
-        new Notification(user4, "testTitle", "testContent", NotificationLevel.INFO));
+        new Notification(user4.getId(), "testTitle", "testContent", NotificationLevel.INFO));
     notificationRepository.save(
-        new Notification(user4, "testTitle", "testContent", NotificationLevel.INFO));
+        new Notification(user4.getId(), "testTitle", "testContent", NotificationLevel.INFO));
 
     notificationRepository.flush();
 
     // when & then
     mockMvc.perform(
-            get("/api/notifications/{userId}", user4.getId())
-                .param("limit", String.valueOf(2))
-        ).andExpect(status().isOk())
+        get("/api/notifications/{userId}", user4.getId())
+            .param("limit", String.valueOf(2))
+    ).andExpect(status().isOk())
         .andExpect(jsonPath("$.hasNext").value(true))
         .andExpect(jsonPath("$.totalCount").value(3));
   }
