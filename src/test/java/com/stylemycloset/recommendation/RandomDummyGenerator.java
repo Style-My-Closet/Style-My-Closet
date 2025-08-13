@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class DummyDataGenerator {
+public class RandomDummyGenerator {
 
     private static final Random random = new Random();
 
