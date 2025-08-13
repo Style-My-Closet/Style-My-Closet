@@ -1,10 +1,8 @@
 package com.stylemycloset.recommendation.entity;
 
-import com.stylemycloset.cloth.entity.AttributeOption;
-import com.stylemycloset.cloth.entity.Cloth;
-import com.stylemycloset.cloth.entity.ClothingAttribute;
-import com.stylemycloset.cloth.entity.ClothingAttributeValue;
 import com.stylemycloset.user.entity.Gender;
+import com.stylemycloset.weather.entity.Weather.AlertType;
+import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,7 +13,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Table(name = "clothing_feature")
-public class ClothingFeature {
+public class ClothingCondition {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,12 +29,16 @@ public class ClothingFeature {
 
     private Integer temperatureSensitivity;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-
-    private ClothingAttributeValue clothOption;
+    private SkyStatus skyStatus;
 
     @Column(length = 50)
-    private String weatherType;
+    private AlertType weatherType;
+
+    private Color color;
+
+    private SleeveLength SleeveLength;
+
+    private PantsLength pantsLength;
 
     // 추천 여부 (1=추천, 0=비추천)
     private Boolean label;

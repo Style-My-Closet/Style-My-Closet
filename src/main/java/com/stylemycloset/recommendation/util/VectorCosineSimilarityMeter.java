@@ -1,11 +1,11 @@
 package com.stylemycloset.recommendation.util;
 
-import com.stylemycloset.cloth.entity.ClothingAttribute;
+
 import com.stylemycloset.cloth.entity.ClothingAttributeValue;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.recommendation.dto.RecommendationDto;
-import com.stylemycloset.recommendation.entity.ClothingFeature;
+import com.stylemycloset.recommendation.entity.ClothingCondition;
 import com.stylemycloset.recommendation.mapper.ClothingFeatureMapper;
 import com.stylemycloset.recommendation.repository.ClothingFeatureRepository;
 import com.stylemycloset.user.entity.User;
@@ -39,7 +39,7 @@ public class VectorCosineSimilarityMeter {
 
     // 추천 실행
     public boolean recommend(RecommendationDto dto) {
-        List<ClothingFeature> features = repository.findAll();
+        List<ClothingCondition> features = repository.findAll();
 
         if (features.isEmpty()) {
             return false; // 데이터 없으면 기본 false
@@ -57,10 +57,10 @@ public class VectorCosineSimilarityMeter {
         double[] inputVector = parseToVector(ClothingFeatureMapper.fromRecommendationDto
             (dto, weather, user));
 
-        ClothingFeature mostSimilar = null;
+        ClothingCondition mostSimilar = null;
         double highestSimilarity = -1;
 
-        for (ClothingFeature f : features) {
+        for (ClothingCondition f : features) {
             double[] dbVector = parseToVector(f);
             double similarity = cosineSimilarity(inputVector, dbVector);
             if (similarity > highestSimilarity) {
@@ -72,7 +72,7 @@ public class VectorCosineSimilarityMeter {
         return mostSimilar != null && mostSimilar.getLabel();
     }
 
-    public double[] parseToVector(ClothingFeature f) {
+    public double[] parseToVector(ClothingCondition f) {
 
         return new double[]{
             f.getTemperature(),
@@ -86,10 +86,10 @@ public class VectorCosineSimilarityMeter {
 
     // 사용자 피드백 데이터 저장
     public void recordFeedback(Weather weather, User user, List<ClothingAttributeValue> values, Boolean label) {
-        ClothingFeature feature = ClothingFeature.builder()
+        ClothingCondition feature = ClothingCondition.builder()
             .temperature(weather.getTemperature().getCurrent())
             .humidity(weather.getHumidity().getCurrent())
-            .weatherType(weather.getAlertType().toString())
+            .weatherType(weather.getAlertType())
             .gender(user.getGender())
             .temperatureSensitivity(user.getTemperatureSensitivity())
             .label(label)

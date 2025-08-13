@@ -1,8 +1,10 @@
 package com.stylemycloset.recommendation.service;
 
-import com.stylemycloset.recommendation.entity.ClothingFeature;
+import com.stylemycloset.recommendation.entity.ClothingCondition;
 import com.stylemycloset.recommendation.entity.TrainingData;
 import com.stylemycloset.recommendation.repository.ClothingFeatureRepository;
+import com.stylemycloset.recommendation.util.ClothingVectorizer;
+import com.stylemycloset.recommendation.util.WeatherVectorizer;
 import com.stylemycloset.user.entity.Gender;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
@@ -18,27 +20,69 @@ public class MLModelService {
     private final ClothingFeatureRepository repository;
     private Booster booster;  // XGBoost 모델 (예시)
 
+    private float[] toConditionVector(ClothingCondition cc) {
+        int alertVectorSize = WeatherVectorizer.ALERT_TYPE_SIZE;
+        int skyVectorSize = WeatherVectorizer.SKY_STATUS_SIZE;
+        int clothVectorSize = ClothingVectorizer.VECTOR_SIZE;
+
+        int featureLength = 3  // temperature, windSpeed, humidity
+            + alertVectorSize
+            + skyVectorSize
+            + 2  // gender, temperatureSensitivity
+            + clothVectorSize;
+
+        float[] features = new float[featureLength];
+        int idx = 0;
+
+        features[idx++] = (float) cc.getTemperature();
+        features[idx++] = (float) cc.getWindSpeed();
+        features[idx++] = (float) cc.getHumidity();
+
+        float[] alertVec = WeatherVectorizer.vectorizeAlertType(cc.getWeatherType());
+        for (float v : alertVec) {
+            features[idx++] = v;
+        }
+
+        float[] skyVec = WeatherVectorizer.vectorizeSkyStatus(cc.getSkyStatus());
+        for (float v : skyVec) {
+            features[idx++] = v;
+        }
+
+        features[idx++] = cc.getGender() == Gender.MALE ? 1f : 0f;
+        features[idx++] = cc.getTemperatureSensitivity() != null ? cc.getTemperatureSensitivity() : 0f;
+
+        float[] clothVec = ClothingVectorizer.vectorize(cc.getColor(),cc.getSleeveLength(),cc.getPantsLength());
+        for (float v : clothVec) {
+            features[idx++] = v;
+        }
+
+        return features;
+    }
+
     // DB에서 학습 데이터 읽어옴
     public TrainingData loadTrainingData() {
-        List<ClothingFeature> features = repository.findAll();
+        List<ClothingCondition> conditions = repository.findAll();
+        if (conditions.isEmpty()) return null;
 
-        int n = features.size();
-        int featureLength = 5;  // temperature, windSpeed, humidity, gender, temperatureSensitivity
-        float[][] x = new float[n][featureLength];
+        int n = conditions.size();
+        int conditionLength = toConditionVector(conditions.get(0)).length;
+
+        float[][] x = new float[n][conditionLength];
         int[] y = new int[n];
 
         for (int i = 0; i < n; i++) {
-            ClothingFeature f = features.get(i);
-            x[i][0] = (float) f.getTemperature();
-            x[i][1] = (float) f.getWindSpeed();
-            x[i][2] = (float) f.getHumidity();
-            x[i][3] = f.getGender() == Gender.MALE ? 1f : 0f;  // 예시로 이진 인코딩
-            x[i][4] = f.getTemperatureSensitivity() != null ? f.getTemperatureSensitivity() : 0f;
-
-            y[i] = f.getLabel() ? 1 : 0;
+            x[i] = toConditionVector(conditions.get(i));
+            y[i] = conditions.get(i).getLabel() ? 1 : 0;
         }
 
         return new TrainingData(x, y);
+    }
+
+    public float predictSingle(ClothingCondition cf) throws XGBoostError {
+        float[] features = toConditionVector(cf);
+        DMatrix dMatrix = new DMatrix(features, 1, features.length, Float.NaN);
+        float[][] predictions = booster.predict(dMatrix);
+        return predictions[0][0];
     }
 
     public void trainModel() throws XGBoostError {

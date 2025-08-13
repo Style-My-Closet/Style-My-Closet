@@ -1,7 +1,7 @@
 package com.stylemycloset.recommendation.repository;
 
-import com.stylemycloset.recommendation.entity.ClothingFeature;
+import com.stylemycloset.recommendation.entity.ClothingCondition;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ClothingFeatureRepository extends JpaRepository<ClothingFeature, Long> {
+public interface ClothingFeatureRepository extends JpaRepository<ClothingCondition, Long> {
 }

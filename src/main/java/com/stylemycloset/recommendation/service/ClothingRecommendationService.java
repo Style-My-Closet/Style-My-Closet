@@ -1,16 +1,13 @@
 package com.stylemycloset.recommendation.service;
 
 import com.stylemycloset.cloth.entity.Cloth;
-import com.stylemycloset.cloth.entity.ClothingAttribute;
 import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.recommendation.dto.RecommendationDto;
-import com.stylemycloset.recommendation.entity.ClothingFeature;
 
 import com.stylemycloset.recommendation.util.VectorCosineSimilarityMeter;
 import com.stylemycloset.user.entity.User;
-import com.stylemycloset.user.repository.UserRepository;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import lombok.RequiredArgsConstructor;
