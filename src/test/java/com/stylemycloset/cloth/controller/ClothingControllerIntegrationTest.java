@@ -21,6 +21,10 @@ import com.stylemycloset.cloth.dto.ClothCreateRequestDto;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import com.stylemycloset.security.ClosetUserDetails;
 
 @SpringBootTest
 @AutoConfigureWebMvc
@@ -64,10 +68,10 @@ class ClothingControllerIntegrationTest extends IntegrationTestSupport {
 
     @Test
     void 의류_목록_페이징_API_테스트() throws Exception {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
 
         // 1페이지 호출 (limit=3)
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/clothes")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/clothes").with(user(new ClosetUserDetails(1L, "USER", "tester")))
                         .param("limit", "3")
                         .param("sortBy", "createdAt")
                         .param("sortDirection", "asc"))
@@ -92,7 +96,7 @@ class ClothingControllerIntegrationTest extends IntegrationTestSupport {
 
     @Test
     void 의류_생성_삭제_API_JSON_검증() throws Exception {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
 
         // 생성 요청 바디
         ClothCreateRequestDto req = new ClothCreateRequestDto();
@@ -102,7 +106,7 @@ class ClothingControllerIntegrationTest extends IntegrationTestSupport {
         String body = objectMapper.writeValueAsString(req);
 
         // 생성
-        String createdId = mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/clothes")
+        String createdId = mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/clothes").with(user(new ClosetUserDetails(1L, "USER", "tester"))).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andDo(print())
@@ -121,7 +125,7 @@ class ClothingControllerIntegrationTest extends IntegrationTestSupport {
         String id = objectMapper.readTree(createdId).get("id").asText();
 
         // 목록 확인 (생성 반영)
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/clothes")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/clothes").with(user(new ClosetUserDetails(1L, "USER", "tester")))
                         .param("limit", "10")
                         .param("sortBy", "createdAt")
                         .param("sortDirection", "asc"))
@@ -131,12 +135,12 @@ class ClothingControllerIntegrationTest extends IntegrationTestSupport {
                 .andExpect(jsonPath("$.data.length()").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)));
 
         // 삭제
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/clothes/" + id))
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/clothes/" + id).with(user(new ClosetUserDetails(1L, "USER", "tester"))).with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk());
 
         // 목록 재확인 (삭제 반영)
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/clothes")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/clothes").with(user(new ClosetUserDetails(1L, "USER", "tester")))
                         .param("limit", "10")
                         .param("sortBy", "createdAt")
                         .param("sortDirection", "asc"))
