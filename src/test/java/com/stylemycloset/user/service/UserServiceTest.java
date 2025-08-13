@@ -3,8 +3,10 @@ package com.stylemycloset.user.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.user.dto.data.ProfileDto;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.dto.request.ChangePasswordRequest;
@@ -30,6 +32,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
@@ -43,6 +47,15 @@ public class UserServiceTest {
   @Mock
   private UserMapper userMapper;
 
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
+
+  @Mock
+  private PasswordEncoder passwordEncoder;
+
+  @Mock
+  private JwtService jwtService;
+
   private final UserCreateRequest testUserCreateRequest = new UserCreateRequest("tester",
       "test@naver.com", "testtest123!");
 
@@ -55,8 +68,10 @@ public class UserServiceTest {
     given(userRepository.existsByEmail(testUser.getEmail())).willReturn(false);
     given(userRepository.save(any(User.class))).willReturn(testUser);
     given(userMapper.UsertoUserDto(testUser)).willReturn(testUserDto);
+
     //when
     UserDto result = userService.createUser(testUserCreateRequest);
+
     //then
     assertNotNull(result);
     assertEquals(testUserDto.email(), result.email());
@@ -82,6 +97,7 @@ public class UserServiceTest {
     assertEquals(testUserDto, result);
 
     verify(userRepository).findById(userId);
+    verify(eventPublisher, times(1)).publishEvent(any(Object.class));
   }
 
   @Test
@@ -93,10 +109,11 @@ public class UserServiceTest {
     ChangePasswordRequest request = new ChangePasswordRequest("test123!");
     given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
 
+    String encodedPassword = passwordEncoder.encode("test123!");
     //when
     userService.changePassword(userId, request);
     //then
-    assertEquals(testUser.getPassword(), request.password());
+    assertEquals(testUser.getPassword(), encodedPassword);
   }
 
   @Test
@@ -123,13 +140,13 @@ public class UserServiceTest {
     final Long userId = 1L;
     User testUser = createTestUser(testUserCreateRequest);
     given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
-    assertNull(testUser.getDeleteAt());
+    assertNull(testUser.getDeletedAt());
 
     //when
     userService.deleteUser(userId);
 
     //then
-    assertNotNull(testUser.getDeleteAt());
+    assertNotNull(testUser.getDeletedAt());
   }
 
   @Test
@@ -186,9 +203,8 @@ public class UserServiceTest {
       //given
       List<User> testUsers = new ArrayList<>();
       for (int i = 0; i < 6; i++) {
-        UserCreateRequest request = new UserCreateRequest("tester" + i, "test" + i + "@naver.com",
+        User user = new User("tester" + i, "test" + i + "@naver.com",
             "test123!");
-        User user = new User(request);
         user.setId((long) i + 1);
         testUsers.add(user);
       }
@@ -225,9 +241,8 @@ public class UserServiceTest {
       //given
       List<User> testUsers = new ArrayList<>();
       for (int i = 0; i < 3; i++) {
-        UserCreateRequest request = new UserCreateRequest("tester" + i, "test" + i + "@naver.com",
+        User user = new User("tester" + i, "test" + i + "@naver.com",
             "test123!");
-        User user = new User(request);
         user.setId((long) i + 1);
         testUsers.add(user);
       }
@@ -259,7 +274,7 @@ public class UserServiceTest {
 
   //헬퍼 메소드
   private User createTestUser(UserCreateRequest request) {
-    return new User(request);
+    return new User(request.name(), request.email(), request.password());
   }
 
   private UserDto createTestUserDto(User user) {

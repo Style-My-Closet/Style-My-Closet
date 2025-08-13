@@ -21,7 +21,7 @@ jobs:
           cache: gradle
 
       - name:  Run tests
-        run: ./gradlew test
+        run: ./gradlew clean test
 
       - name: Upload test report on failure
         if: failure()

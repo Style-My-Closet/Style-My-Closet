@@ -8,8 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.notification.repository.NotificationRepository;
-import com.stylemycloset.testutil.IntegrationTestSupport;
-import com.stylemycloset.user.dto.request.UserCreateRequest;
+import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -38,11 +37,10 @@ public class NotificationControllerTest extends IntegrationTestSupport {
   @Test
   void deleteNotifications_ReturnIsNoContent() throws Exception{
     // given
-    UserCreateRequest request1 = new UserCreateRequest("test", "test@test.test", "test");
-    User user1 = userRepository.save(new User(request1));
+    User user1 = userRepository.save(new User("test", "test@test.test", "test"));
 
     Notification notification = notificationRepository.save(
-        new Notification(user1, "testTitle", "testContent", NotificationLevel.INFO));
+        new Notification(user1.getId(), "testTitle", "testContent", NotificationLevel.INFO));
 
     // when & then
     mockMvc.perform(
@@ -55,16 +53,15 @@ public class NotificationControllerTest extends IntegrationTestSupport {
   @Test
   void findAllByReceiverId_shouldReturnNotificationDtoCursorResponse() throws Exception{
     // given
-    UserCreateRequest request4 = new UserCreateRequest("test", "test@test.test", "test");
-    User user4 = new User(request4);
+    User user4 = new User("test", "test@test.test", "test");
     userRepository.save(user4);
 
     notificationRepository.save(
-        new Notification(user4, "testTitle", "testContent", NotificationLevel.INFO));
+        new Notification(user4.getId(), "testTitle", "testContent", NotificationLevel.INFO));
     notificationRepository.save(
-        new Notification(user4, "testTitle", "testContent", NotificationLevel.INFO));
+        new Notification(user4.getId(), "testTitle", "testContent", NotificationLevel.INFO));
     notificationRepository.save(
-        new Notification(user4, "testTitle", "testContent", NotificationLevel.INFO));
+        new Notification(user4.getId(), "testTitle", "testContent", NotificationLevel.INFO));
 
     notificationRepository.flush();
 

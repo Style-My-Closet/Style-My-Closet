@@ -3,9 +3,7 @@ plugins {
     id 'org.springframework.boot' version '3.5.4'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'jacoco'
-
 }
-
 
 group = 'com.stylemycloset'
 version = '0.0.1-SNAPSHOT'
@@ -34,7 +32,6 @@ dependencies {
 
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
     // @Lombok과 @MapStruct간의 충돌 방지
-
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.projectlombok:lombok'
@@ -68,6 +65,8 @@ dependencies {
 
     implementation 'com.vladmihalcea:hibernate-types-60:2.21.1'
 
+    implementation 'org.apache.commons:commons-lang3:3.14.0'
+
     implementation 'software.amazon.awssdk:s3:2.31.7'
     testImplementation 'org.testcontainers:localstack'
 
@@ -76,22 +75,24 @@ dependencies {
     annotationProcessor "jakarta.annotation:jakarta.annotation-api"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'com.nimbusds:nimbus-jose-jwt:10.3'
+
     testImplementation 'org.mockito:mockito-core:5.11.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
-
-
-    implementation 'org.springframework.boot:spring-boot-starter-batch'
-    runtimeOnly 'org.postgresql:postgresql'
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
 
     // https://mvnrepository.com/artifact/ml.dmlc/xgboost4j
     implementation 'ml.dmlc:xgboost4j_2.13:3.0.2'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
 }
 
 test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
+    jvmArgs '-XX:+EnableDynamicAgentLoading'
 }
 
 jacocoTestReport {

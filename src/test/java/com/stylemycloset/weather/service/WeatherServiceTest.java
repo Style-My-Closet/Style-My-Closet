@@ -10,7 +10,7 @@ import static org.mockito.Mockito.when;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.location.Location;
 import com.stylemycloset.location.LocationRepository;
-import com.stylemycloset.weather.dto.WeatherAlertEvent;
+import com.stylemycloset.notification.event.domain.WeatherAlertEvent;
 import com.stylemycloset.weather.dto.WeatherDto;
 import com.stylemycloset.weather.entity.Humidity;
 import com.stylemycloset.weather.entity.Precipitation;
@@ -133,7 +133,7 @@ public class WeatherServiceTest {
         assertEquals(todayWeather, result.get());
     }
 
-    /*@Test
+    @Test
     @DisplayName("AlertIsTriggered=true일때 pushlishEvent 작동")
     void checkWeather_shouldPublishEvent_whenAlertIsTriggered() {
         // given
@@ -150,7 +150,7 @@ public class WeatherServiceTest {
         when(weatherRepository.findByLocation(lat, lon)).thenReturn(List.of(weather));
 
         // when
-        weatherService.checkWeather(lat, lon);
+        weatherService.checkWeather(lat, lon, 1L);
 
         // then
         ArgumentCaptor<WeatherAlertEvent> eventCaptor = ArgumentCaptor.forClass(WeatherAlertEvent.class);
@@ -172,9 +172,9 @@ public class WeatherServiceTest {
 
         // when & then
         assertThrows(StyleMyClosetException.class, () ->
-            weatherService.checkWeather(lat, lon)
+            weatherService.checkWeather(lat, lon, 1L)
         );
-    }*/
+    }
 
 
 }

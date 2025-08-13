@@ -8,7 +8,6 @@ import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.notification.repository.NotificationQueryRepository;
 import com.stylemycloset.notification.repository.NotificationRepository;
 import com.stylemycloset.notification.service.NotificationService;
-import com.stylemycloset.user.entity.User;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -27,10 +26,10 @@ public class NotificationServiceImpl implements NotificationService {
 
   @Override
   @Transactional
-  public NotificationDto create(User receiver, String title, String content, NotificationLevel level) {
-    log.info("단일 알림 생성 시작: receiver={}, title={},content={},level={}",  receiver, title, content, level);
+  public NotificationDto create(Long receiverId, String title, String content, NotificationLevel level) {
+    log.info("단일 알림 생성 시작: receiverId={}, title={},content={},level={}",  receiverId, title, content, level);
 
-    Notification notification = new Notification(receiver, title, content, level);
+    Notification notification = new Notification(receiverId, title, content, level);
     notificationRepository.save(notification);
 
     log.info("단일 알림 생성 완료 : {}", notification);
@@ -39,7 +38,7 @@ public class NotificationServiceImpl implements NotificationService {
 
   @Override
   @Transactional
-  public List<NotificationDto> createAll(Set<User> receivers, String title, String content, NotificationLevel level) {
+  public List<NotificationDto> createAll(Set<Long> receivers, String title, String content, NotificationLevel level) {
     log.info("여러 알림 생성 시작: 수신자 수={}, title={},content={},level={}", receivers.size(), title, content, level);
 
     List<Notification> notifications = receivers.stream()
@@ -67,7 +66,7 @@ public class NotificationServiceImpl implements NotificationService {
 
   @Override
   @Transactional(readOnly = true)
-  // @PreAuthorize("principal.userDto.id == #userId")
+  // @PreAuthorize("principal.userDto.id == #id")
   public NotificationDtoCursorResponse findAllByCursor(long userId, NotificationFindAllRequest request) {
     List<Notification> notifications = notificationQueryRepository.findAllByCursor(request, userId);
     long totalCount = notificationRepository.countByReceiverId(userId);

@@ -11,6 +11,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stylemycloset.IntegrationTestSupport;
+import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.cloth.entity.Closet;
 import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingCategory;
@@ -18,16 +20,20 @@ import com.stylemycloset.cloth.entity.ClothingCategoryType;
 import com.stylemycloset.cloth.repository.ClosetRepository;
 import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.cloth.repository.ClothingCategoryRepository;
+import com.stylemycloset.ootd.dto.CommentCreateRequest;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedUpdateRequest;
 import com.stylemycloset.ootd.entity.Feed;
+import com.stylemycloset.ootd.entity.FeedComment;
 import com.stylemycloset.ootd.entity.FeedLike;
+import com.stylemycloset.ootd.repo.FeedCommentRepository;
 import com.stylemycloset.ootd.repo.FeedLikeRepository;
 import com.stylemycloset.ootd.repo.FeedRepository;
-import com.stylemycloset.testutil.IntegrationTestSupport;
+import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,14 +41,14 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
 public class FeedControllerTest extends IntegrationTestSupport {
@@ -63,32 +69,56 @@ public class FeedControllerTest extends IntegrationTestSupport {
   private FeedRepository feedRepository;
   @Autowired
   private FeedLikeRepository feedLikeRepository;
+  @Autowired
+  private FeedCommentRepository feedCommentRepository;
+  @MockitoBean
+  private SseService sseService;
+  @MockitoBean
+  private EntityManager em;
 
   private User testUser;
+  private Closet testCloset;
+  private ClothingCategory topCategory;
   private Cloth testCloth1;
   private Cloth testCloth2;
 
-
   @BeforeEach
   void setUp() {
+    testUser = userRepository.findAll().stream()
+        .filter(u -> "user".equals(u.getEmail()))
+        .findFirst()
+        .orElseGet(() -> {
+          User u = new User();
+          ReflectionTestUtils.setField(u, "name", "test");
+          ReflectionTestUtils.setField(u, "email", "user");
+          ReflectionTestUtils.setField(u, "password", "password");
+          ReflectionTestUtils.setField(u, "role", Role.USER);
+          ReflectionTestUtils.setField(u, "locked", false);
+          return userRepository.save(u);
+        });
 
-    testUser = new User();
-    ReflectionTestUtils.setField(testUser, "name", "test");
-    ReflectionTestUtils.setField(testUser, "email", "user");
-    ReflectionTestUtils.setField(testUser, "password", "password");
-    ReflectionTestUtils.setField(testUser, "role", Role.USER);
-    ReflectionTestUtils.setField(testUser, "locked", false);
-    userRepository.save(testUser);
+    topCategory = categoryRepository.findAll().stream()
+        .filter(c -> c.getName() == ClothingCategoryType.TOP)
+        .findFirst()
+        .orElseGet(() -> categoryRepository.save(new ClothingCategory(ClothingCategoryType.TOP)));
 
-    Closet closet = new Closet(testUser);
-    closetRepository.save(closet);
+    testCloset = closetRepository.findAll().stream()
+        .filter(z -> z.getUser().getId().equals(testUser.getId()))
+        .findFirst()
+        .orElseGet(() -> closetRepository.save(new Closet(testUser)));
 
-    ClothingCategory category = new ClothingCategory(ClothingCategoryType.TOP);
-    categoryRepository.save(category);
+    testCloth1 = saveCloth("옷1", testCloset, topCategory, null);
+    testCloth2 = saveCloth("옷2", testCloset, topCategory, null);
+  }
 
-    testCloth1 = clothRepository.save(Cloth.createCloth("옷1", closet, category, null));
-
-    testCloth2 = clothRepository.save(Cloth.createCloth("옷2", closet, category, null));
+  private Cloth saveCloth(String name, Closet closet, ClothingCategory category, BinaryContent bin) {
+    Cloth c = Cloth.builder()
+        .name(name)
+        .closet(closet)
+        .category(category)
+        .binaryContent(bin)
+        .build();
+    return clothRepository.save(c);
   }
 
   @Nested
@@ -97,6 +127,7 @@ public class FeedControllerTest extends IntegrationTestSupport {
 
     @Test
     @DisplayName("새로운 OOTD 피드를 등록하면 201 Created 상태와 함께 피드 정보를 반환한다")
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @WithMockUser
     void createFeed_Returns201AndFeedDto() throws Exception {
       // given (준비)
@@ -139,6 +170,7 @@ public class FeedControllerTest extends IntegrationTestSupport {
 
   @Test
   @DisplayName("좋아요 토글 - 성공 시 (좋아요 추가) 200 OK와 업데이트된 피드 정보를 반환한다")
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   @WithMockUser
   void toggleLike_whenNotLiked_returnsOkWithFeedDto() throws Exception {
     Feed feed = feedRepository.save(Feed.createFeed(testUser, null, "좋아요 테스트용 피드"));
@@ -220,5 +252,104 @@ public class FeedControllerTest extends IntegrationTestSupport {
         .andExpect(status().isNoContent());
 
     assertThat(feedRepository.findById(myFeed.getId())).isEmpty();
+  }
+
+  @Nested
+  @DisplayName("피드 댓글 조회 API")
+  class FeedCommentApi {
+
+    @Test
+    @DisplayName("피드에 대한 댓글 목록을 조회하면 200 OK와 함께 페이지된 댓글 목록을 반환한다")
+    @WithMockUser
+    void getComments_Success() throws Exception {
+      // given (준비)
+      // 1. 테스트용 피드 생성
+      Feed feed = feedRepository.save(Feed.createFeed(testUser, null, "댓글 테스트용 피드"));
+
+      // 2. 해당 피드에 댓글 11개 저장 (다음 페이지가 있도록)
+      for (int i = 0; i < 11; i++) {
+        FeedComment comment = new FeedComment(feed, testUser, "테스트 댓글 " + i);
+        feedCommentRepository.save(comment);
+      }
+
+      // when & then (실행 및 검증)
+      mockMvc.perform(get("/api/feeds/{feedId}/comments", feed.getId())
+              .param("limit", "10")
+              .with(csrf()))
+          .andDo(print())
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.data.length()").value(10))
+          .andExpect(jsonPath("$.hasNext").value(true))
+          .andExpect(jsonPath("$.data[0].content").value("테스트 댓글 10")); // 최신순 정렬 확인
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 피드의 댓글을 조회하면 404 Not Found를 반환한다")
+    @WithMockUser
+    void getComments_Fail_FeedNotFound() throws Exception {
+      // given (준비)
+      long nonExistentFeedId = 9999L;
+
+      // when & then (실행 및 검증)
+      mockMvc.perform(get("/api/feeds/{feedId}/comments", nonExistentFeedId)
+              .param("limit", "10")
+              .with(csrf()))
+          .andDo(print())
+          .andExpect(status().isNotFound());
+    }
+  }
+
+  @Nested
+  @DisplayName("피드 댓글 등록 API")
+  class FeedCommentCreateApi {
+
+    @Test
+    @DisplayName("새로운 댓글을 등록하면 201 Created 상태와 함께 생성된 댓글 정보를 반환한다")
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @WithMockUser
+    void createComment_Success() throws Exception {
+      // given (준비)
+      // 1. 댓글을 달 피드 생성
+      Feed feed = feedRepository.save(Feed.createFeed(testUser, null, "댓글 등록용 피드"));
+
+      // 2. 등록할 댓글 정보 DTO 생성 (Swagger 명세 기준)
+      CommentCreateRequest request = new CommentCreateRequest(
+          feed.getId(),
+          testUser.getId(),
+          "새로운 댓글입니다!"
+      );
+      String requestJson = objectMapper.writeValueAsString(request);
+
+      // when & then (실행 및 검증)
+      mockMvc.perform(post("/api/feeds/{feedId}/comments", feed.getId())
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(requestJson)
+              .with(csrf()))
+          .andDo(print())
+          .andExpect(status().isCreated())
+          .andExpect(jsonPath("$.content").value("새로운 댓글입니다!"))
+          .andExpect(jsonPath("$.author.userId").value(testUser.getId()))
+          .andExpect(jsonPath("$.feedId").value(feed.getId()));
+    }
+
+    @Test
+    @DisplayName("댓글 내용이 비어있는 요청을 보내면 400 Bad Request를 반환한다")
+    @WithMockUser
+    void createComment_Fail_BlankContent() throws Exception {
+      // given
+      Feed feed = feedRepository.save(Feed.createFeed(testUser, null, "댓글 등록용 피드"));
+
+      CommentCreateRequest request = new CommentCreateRequest(feed.getId(), testUser.getId(),
+          " "); // 내용이 공백
+      String requestJson = objectMapper.writeValueAsString(request);
+
+      // when & then
+      mockMvc.perform(post("/api/feeds/{feedId}/comments", feed.getId())
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(requestJson)
+              .with(csrf()))
+          .andDo(print())
+          .andExpect(status().isBadRequest());
+    }
   }
 }
