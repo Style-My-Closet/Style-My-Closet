@@ -21,6 +21,13 @@ public enum ErrorCode {
   // Weather
   WEATHER_NOT_FOUND("날씨 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
+  // Security
+  TOKEN_NOT_FOUND("토큰 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+  INVALID_TOKEN_SECRET("유효하지 않은 시크릿입니다.", HttpStatus.NOT_FOUND),
+  INVALID_TOKEN("유효하지 않은 토큰입니다.", HttpStatus.NOT_FOUND),
+
+  // Sse
+  SSE_SEND_FAILURE("SSE 전송에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
   // S3
   ERROR_S3_UPLOAD_INVALID_ARGUMENT("S3 업로드 요청에 유효하지 않은 매개변수가 들어왔습니다.", HttpStatus.BAD_REQUEST),
 
