@@ -23,13 +23,19 @@ public class AuthController {
 
   private final JwtService jwtService;
 
-  @GetMapping("csrf-token")
-  public ResponseEntity<CsrfToken> getCsrfToken(CsrfToken csrfToken) {
+  @GetMapping("/csrf-token")
+  public ResponseEntity<java.util.Map<String, String>> getCsrfToken(CsrfToken csrfToken) {
     log.debug("Csrf 토큰 요청");
-    return ResponseEntity.status(HttpStatus.OK).body(csrfToken);
+    if (csrfToken == null) {
+      return ResponseEntity.status(HttpStatus.OK).body(java.util.Map.of());
+    }
+    java.util.Map<String, String> body = new java.util.HashMap<>();
+    body.put("headerName", csrfToken.getHeaderName());
+    body.put("token", csrfToken.getToken());
+    return ResponseEntity.status(HttpStatus.OK).body(body);
   }
 
-  @GetMapping("me")
+  @GetMapping("/me")
   public ResponseEntity<String> me(
       @CookieValue(value = JwtService.REFRESH_TOKEN_COOKIE_NAME) String refreshToken) {
     log.info("내 정보 조회 요청");
@@ -39,7 +45,7 @@ public class AuthController {
         .body(jwtSession.getAccessToken());
   }
 
-  @PostMapping("refresh")
+  @PostMapping("/refresh")
   public ResponseEntity<String> refresh(
       @CookieValue(JwtService.REFRESH_TOKEN_COOKIE_NAME) String refreshToken,
       HttpServletResponse response

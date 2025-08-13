@@ -79,6 +79,7 @@ public class JwtService {
         .claim("userId", userDto.id())
         .claim("role", userDto.role())
         .claim("name", userDto.name())
+        .jwtID(UUID.randomUUID().toString())
         .issueTime(new Date(issueTime.toEpochMilli()))
         .expirationTime(new Date(expirationTime.toEpochMilli()))
         .build();
