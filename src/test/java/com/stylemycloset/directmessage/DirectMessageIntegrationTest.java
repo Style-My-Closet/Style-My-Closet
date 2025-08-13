@@ -24,7 +24,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
@@ -51,8 +50,18 @@ class DirectMessageIntegrationTest extends IntegrationTestSupport {
   @LocalServerPort
   private int port;
 
+  private StompSession senderSession;
+  private StompSession receiverSession;
+
   @AfterEach
   void tearDown() {
+    // 연결 종료
+    if (senderSession != null && senderSession.isConnected()) {
+      senderSession.disconnect();
+    }
+    if (receiverSession != null && receiverSession.isConnected()) {
+      receiverSession.disconnect();
+    }
     userRepository.deleteAllInBatch();
     messageRepository.deleteAllInBatch();
   }
@@ -64,8 +73,8 @@ class DirectMessageIntegrationTest extends IntegrationTestSupport {
     User sender = userRepository.save(new User("alice", "a@a.com", "pwd"));
     User receiver = userRepository.save(new User("bob", "b@b.com", "pwd"));
 
-    StompSession senderSession = createClientSession();
-    StompSession receiverSession = createClientSession();
+    senderSession = createClientSession();
+    receiverSession = createClientSession();
     BlockingQueue<DirectMessageResult> messageMailbox = createMessageMailbox(receiverSession,
         sender, receiver);
 
