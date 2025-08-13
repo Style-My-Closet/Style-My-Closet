@@ -21,6 +21,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import java.time.LocalDate;
 import java.util.List;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -71,6 +72,10 @@ public class User extends SoftDeletableEntity {
   @JoinColumn(name = "location_id")
   private Location location;
 
+  private String tempPassword;
+
+  private Instant resetPasswordTime;
+
   @OneToOne
   @JoinColumn(name = "profile_id")
   private BinaryContent profileImage; // 나중에 추가해주시면 감사하겠습니다.
@@ -116,4 +121,10 @@ public class User extends SoftDeletableEntity {
   public void setId(Long id) {// 테스트 때문에 넣었습니다. // 이 부분은 제거해주세요
     this.id = id;
   }
+
+  public void resetTempPassword(String tempPassword, Instant resetPasswordTime) {
+    this.tempPassword = tempPassword;
+    this.resetPasswordTime = resetPasswordTime;
+  }
+
 }

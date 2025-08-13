@@ -2,6 +2,7 @@ package com.stylemycloset.follow.repository;
 
 import com.stylemycloset.follow.entity.Follow;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -70,4 +71,9 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, FollowRep
       """)
   Optional<Follow> findActiveById(@Param("followId") Long followId);
 
+  @Query("SELECT f.follower.id "
+      + "FROM Follow f "
+      + "WHERE f.followee.id = :followeeId "
+      + "AND f.follower.deletedAt is null")
+  Set<Long> findFollowerIdsByFolloweeId(@Param("followeeId") Long followeeId);
 }

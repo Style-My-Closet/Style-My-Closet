@@ -6,25 +6,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.stylemycloset.sse.dto.SseInfo;
+import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.SseService;
-import com.stylemycloset.sse.service.impl.SseServiceImpl;
 import com.stylemycloset.IntegrationTestSupport;
-import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.aop.framework.Advised;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+@SpringBootTest
 @AutoConfigureMockMvc
+@Profile("test")
 public class SseControllerTest extends IntegrationTestSupport {
 
   @Autowired
@@ -32,6 +30,9 @@ public class SseControllerTest extends IntegrationTestSupport {
 
   @Autowired
   SseService sseService;
+
+  @Autowired
+  SseRepository sseRepository;
 
   @DisplayName("lastEventId 없이 SSE 연결 요청을 보내면 SSE 연결 응답을 반환한다")
   @WithMockUser(username = "testuser", roles = "USER")
@@ -54,18 +55,11 @@ public class SseControllerTest extends IntegrationTestSupport {
     // given
     long userId = 1L;
 
-    List<SseInfo> sseInfos = List.of(
+    var sseInfos = List.of(
         new SseInfo(1854037511000L, "notificaiton", "데이터A", System.currentTimeMillis()),
         new SseInfo(1954037511000L, "notificaiton", "데이터B", System.currentTimeMillis())
     );
-
-    SseServiceImpl target = (SseServiceImpl) ((Advised) sseService).getTargetSource().getTarget();
-    Assertions.assertNotNull(target);
-    Field field = target.getClass().getDeclaredField("userEvents");
-    field.setAccessible(true);
-    Map<Long, CopyOnWriteArrayList<SseInfo>> userEvents = (Map<Long, CopyOnWriteArrayList<SseInfo>>) field.get(
-        target);
-    userEvents.put(userId, new CopyOnWriteArrayList<>(sseInfos));
+    sseRepository.findOrCreateEvents(userId).addAll(sseInfos);
 
     // when & then
     mockMvc.perform(get("/api/sse/{userId}", userId)

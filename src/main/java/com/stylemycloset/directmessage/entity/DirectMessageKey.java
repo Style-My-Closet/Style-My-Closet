@@ -17,7 +17,7 @@ public class DirectMessageKey {
     return receiverId + "_" + senderId;
   }
 
-  public static String of(User sender, User receiver) {
+  public static String of(User sender, User receiver) {// 이 부분도 수정해놓겠습니다.
     Long senderId = sender.getId();
     Long receiverId = receiver.getId();
     if (senderId <= receiverId) {
