@@ -8,17 +8,20 @@ import com.stylemycloset.cloth.dto.response.AttributeResponseDto;
 import com.stylemycloset.cloth.service.ClothAttributeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
-@RequestMapping("/api/attributes")
+@RequestMapping("/api/clothes/attribute-defs")
 @RequiredArgsConstructor
 public class AttributeController {
 
     private final ClothAttributeService clothAttributeService;
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     @GetMapping
     public ResponseEntity<PaginatedResponse<ClothesAttributeDefDto>> getAttributes(@Valid @ModelAttribute CursorDto cursorDto) {
@@ -29,12 +32,16 @@ public class AttributeController {
     @PostMapping
     public ResponseEntity<AttributeResponseDto> createAttribute(
             @Valid @RequestBody ClothesAttributeDefCreateRequest request) {
-        
+        try {
+            log.info("createAttribute request body parsed: name={}, selectableValues={}",
+                    request.name(), request.selectableValues());
+            log.debug("createAttribute raw json: {}", objectMapper.writeValueAsString(request));
+        } catch (Exception ignore) {}
         AttributeResponseDto response = clothAttributeService.createAttribute(request);
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{attributeId}")
+    @RequestMapping(value = "/{attributeId}", method = {RequestMethod.PATCH, RequestMethod.PUT}, consumes = "application/json")
     public ResponseEntity<AttributeResponseDto> updateAttribute(
             @PathVariable Long attributeId,
             @Valid @RequestBody ClothesAttributeDefCreateRequest request) {

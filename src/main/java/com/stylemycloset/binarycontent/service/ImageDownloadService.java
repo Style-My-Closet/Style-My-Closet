@@ -60,7 +60,7 @@ public class ImageDownloadService {
             );
             binaryContent = binaryContentRepository.save(binaryContent);
 
-            String extension = getFileExtensionFromFilename(file.getOriginalFilename());
+            String extension = extensionFromContentType(contentType);
             String dateFolder = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
             String objectKey = s3Prefix + "/" + dateFolder + "/" + binaryContent.getId() + "." + extension;
 
@@ -103,7 +103,7 @@ public class ImageDownloadService {
             );
             binaryContent = binaryContentRepository.save(binaryContent);
 
-            String extension = getFileExtensionFromUrl(imageUrl);
+            String extension = extensionFromContentType(contentType);
             String dateFolder = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
             String objectKey = s3Prefix + "/" + dateFolder + "/" + binaryContent.getId() + "." + extension;
 
@@ -182,6 +182,20 @@ public class ImageDownloadService {
             case "svg" -> "image/svg+xml";
             default -> "image/jpeg";
         };
+    }
+
+    private String extensionFromContentType(String contentType) {
+        if (contentType == null) return "jpg";
+        String ct = contentType.toLowerCase();
+        if (ct.startsWith("image/")) {
+            if (ct.contains("png")) return "png";
+            if (ct.contains("gif")) return "gif";
+            if (ct.contains("webp")) return "webp";
+            if (ct.contains("svg")) return "svg";
+            return "jpg";
+        }
+        // 이미지가 아니면 강제로 jpg로 저장(브라우저 렌더 호환 우선). 필요시 상위에서 차단 처리 가능
+        return "jpg";
     }
     
 

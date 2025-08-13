@@ -1,6 +1,7 @@
 package com.stylemycloset.cloth.dto;
 
 public enum SortField {
+    ID("id"),
     CREATED_AT("createdAt"),
     NAME("name");
     

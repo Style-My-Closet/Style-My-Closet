@@ -10,7 +10,8 @@ import java.util.List;
 public interface ClothesAttributeDefMapper {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "name", source = "name")
-    @Mapping(target = "selectableValues", expression = "java(entity.getOptions().stream().map(option -> option.getValue()).toList())")
+    @Mapping(target = "createdAt", source = "createdAt")
+    @Mapping(target = "selectableValues", expression = "java(entity.getActiveOptions().stream().map(option -> option.getValue()).toList())")
     ClothesAttributeDefDto toDto(ClothingAttribute entity);
     List<ClothesAttributeDefDto> toDtoList(List<ClothingAttribute> entities);
 }

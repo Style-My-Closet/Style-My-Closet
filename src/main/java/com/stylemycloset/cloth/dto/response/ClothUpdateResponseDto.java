@@ -19,7 +19,7 @@ public record ClothUpdateResponseDto(
     public static ClothUpdateResponseDto from(Cloth cloth) {
        Objects.requireNonNull(cloth, "Cloth cannot be null");
        Objects.requireNonNull(cloth.getCloset(), "Closet cannot be null");
-       Objects.requireNonNull(cloth.getCloset().getUser(), "User cannot be null");
+       Objects.requireNonNull(cloth.getCloset().getUserId(), "User cannot be null");
        Objects.requireNonNull(cloth.getCategory(), "Category cannot be null");
 
        List<AttributeDto> attributest= cloth.getAttributeValues()
@@ -28,9 +28,9 @@ public record ClothUpdateResponseDto(
                 .toList();
         return new ClothUpdateResponseDto(
                 cloth.getId().toString(),
-                cloth.getCloset().getUser().getId().toString(),
+                cloth.getCloset().getUserId().toString(),
                 cloth.getName(),
-                cloth.getBinaryContent() != null ? cloth.getBinaryContent().getImageUrl() : null,
+                null,
                 cloth.getCategory().getName(),
                 attributest
         );

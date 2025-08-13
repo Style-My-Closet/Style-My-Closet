@@ -169,7 +169,7 @@ public class ClothService {
     @Transactional
     public void deleteCloth(Long clothId) {
         Cloth cloth = getClothById(clothId);
-        Long userId = cloth.getCloset().getUser().getId();
+        Long userId = cloth.getCloset().getUserId();
         clothingAttributeValueRepository.softDeleteAllByClothId(clothId);
         Cloth managedCloth = clothRepository.findById(clothId)
                 .orElseThrow(() -> new ClothesException(ClothingErrorCode.CLOTH_NOT_FOUND));
@@ -208,9 +208,10 @@ public class ClothService {
     }
 
 
-    private Closet getClosetByUserId(Long userId) {
+
+    private Closet getOrCreateClosetByUserId(Long userId) {
         return closetRepository.findByUserId(userId)
-                .orElseThrow(() -> new ClothesException(ClothingErrorCode.CLOSET_NOT_FOUND));
+                .orElseGet(() -> closetRepository.save(new Closet(userId)));
     }
 
     private ClothingCategory getCategoryById(Long categoryId) {
@@ -241,7 +242,8 @@ public class ClothService {
 
     private Cloth saveCloth(ClothCreateRequestDto requestDto, Closet closet,
                             ClothingCategory category, BinaryContent binaryContent) {
-        Cloth cloth = Cloth.createCloth(requestDto.getName(), closet, category, binaryContent);
+        java.util.UUID binaryContentId = binaryContent != null ? binaryContent.getId() : null;
+        Cloth cloth = Cloth.createCloth(requestDto.getName(), closet, category, binaryContentId);
         return clothRepository.save(cloth);
     }
 
@@ -267,9 +269,8 @@ public class ClothService {
         if (image != null) {
             if (!image.isEmpty()) {
                 try {
-                    BinaryContent oldBinaryContent = cloth.getBinaryContent();
-                    BinaryContent newBinaryContent = imageDownloadService.updateImage(oldBinaryContent, image);
-                    cloth.updateBinaryContent(newBinaryContent);
+                    BinaryContent newBinaryContent = imageDownloadService.updateImage(null, image);
+                    cloth.updateBinaryContentId(newBinaryContent.getId());
                 } catch (Exception e) {
                     throw new ClothesException(ClothingErrorCode.IMAGE_UPLOAD_FAILED);
                 }
@@ -313,14 +314,14 @@ public class ClothService {
 
     private void evictClothListCacheAfterCommit(Cloth cloth) {
         try {
-            Long userId = cloth.getCloset() != null && cloth.getCloset().getUser() != null ? cloth.getCloset().getUser().getId() : null;
+            Long userId = cloth.getCloset() != null ? cloth.getCloset().getUserId() : null;
             if (userId == null) return;
             registerAfterCommit(() -> clothListCacheService.evictClothListFirstPage(userId));
         } catch (Exception ignore) {}
     }
 
     private Cloth persistCloth(ClothCreateRequestDto requestDto, Long userId) {
-        Closet closet = getClosetByUserId(userId);
+        Closet closet = getOrCreateClosetByUserId(userId);
         ClothingCategory category = requestDto.getCategoryId() != null ?
             getCategoryById(requestDto.getCategoryId()) : getOrCreateCategoryByType(ClothingCategoryType.from(requestDto.getType()));
         BinaryContent binaryContent = requestDto.getBinaryContentId() != null ?
@@ -328,11 +329,21 @@ public class ClothService {
         return saveCloth(requestDto, closet, category, binaryContent);
     }
 
-    private Cloth saveAttributes(Cloth cloth, java.util.List<ClothCreateRequestDto.AttributeRequestDto> attributes) {
+    private Cloth saveAttributes(Cloth cloth, List<ClothCreateRequestDto.AttributeRequestDto> attributes) {
+        if (attributes == null || attributes.isEmpty()) {
+            return clothRepository.save(cloth);
+        }
         for (ClothCreateRequestDto.AttributeRequestDto attrDto : attributes) {
-            ClothingAttribute attribute = clothingAttributeRepository.findById(attrDto.getDefinitionId())
+            if (attrDto == null) continue;
+            Long defId = attrDto.getDefinitionId();
+            Long optId = attrDto.getOptionId();
+            if (defId == null || optId == null) {
+                // 스펙 외 값은 무시하고 계속 진행 (관대 처리)
+                continue;
+            }
+            ClothingAttribute attribute = clothingAttributeRepository.findById(defId)
                 .orElseThrow(() -> new ClothesException(ClothingErrorCode.ATTRIBUTE_NOT_FOUND));
-            AttributeOption option = attributeOptionRepository.findById(attrDto.getOptionId())
+            AttributeOption option = attributeOptionRepository.findById(optId)
                 .orElseThrow(() -> new ClothesException(ClothingErrorCode.INVALID_ATTRIBUTE));
             cloth.addAttributeValue(attribute, option);
         }

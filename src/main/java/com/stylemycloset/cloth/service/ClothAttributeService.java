@@ -26,6 +26,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 @Slf4j
@@ -223,7 +224,7 @@ public class ClothAttributeService {
     }
 
     private void evictAttributeListCacheAfterCommit() {
-        registerAfterCommit(() -> clothListCacheService.evictAttributeListFirstPage());
+        registerAfterCommit(clothListCacheService::evictAttributeListFirstPage);
     }
 
     private void publishAttributeChangedEvent(ClothingAttribute saved) {
@@ -243,15 +244,18 @@ public class ClothAttributeService {
         return attributeResponseMapper.toDto(savedAttribute);
     }
 
-    private java.util.List<String> normalizeValues(java.util.List<String> rawValues) {
-        if (rawValues == null) return java.util.List.of();
-        java.util.LinkedHashSet<String> set = new java.util.LinkedHashSet<>();
+    private List<String> normalizeValues(java.util.List<String> rawValues) {
+        if (rawValues == null) return List.of();
+        LinkedHashSet<String> set = new LinkedHashSet<>();
         for (String v : rawValues) {
-            if (StringUtils.hasText(v)) {
-                set.add(v.strip());
+            if (!StringUtils.hasText(v)) continue;
+            // 허용: 단일 요소에 콤마로 합쳐 보낸 경우 분리
+            String[] parts = v.split(",");
+            for (String part : parts) {
+                if (StringUtils.hasText(part)) set.add(part.strip());
             }
         }
-        return new java.util.ArrayList<>(set);
+        return new ArrayList<>(set);
     }
 
     private void registerAfterCommit(Runnable task) {

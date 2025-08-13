@@ -10,6 +10,7 @@ import org.hibernate.annotations.Where;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "clothes")
@@ -27,9 +28,8 @@ public class Cloth extends SoftDeletableEntity {
   @JoinColumn(name = "closet_id", nullable = false)
   private Closet closet;
 
-  @OneToOne
-  @JoinColumn(name = "image_id")
-  private BinaryContent binaryContent;
+  @Column(name = "image_id")
+  private UUID binaryContentId;
 
   @Column(nullable = false, length = 100)
   private String name;
@@ -42,15 +42,15 @@ public class Cloth extends SoftDeletableEntity {
   @Where(clause = "deleted_at IS NULL")
   private List<ClothingAttributeValue> attributeValues = new ArrayList<>();
 
-  private Cloth(String name, Closet closet, ClothingCategory category, BinaryContent binaryContent) {
+  private Cloth(String name, Closet closet, ClothingCategory category, UUID binaryContentId) {
     this.name = name;
     this.closet = closet;
     this.category = category;
-    this.binaryContent = binaryContent;
+    this.binaryContentId = binaryContentId;
   }
 
-  public static Cloth createCloth(String name, Closet closet, ClothingCategory category, BinaryContent binaryContent) {
-    Cloth cloth = new Cloth(name, closet, category, binaryContent);
+  public static Cloth createCloth(String name, Closet closet, ClothingCategory category, java.util.UUID binaryContentId) {
+    Cloth cloth = new Cloth(name, closet, category, binaryContentId);
     
     // 양방향 관계 자동 동기화
     if (closet != null) {
@@ -76,9 +76,9 @@ public class Cloth extends SoftDeletableEntity {
   }
 
 
-  public void updateBinaryContent(BinaryContent binaryContent) {
-    if (binaryContent != null) {
-      this.binaryContent = binaryContent;
+  public void updateBinaryContentId(java.util.UUID binaryContentId) {
+    if (binaryContentId != null) {
+      this.binaryContentId = binaryContentId;
     }
   }
 

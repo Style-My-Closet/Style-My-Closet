@@ -1,11 +1,11 @@
 package com.stylemycloset.cloth.entity;
 
 import com.stylemycloset.common.entity.SoftDeletableEntity;
+import com.stylemycloset.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import com.stylemycloset.user.entity.User;
 import org.hibernate.annotations.Where;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +21,8 @@ public class Closet extends SoftDeletableEntity {
   @SequenceGenerator(name = "closets_seq_gen", sequenceName = "closets_id_seq", allocationSize = 1)
   private Long id;
 
-  @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", nullable = false)
-  private User user;
+  @Column(name = "user_id", nullable = false)
+  private Long userId;
 
   @OneToMany(mappedBy = "closet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @Where(clause = "deleted_at IS NULL")
@@ -48,7 +47,11 @@ public class Closet extends SoftDeletableEntity {
   }
 
   public Closet(User user) {
-    this.user = user;
+    this.userId = user != null ? user.getId() : null;
+  }
+
+  public Closet(Long userId) {
+    this.userId = userId;
   }
 
 }
