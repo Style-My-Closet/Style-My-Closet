@@ -9,10 +9,12 @@ import com.stylemycloset.directmessage.exception.DirectMessageSelfForbiddenExcep
 import com.stylemycloset.directmessage.mapper.DirectMessageMapper;
 import com.stylemycloset.directmessage.repository.DirectMessageRepository;
 import com.stylemycloset.directmessage.service.DirectMessageService;
+import com.stylemycloset.notification.event.domain.DMSentEvent;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.exception.UserNotFoundException;
 import com.stylemycloset.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,7 @@ public class DirectMessageServiceImpl implements DirectMessageService {
   private final DirectMessageRepository directMessageRepository;
   private final UserRepository userRepository;
   private final DirectMessageMapper directMessageMapper;
+  private final ApplicationEventPublisher publisher;
 
   @Transactional
   @Override
@@ -35,6 +38,8 @@ public class DirectMessageServiceImpl implements DirectMessageService {
     DirectMessage directMessage = directMessageRepository.save(new DirectMessage(
         sender, receiver, request.content()
     ));
+
+    publisher.publishEvent(new DMSentEvent(directMessage.getId(), sender.getName()));
 
     return directMessageMapper.toResult(directMessage);
   }
