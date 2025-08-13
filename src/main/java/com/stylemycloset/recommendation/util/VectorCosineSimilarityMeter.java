@@ -6,7 +6,7 @@ import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.recommendation.dto.RecommendationDto;
 import com.stylemycloset.recommendation.entity.ClothingCondition;
-import com.stylemycloset.recommendation.mapper.ClothingFeatureMapper;
+import com.stylemycloset.recommendation.mapper.ClothingConditionMapper;
 import com.stylemycloset.recommendation.repository.ClothingFeatureRepository;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
@@ -54,7 +54,7 @@ public class VectorCosineSimilarityMeter {
         );
 
 
-        double[] inputVector = parseToVector(ClothingFeatureMapper.fromRecommendationDto
+        double[] inputVector = parseToVector(ClothingConditionMapper.fromRecommendationDto
             (dto, weather, user));
 
         ClothingCondition mostSimilar = null;
