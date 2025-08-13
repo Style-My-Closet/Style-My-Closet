@@ -1,12 +1,13 @@
-package com.stylemycloset.directmessage.entity.exception;
+package com.stylemycloset.directmessage.exception;
 
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import java.util.Map;
 
-public class MessageNotFoundException extends StyleMyClosetException {
+public final class DirectMessageNotFoundException extends StyleMyClosetException {
 
-  public MessageNotFoundException(Long messageId) {
+  public DirectMessageNotFoundException(Long messageId) {
     super(ErrorCode.MESSAGE_NOT_FOUND, Map.of("messageId", messageId));
   }
+
 }

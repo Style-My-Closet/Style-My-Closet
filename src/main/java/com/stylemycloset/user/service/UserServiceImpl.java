@@ -6,7 +6,6 @@ import com.stylemycloset.user.dto.data.ProfileDto;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.dto.request.ChangePasswordRequest;
 import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
-import com.stylemycloset.user.dto.request.ResetPasswordRequest;
 import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.dto.request.UserLockUpdateRequest;
 import com.stylemycloset.user.dto.request.UserPageRequest;
@@ -19,13 +18,9 @@ import com.stylemycloset.user.exception.UserNotFoundException;
 import com.stylemycloset.user.mapper.UserMapper;
 import com.stylemycloset.user.repository.UserRepository;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -41,7 +36,6 @@ public class UserServiceImpl implements UserService {
   private final ApplicationEventPublisher publisher;
   private final UserMapper userMapper;
   private final JwtService jwtService;
-
 
   @Transactional
   @Override

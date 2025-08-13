@@ -1,10 +1,10 @@
 package com.stylemycloset.follow.repository.cursor;
 
+import com.stylemycloset.common.repository.cursor.CursorStrategy;
 import com.stylemycloset.follow.entity.Follow;
 import com.stylemycloset.follow.entity.QFollow;
-import com.stylemycloset.follow.repository.cursor.strategy.impl.ChronologicalCursorStrategy;
-import com.stylemycloset.follow.repository.cursor.strategy.CursorStrategy;
-import com.stylemycloset.follow.repository.cursor.strategy.impl.NumberCursorStrategy;
+import com.stylemycloset.follow.repository.cursor.strategy.ChronologicalCursorStrategy;
+import com.stylemycloset.follow.repository.cursor.strategy.NumberCursorStrategy;
 import java.time.Instant;
 import java.util.Arrays;
 
@@ -34,13 +34,13 @@ public enum FollowCursorField {
       Follow::getFollowedAt)
   );
 
-  private final CursorStrategy<?> cursorStrategy;
+  private final CursorStrategy<?, Follow> cursorStrategy;
 
-  FollowCursorField(CursorStrategy<?> cursorStrategy) {
+  FollowCursorField(CursorStrategy<?, Follow> cursorStrategy) {
     this.cursorStrategy = cursorStrategy;
   }
 
-  public static CursorStrategy<?> resolveStrategy(String sortBy) {
+  public static CursorStrategy<?, Follow> resolveStrategy(String sortBy) {
     if (sortBy == null || sortBy.isBlank()) {
       return CREATED_AT.cursorStrategy;
     }

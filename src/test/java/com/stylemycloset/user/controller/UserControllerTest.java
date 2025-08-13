@@ -28,7 +28,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -110,7 +109,7 @@ public class UserControllerTest extends IntegrationTestSupport {
     String jsonRequest = objectMapper.writeValueAsString(request);
 
     // when & then
-    mockMvc.perform(patch("/api/users/{userId}/role", user.getId())
+    mockMvc.perform(patch("/api/users/{id}/role", user.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonRequest)
             .with(csrf()))
@@ -130,7 +129,7 @@ public class UserControllerTest extends IntegrationTestSupport {
     String jsonRequest = objectMapper.writeValueAsString(request);
 
     //when & then
-    mockMvc.perform(patch("/api/users/{userId}/password", user.getId())
+    mockMvc.perform(patch("/api/users/{id}/password", user.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonRequest)
             .with(csrf()))
@@ -149,7 +148,7 @@ public class UserControllerTest extends IntegrationTestSupport {
     String jsonRequest = objectMapper.writeValueAsString(request);
 
     // when & then
-    mockMvc.perform(patch("/api/users/{userId}/lock", user.getId())
+    mockMvc.perform(patch("/api/users/{id}/lock", user.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonRequest)
             .with(csrf()))
@@ -177,7 +176,6 @@ public class UserControllerTest extends IntegrationTestSupport {
     User deletedUser = userRepository.findById(user.getId()).get();
     assertThat(deletedUser.getDeletedAt()).isNotNull();
   }
-
 
   @Test
   @DisplayName("프로필 수정 API를 호출하면 프로필이 수정되고 200 OK를 반환한다")

@@ -1,12 +1,12 @@
 package com.stylemycloset.follow.mapper;
 
 import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
+import com.stylemycloset.common.repository.cursor.CursorStrategy;
 import com.stylemycloset.follow.dto.FollowListResponse;
 import com.stylemycloset.follow.dto.FollowListResponse.NextCursorInfo;
 import com.stylemycloset.follow.dto.FollowResult;
 import com.stylemycloset.follow.dto.FollowUserInfo;
 import com.stylemycloset.follow.entity.Follow;
-import com.stylemycloset.follow.repository.cursor.strategy.CursorStrategy;
 import com.stylemycloset.follow.repository.cursor.FollowCursorField;
 import com.stylemycloset.user.entity.User;
 import java.net.URL;
@@ -45,7 +45,7 @@ public class FollowMapper {
     List<FollowResult> followResults = getFollowResults(follows);
     Order order = getOrder(follows);
 
-    return FollowListResponse.from(
+    return FollowListResponse.of(
         followResults,
         extractNextCursorInfo(follows, order.getProperty()),
         follows.hasNext(),
@@ -78,7 +78,7 @@ public class FollowMapper {
     }
 
     Follow lastFollow = follows.getContent().get(follows.getContent().size() - 1);
-    CursorStrategy<?> cursorStrategy = FollowCursorField.resolveStrategy(sortBy);
+    CursorStrategy<?, Follow> cursorStrategy = FollowCursorField.resolveStrategy(sortBy);
     String cursor = cursorStrategy.extract(lastFollow).toString();
     String idAfter = lastFollow.getId().toString();
 

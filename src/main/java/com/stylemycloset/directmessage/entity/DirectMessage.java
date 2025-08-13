@@ -2,18 +2,24 @@ package com.stylemycloset.directmessage.entity;
 
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import com.stylemycloset.user.entity.User;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
 
 @Getter
 @Entity
 @Table(name = "messages")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Message extends SoftDeletableEntity {
+public class DirectMessage extends SoftDeletableEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "messages_seq_gen")
@@ -31,14 +37,10 @@ public class Message extends SoftDeletableEntity {
   @Column(name = "content", nullable = false)
   private String content;
 
-  @Column(name = "sent_at", nullable = false)
-  private Instant sentAt;
-
-  public Message(User sender, User receiver, String content, Instant sentAt) {
+  public DirectMessage(User sender, User receiver, String content) {
     this.sender = sender;
     this.receiver = receiver;
     this.content = content;
-    this.sentAt = sentAt;
   }
 
 }

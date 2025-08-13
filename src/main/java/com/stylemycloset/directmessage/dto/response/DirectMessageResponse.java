@@ -1,8 +1,9 @@
-package com.stylemycloset.follow.dto;
+package com.stylemycloset.directmessage.dto.response;
 
+import com.stylemycloset.directmessage.dto.DirectMessageResult;
 import java.util.List;
 
-public record FollowListResponse<T>(
+public record DirectMessageResponse<T>(
     List<T> data,
     String nextCursor,
     String nextIdAfter,
@@ -12,16 +13,16 @@ public record FollowListResponse<T>(
     String sortDirection
 ) {
 
-  public static FollowListResponse<FollowResult> of(
-      List<FollowResult> followResults,
+  public static DirectMessageResponse<DirectMessageResult> of(
+      List<DirectMessageResult> messageResults,
       NextCursorInfo nextCursorInfo,
       Boolean hasNext,
       Integer totalCount,
       String sortBy,
       String sortDirection
   ) {
-    return new FollowListResponse<>(
-        followResults,
+    return new DirectMessageResponse<>(
+        messageResults,
         nextCursorInfo.nextCursor,
         nextCursorInfo.nextIdAfter,
         hasNext,
