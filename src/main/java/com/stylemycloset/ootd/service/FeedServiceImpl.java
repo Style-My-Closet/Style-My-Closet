@@ -3,10 +3,12 @@ package com.stylemycloset.ootd.service;
 import com.stylemycloset.cloth.entity.AttributeOption;
 import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingAttribute;
-
 import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
+import com.stylemycloset.notification.event.domain.FeedCommentEvent;
+import com.stylemycloset.notification.event.domain.FeedLikedEvent;
+import com.stylemycloset.notification.event.domain.NewFeedEvent;
 import com.stylemycloset.ootd.dto.AuthorDto;
 import com.stylemycloset.ootd.dto.ClothesAttributeWithDefDto;
 import com.stylemycloset.ootd.dto.CommentCreateRequest;
@@ -40,6 +42,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +58,7 @@ public class FeedServiceImpl implements FeedService {
   private final WeatherRepository weatherRepository;
   private final FeedLikeRepository feedLikeRepository;
   private final FeedCommentRepository feedCommentRepository;
+  private final ApplicationEventPublisher publisher;
 
   @Override
   @Transactional
@@ -76,6 +80,9 @@ public class FeedServiceImpl implements FeedService {
     clothesList.forEach(newFeed::addClothes);
 
     feedRepository.save(newFeed);
+
+    publisher.publishEvent(
+        new NewFeedEvent(newFeed.getId(), newFeed.getContent(), newFeed.getAuthor().getId()));
 
     return mapToFeedResponse(newFeed, author);
   }
@@ -132,6 +139,7 @@ public class FeedServiceImpl implements FeedService {
       // 좋아요가 없으면 -> 생성 (좋아요)
       FeedLike newLike = FeedLike.createFeedLike(user, feed);
       feedLikeRepository.save(newLike);
+      publisher.publishEvent(new FeedLikedEvent(feed.getId(), userId));
     }
 
     return mapToFeedResponse(feed, user);
@@ -314,6 +322,8 @@ public class FeedServiceImpl implements FeedService {
 
     FeedComment newComment = new FeedComment(feed, author, request.content());
     FeedComment savedComment = feedCommentRepository.save(newComment);
+
+    publisher.publishEvent(new FeedCommentEvent(newComment.getId(), newComment.getAuthor().getId()));
 
     return toCommentDto(savedComment);
   }

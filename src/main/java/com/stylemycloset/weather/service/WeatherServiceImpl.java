@@ -4,8 +4,8 @@ import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.location.Location;
 import com.stylemycloset.location.LocationRepository;
+import com.stylemycloset.notification.event.domain.WeatherAlertEvent;
 import com.stylemycloset.weather.dto.WeatherAPILocation;
-import com.stylemycloset.weather.dto.WeatherAlertEvent;
 import com.stylemycloset.weather.dto.WeatherDto;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.entity.Weather.AlertType;
@@ -20,8 +20,6 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import org.springframework.stereotype.Service;
 
 @Service
@@ -48,7 +46,7 @@ public class WeatherServiceImpl implements WeatherService {
         return locationMapper.toDto(location);
     }
 
-    public void checkWeather(Double latitude, Double longitude) {
+    public void checkWeather(Double latitude, Double longitude, Long userId) {
 
         Optional<Weather> weather=  getTodayWeatherByLocation(latitude, longitude);
         Weather data = weather.orElseThrow(
@@ -75,7 +73,7 @@ public class WeatherServiceImpl implements WeatherService {
             }
 
             String message = messageBuilder.toString().trim();
-            //eventPublisher.publishEvent(new WeatherAlertEvent(data.getId(), message));
+            eventPublisher.publishEvent(new WeatherAlertEvent(userId, data.getId(), message));
         }
     }
 
