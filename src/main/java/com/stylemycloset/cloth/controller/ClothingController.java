@@ -10,10 +10,8 @@ import com.stylemycloset.cloth.service.ClothProductExtractionService;
 import com.stylemycloset.binarycontent.service.ImageDownloadService;
 import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.cloth.service.ClothService;
-import com.stylemycloset.security.ClosetUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -29,33 +27,39 @@ public class ClothingController {
     private final ImageDownloadService imageDownloadService;
 
     @GetMapping
-    public ResponseEntity<ClothListResponseDto> getClothes(@AuthenticationPrincipal UserDetails principal,
+    public ResponseEntity<ClothListResponseDto> getClothes(@AuthenticationPrincipal(expression = "userId") Long userId,
                                                            CursorDto cursorDto) {
-        Long effectiveUserId = (principal != null ? extractUserId(principal) : 1L);
-        ClothListResponseDto response = clothService.getClothesWithCursor(effectiveUserId, cursorDto);
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+        ClothListResponseDto response = clothService.getClothesWithCursor(userId, cursorDto);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ClothResponseDto> createCloth(@AuthenticationPrincipal UserDetails principal,
+    public ResponseEntity<ClothResponseDto> createCloth(@AuthenticationPrincipal(expression = "userId") Long userId,
                                                         @RequestPart("request") ClothCreateRequestDto request,
                                                         @RequestPart(value = "image", required = false) MultipartFile image) {
-        Long effectiveUserId = (principal != null ? extractUserId(principal) : 1L);
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
         if (image != null && !image.isEmpty()) {
             BinaryContent saved = imageDownloadService.saveUploadedImage(image);
             if (saved != null) {
                 request.setBinaryContentId(saved.getId());
             }
         }
-        ClothResponseDto response = clothService.createCloth(request, effectiveUserId);
+        ClothResponseDto response = clothService.createCloth(request, userId);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ClothResponseDto> createClothJson(@AuthenticationPrincipal UserDetails principal,
+    public ResponseEntity<ClothResponseDto> createClothJson(@AuthenticationPrincipal(expression = "userId") Long userId,
                                                             @RequestBody ClothCreateRequestDto request) {
-        Long effectiveUserId = (principal != null ? extractUserId(principal) : 1L);
-        ClothResponseDto response = clothService.createCloth(request, effectiveUserId);
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+        ClothResponseDto response = clothService.createCloth(request, userId);
         return ResponseEntity.ok(response);
     }
 
@@ -77,24 +81,15 @@ public class ClothingController {
 
     @GetMapping("/extractions")
     public ResponseEntity<ClothResponseDto> extractClothInfo(
-            @AuthenticationPrincipal UserDetails principal,
-            @RequestParam("productUrl") String productUrl,
-            @RequestParam(value = "mode", required = false, defaultValue = "full") String mode
-    ) {
-        Long effectiveUserId = (principal != null ? extractUserId(principal) : 1L);
-        ClothResponseDto result = clothProductExtractionService.extractAndSave(productUrl, effectiveUserId);
+            @AuthenticationPrincipal(expression = "userId") Long userId,
+            @RequestParam("productUrl") String productUrl) {
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+        ClothResponseDto result = clothProductExtractionService.extractAndSave(productUrl, userId);
         return ResponseEntity.ok(result);
     }
 
-    private Long extractUserId(UserDetails principal) {
-        if (principal instanceof ClosetUserDetails cud && cud.getUserId() != null) {
-            return cud.getUserId();
-        }
-        try {
-            return Long.parseLong(principal.getUsername());
-        } catch (Exception ignore) {
-            return 1L;
-        }
-    }
+    
 
 }
