@@ -12,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "clothing_feature")
+@Table(name = "clothing_conditions")
 public class ClothingCondition {
 
     @Id
@@ -25,19 +25,25 @@ public class ClothingCondition {
 
     private double humidity;
 
+    @Enumerated(EnumType.ORDINAL)
     private Gender gender;
 
     private Integer temperatureSensitivity;
 
+    @Enumerated(EnumType.ORDINAL)
     private SkyStatus skyStatus;
 
     @Column(length = 50)
+    @Enumerated(EnumType.ORDINAL)
     private AlertType weatherType;
 
+    @Enumerated(EnumType.ORDINAL)
     private Color color;
 
+    @Enumerated(EnumType.ORDINAL)
     private SleeveLength SleeveLength;
 
+    @Enumerated(EnumType.ORDINAL)
     private PantsLength pantsLength;
 
     // 추천 여부 (1=추천, 0=비추천)
