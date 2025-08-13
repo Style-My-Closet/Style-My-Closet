@@ -6,9 +6,6 @@ import com.stylemycloset.notification.event.domain.ClothAttributeChangedEvent;
 import com.stylemycloset.notification.event.domain.NewClothAttributeEvent;
 import com.stylemycloset.notification.service.NotificationService;
 import com.stylemycloset.sse.service.SseService;
-import com.stylemycloset.user.entity.Gender;
-import com.stylemycloset.user.entity.Role;
-import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,7 +35,6 @@ class NotificationEventListenerTest {
   @Test
   void handleNewClothAttributeEvent_publishesNotifications_and_sendsSse() {
     // given
-    User u = new User(1L, "u", "u@test.com", null, Role.USER, false, Gender.MALE, null, null, java.util.List.of(), null, null);
     when(userRepository.findActiveUserIds()).thenReturn(Set.of(1L));
     NotificationDto dto = NotificationDto.builder()
         .id(1L).createdAt(Instant.now()).receiverId(1L)
@@ -59,7 +55,6 @@ class NotificationEventListenerTest {
   @Test
   void handleClothAttributeChangedEvent_publishesNotifications_and_sendsSse() {
     // given
-    User u = new User(1L, "u", "u@test.com", null, Role.USER, false, Gender.MALE, null, null, java.util.List.of(), null, null);
     when(userRepository.findActiveUserIds()).thenReturn(Set.of(1L));
     NotificationDto dto = NotificationDto.builder()
         .id(2L).createdAt(Instant.now()).receiverId(1L)

@@ -2,6 +2,16 @@ package com.stylemycloset;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.context.annotation.Bean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.context.annotation.Primary;
+import com.stylemycloset.common.controller.GlobalControllerExceptionHandler;
+import com.stylemycloset.testconfig.TestCacheConfig;
+import com.stylemycloset.binarycontent.service.ImageStoragePort;
 import jakarta.persistence.EntityManager;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +22,16 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Import({IntegrationTestSupport.SecurityTestConfig.class,
+        IntegrationTestSupport.StorageTestConfig.class,
+        GlobalControllerExceptionHandler.class,
+        TestCacheConfig.class})
+@org.springframework.context.annotation.ComponentScan(
+        excludeFilters = {
+                @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com.stylemycloset.weather.*"),
+                @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE, classes = com.stylemycloset.common.config.BatchConfig.class)
+        }
+)
 public abstract class IntegrationTestSupport extends TestContainerSupport {
 
   @Resource
@@ -71,5 +91,36 @@ public abstract class IntegrationTestSupport extends TestContainerSupport {
       baseEntityManager.createNativeQuery("ALTER SEQUENCE clothes_categories_id_seq RESTART WITH 1").executeUpdate();
       return null;
     });
+  }
+
+  @TestConfiguration
+  static class SecurityTestConfig {
+    @Bean
+    PasswordEncoder passwordEncoder() {
+      return new BCryptPasswordEncoder();
+    }
+  }
+
+  @TestConfiguration
+  static class StorageTestConfig {
+    @Bean
+    @Primary
+    ImageStoragePort imageStoragePort() {
+      return new ImageStoragePort() {
+        @Override
+        public UploadResult upload(byte[] data, String objectKey, String contentType) {
+          return new UploadResult(objectKey != null ? objectKey : "test/key.jpg",
+              "https://example.com/" + (objectKey != null ? objectKey : "test/key.jpg"));
+        }
+        @Override
+        public PresignedUrl presignPut(String objectKey, String contentType, long expirationSeconds) {
+          return new PresignedUrl(objectKey, "https://example.com/presigned/" + objectKey, java.util.Map.of());
+        }
+        @Override
+        public String publicUrl(String objectKey) {
+          return "https://example.com/" + objectKey;
+        }
+      };
+    }
   }
 }
