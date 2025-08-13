@@ -33,7 +33,6 @@ import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
-import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -73,8 +72,7 @@ public class FeedControllerTest extends IntegrationTestSupport {
   private FeedCommentRepository feedCommentRepository;
   @MockitoBean
   private SseService sseService;
-  @MockitoBean
-  private EntityManager em;
+  
 
   private User testUser;
   private Closet testCloset;
@@ -103,7 +101,7 @@ public class FeedControllerTest extends IntegrationTestSupport {
         .orElseGet(() -> categoryRepository.save(new ClothingCategory(ClothingCategoryType.TOP)));
 
     testCloset = closetRepository.findAll().stream()
-        .filter(z -> z.getUser().getId().equals(testUser.getId()))
+        .filter(z -> z.getUserId().equals(testUser.getId()))
         .findFirst()
         .orElseGet(() -> closetRepository.save(new Closet(testUser)));
 
@@ -112,12 +110,7 @@ public class FeedControllerTest extends IntegrationTestSupport {
   }
 
   private Cloth saveCloth(String name, Closet closet, ClothingCategory category, BinaryContent bin) {
-    Cloth c = Cloth.builder()
-        .name(name)
-        .closet(closet)
-        .category(category)
-        .binaryContent(bin)
-        .build();
+    Cloth c = Cloth.createCloth(name, closet, category, bin != null ? bin.getId() : null);
     return clothRepository.save(c);
   }
 
