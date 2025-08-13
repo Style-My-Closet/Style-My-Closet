@@ -1,5 +1,9 @@
 package com.stylemycloset.recommendation.entity;
 
+import com.stylemycloset.cloth.entity.AttributeOption;
+import com.stylemycloset.cloth.entity.Cloth;
+import com.stylemycloset.cloth.entity.ClothingAttribute;
+import com.stylemycloset.cloth.entity.ClothingAttributeValue;
 import com.stylemycloset.user.entity.Gender;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,6 +31,9 @@ public class ClothingFeature {
 
     private Integer temperatureSensitivity;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+
+    private ClothingAttributeValue clothOption;
 
     @Column(length = 50)
     private String weatherType;
