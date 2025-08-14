@@ -81,7 +81,7 @@ class ForecastApiServiceTest {
         );
 
         // deduplicator 설정 (mock)
-        when(deduplicator.deduplicate(anyList())).thenAnswer(inv -> inv.getArgument(0));
+        when(deduplicator.filtering(anyList())).thenAnswer(inv -> inv.getArgument(0));
 
         // 필요하면 processor 내 특정 메서드만 mock 처리 가능
         doReturn(true).when(tmpProcessor).supports("TMP");

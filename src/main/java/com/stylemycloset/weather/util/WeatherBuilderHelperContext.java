@@ -15,7 +15,7 @@ public class WeatherBuilderHelperContext {
     public LocalDateTime forecastedAt;
     public LocalDateTime forecastAt;
     public Location location;
-    public Map<String, Boolean> processedCategories = new HashMap<>();
+
 
     public Weather.SkyStatus skyStatus = Weather.SkyStatus.CLEAR;
     public Precipitation precipitation = new Precipitation(null, 0.0, 0.0);
