@@ -1,10 +1,11 @@
 package com.stylemycloset.sse.controller;
 
+import com.stylemycloset.security.ClosetUserDetails;
 import com.stylemycloset.sse.service.SseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,13 +18,12 @@ public class SseController {
 
   private final SseService sseService;
 
-  @GetMapping(path = "/{userId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public SseEmitter connect(
-      // UserDetails 구현체 생성될 시 수정 필요 (UserDetails의 user 관련 정보로 대체)
-      @PathVariable Long userId,
+      @AuthenticationPrincipal ClosetUserDetails principal,
       @RequestParam(value = "lastEventId", required = false) String lastEventId
   ) {
     String eventId = String.valueOf(System.currentTimeMillis());
-    return sseService.connect(userId, eventId, lastEventId);
+    return sseService.connect(principal.getUserId(), eventId, lastEventId);
   }
 }

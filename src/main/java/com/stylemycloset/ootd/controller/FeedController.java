@@ -10,13 +10,13 @@ import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
 import com.stylemycloset.ootd.dto.FeedSearchRequest;
 import com.stylemycloset.ootd.dto.FeedUpdateRequest;
 import com.stylemycloset.ootd.service.FeedService;
-import com.stylemycloset.user.entity.User;
+import com.stylemycloset.security.ClosetUserDetails;
 import com.stylemycloset.user.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -36,9 +36,13 @@ public class FeedController {
   private final UserRepository userRepository;
 
   @PostMapping
-  public ResponseEntity<FeedDto> createFeed(@Valid @RequestBody FeedCreateRequest request) {
-    // TODO: 실제로는 Spring Security를 통해 로그인한 사용자 ID를 가져와야 함
-    // 지금은 request 에 있는 authorID를 그대로 사용
+  public ResponseEntity<FeedDto> createFeed(
+      @Valid @RequestBody FeedCreateRequest request,
+      @AuthenticationPrincipal ClosetUserDetails principal
+  ) {
+    if (!principal.getUserId().equals(request.authorId())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid authorId");
+    }
     FeedDto responseDto = feedService.createFeed(request);
 
     return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
@@ -55,21 +59,19 @@ public class FeedController {
   }
 
   @PostMapping("/{feedId}/like")
-  public ResponseEntity<FeedDto> likeFeed(@PathVariable Long feedId,
-      Authentication authentication) {
-    User user = userRepository.findByEmail(authentication.getName())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-    FeedDto responseDto = feedService.toggleLike(user.getId(), feedId);
+  public ResponseEntity<FeedDto> likeFeed(
+      @PathVariable Long feedId,
+      @AuthenticationPrincipal ClosetUserDetails principal
+  ) {
+    FeedDto responseDto = feedService.toggleLike(principal.getUserId(), feedId);
     return ResponseEntity.ok(responseDto);
   }
 
   @DeleteMapping("/{feedId}/like")
-  public ResponseEntity<Void> unlikeFeed(@PathVariable Long feedId, Authentication authentication) {
-    // TODO: 유저 디테일 구현 후 유저 아이디로 대체
-    // Spring Security 에서 username 으로 이메일을 사용하므로, authentication.getName()은 사용자의 이메일을 반환합니다.
-    User user = userRepository.findByEmail(authentication.getName())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-    feedService.toggleLike(user.getId(), feedId);
+  public ResponseEntity<Void> unlikeFeed(
+      @PathVariable Long feedId,
+      @AuthenticationPrincipal ClosetUserDetails principal) {
+    feedService.toggleLike(principal.getUserId(), feedId);
     return ResponseEntity.noContent().build();
   }
 
@@ -86,37 +88,33 @@ public class FeedController {
   public ResponseEntity<CommentDto> createComment(
       @PathVariable Long feedId,
       @Valid @RequestBody CommentCreateRequest request,
-      Authentication authentication
+      @AuthenticationPrincipal ClosetUserDetails principal
   ) {
     if (!feedId.equals(request.feedId())) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid feedId");
     }
-
-    User user = userRepository.findByEmail(authentication.getName())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-    CommentDto createdCommentDto = feedService.createComment(request, user.getId());
+    CommentDto createdCommentDto = feedService.createComment(request, principal.getUserId());
 
     return ResponseEntity.status(HttpStatus.CREATED).body(createdCommentDto);
   }
 
   @DeleteMapping("/{feedId}")
-  public ResponseEntity<Void> deleteFeed(@PathVariable Long feedId, Authentication authentication) {
-    User user = userRepository.findByEmail(authentication.getName())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-    feedService.deleteFeed(user.getId(), feedId);
+  public ResponseEntity<Void> deleteFeed(
+      @PathVariable Long feedId,
+      @AuthenticationPrincipal ClosetUserDetails principal
+  ) {
+    feedService.deleteFeed(principal.getUserId(), feedId);
 
     return ResponseEntity.noContent().build();
   }
 
   @PatchMapping("/{feedId}")
-  public ResponseEntity<FeedDto> updateFeed(@PathVariable Long feedId,
-      @Valid @RequestBody FeedUpdateRequest request, Authentication authentication) {
-    User user = userRepository.findByEmail(authentication.getName())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-    FeedDto responseDto = feedService.updateFeed(user.getId(), feedId, request);
+  public ResponseEntity<FeedDto> updateFeed(
+      @PathVariable Long feedId,
+      @Valid @RequestBody FeedUpdateRequest request,
+      @AuthenticationPrincipal ClosetUserDetails principal
+  ) {
+    FeedDto responseDto = feedService.updateFeed(principal.getUserId(), feedId, request);
 
     return ResponseEntity.ok(responseDto);
   }

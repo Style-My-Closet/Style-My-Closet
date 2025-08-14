@@ -2,12 +2,13 @@ package com.stylemycloset.follow.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 
+import com.stylemycloset.ControllerTestSupport;
 import com.stylemycloset.follow.dto.FollowListResponse;
 import com.stylemycloset.follow.dto.FollowResult;
 import com.stylemycloset.follow.dto.FollowSummaryResult;
 import com.stylemycloset.follow.dto.request.FollowCreateRequest;
 import com.stylemycloset.follow.service.FollowService;
-import com.stylemycloset.ControllerTestSupport;
+import com.stylemycloset.security.ClosetUserDetails;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,8 @@ import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
@@ -22,6 +25,18 @@ class FollowControllerTest extends ControllerTestSupport {
 
   @MockitoBean
   private FollowService followService;
+
+  void setSecurityContext() {
+    ClosetUserDetails principal = new ClosetUserDetails(2L, "USER", "test");
+    var auth = new UsernamePasswordAuthenticationToken(principal, "test", principal.getAuthorities());
+    var context  = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(auth);
+    SecurityContextHolder.setContext(context);
+  }
+
+  void clearSecurityContext() {
+    SecurityContextHolder.clearContext();
+  }
 
   @Test
   @DisplayName("팔로우 생성: 필수값 누락이면 400")
@@ -77,6 +92,7 @@ class FollowControllerTest extends ControllerTestSupport {
   @DisplayName("요약 조회: id 정상 전달이면 200")
   void summary_valid_returns200() {
     // given
+    setSecurityContext();
     BDDMockito.given(followService.getFollowSummary(any(), any()))
         .willReturn(Mockito.mock(FollowSummaryResult.class));
 
@@ -88,6 +104,8 @@ class FollowControllerTest extends ControllerTestSupport {
 
     // then
     Assertions.assertThat(result).hasStatus(HttpStatus.OK);
+
+    clearSecurityContext();
   }
 
   @Test

@@ -6,6 +6,7 @@ import com.stylemycloset.directmessage.dto.request.DirectMessageSearchCondition;
 import com.stylemycloset.directmessage.dto.response.DirectMessageResponse;
 import com.stylemycloset.directmessage.entity.DirectMessageKey;
 import com.stylemycloset.directmessage.service.DirectMessageService;
+import com.stylemycloset.security.ClosetUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -35,10 +36,10 @@ public class DirectMessageController {
   @GetMapping("/api/direct-messages")
   public ResponseEntity<DirectMessageResponse<DirectMessageResult>> getDirectMessageByUser(
       @Valid DirectMessageSearchCondition condition,
-      @AuthenticationPrincipal Long viewerId // 시큐리티 수정 후 추가 예정
+      @AuthenticationPrincipal ClosetUserDetails principal
   ) {
     DirectMessageResponse<DirectMessageResult> messages = directMessageService.getDirectMessageBetweenParticipants(
-        condition, viewerId);
+        condition, principal.getUserId());
     return ResponseEntity.ok(messages);
   }
 
