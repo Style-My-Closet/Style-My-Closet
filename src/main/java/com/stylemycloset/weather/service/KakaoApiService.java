@@ -32,7 +32,7 @@ public class KakaoApiService {
     private String baseUrl;
 
     public Location createLocation(double longitude, double latitude) {
-        JsonNode documents = fetchDocumentsFromKakao(latitude, longitude);
+        JsonNode documents = fetchDocumentsFromKakao(longitude, latitude);
         Location location = buildLocationFromJson(documents);
         return locationRepository.save(location);
     }

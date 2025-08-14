@@ -14,6 +14,7 @@ import com.stylemycloset.weather.mapper.WeatherMapper;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
@@ -32,9 +33,16 @@ public class WeatherServiceImpl implements WeatherService {
     private final LocationRepository locationRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final KakaoApiService kakaoApiService;
+    private final ForecastApiService forecastApiService;
 
     public List<WeatherDto> getWeatherByCoordinates(double latitude, double longitude) {
-        List<Weather> weathers = weatherRepository.findByLocation(latitude, longitude);
+        LocalDateTime fiveDaysAgo = LocalDateTime.now().minusDays(5);
+        List<Weather> weathers = weatherRepository.findRecent5DaysByLocation(latitude, longitude, fiveDaysAgo);
+        if(weathers.isEmpty()){
+            Location location = locationRepository.findByLatitudeAndLongitude(latitude,longitude).orElseGet(
+                ()->kakaoApiService.createLocation(longitude,latitude)  );
+            forecastApiService.fetchData(location);
+        }
         return weathers.stream()
             .map(weatherMapper::toDto)
             .toList();
