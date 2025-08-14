@@ -64,7 +64,7 @@ external:
   market-index:
     service-key: ${SERVICE_KEY}
     base-url: https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0
-    num-of-rows: 10
+    num-of-rows: 21
   kakao:
     rest-api-key: ${REST_API_KEY}
     base-url: https://dapi.kakao.com/v2/local/geo/coord2regioncode.json
