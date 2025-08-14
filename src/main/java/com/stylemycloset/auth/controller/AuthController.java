@@ -2,6 +2,8 @@ package com.stylemycloset.auth.controller;
 
 import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.security.jwt.JwtSession;
+import com.stylemycloset.user.dto.request.ResetPasswordRequest;
+import com.stylemycloset.user.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,7 @@ import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
