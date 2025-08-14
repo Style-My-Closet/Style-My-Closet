@@ -7,13 +7,15 @@ import com.stylemycloset.weather.entity.Temperature;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.entity.WindSpeed;
 import java.time.LocalDateTime;
-
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class WeatherBuilderHelperContext {
     public LocalDateTime forecastedAt;
     public LocalDateTime forecastAt;
     public Location location;
+    public Map<String, Boolean> processedCategories = new HashMap<>();
 
     public Weather.SkyStatus skyStatus = Weather.SkyStatus.CLEAR;
     public Precipitation precipitation = new Precipitation(null, 0.0, 0.0);

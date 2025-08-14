@@ -24,6 +24,10 @@ public class HumidityProcessor implements WeatherCategoryProcessor {
 
     @Override
     public void process(WeatherBuilderHelperContext ctx,String category, String value) {
+        if (ctx.processedCategories.getOrDefault(category, false)) {
+            return;
+        }
+
         double current = parseDoubleSafe(value);
         LocalDate today = LocalDate.now();
         LocalDateTime startOfYesterday = today.minusDays(1).atStartOfDay();
@@ -40,6 +44,7 @@ public class HumidityProcessor implements WeatherCategoryProcessor {
             yesterday = weathers.getFirst().getHumidity().getCurrent();
         }
         ctx.humidity = new Humidity(current, current-yesterday);
+        ctx.processedCategories.put(category, true);
     }
 
     private double parseDoubleSafe(String value) {

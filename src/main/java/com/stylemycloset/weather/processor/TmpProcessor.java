@@ -27,6 +27,10 @@ public class TmpProcessor implements WeatherCategoryProcessor {
 
     @Override
     public void process(WeatherBuilderHelperContext ctx, String category, String value) {
+        if (ctx.processedCategories.getOrDefault(category, false)) {
+            return;
+        }
+
         double parsedValue = parseDoubleSafe(value);
         Temperature oldTemp = ctx.temperature;
         LocalDate today = LocalDate.now();
@@ -53,9 +57,18 @@ public class TmpProcessor implements WeatherCategoryProcessor {
         double max = 0.0;
 
         switch (category) {
-            case "TMP" -> current = parsedValue;
-            case "TMN" -> min = parsedValue;
-            case "TMX" -> max = parsedValue;
+            case "TMP" -> {
+                current = parsedValue;
+                ctx.processedCategories.put(category, true);
+            }
+            case "TMN" -> {
+                min = parsedValue;
+                ctx.processedCategories.put(category, true);
+            }
+            case "TMX" -> {
+                max = parsedValue;
+                ctx.processedCategories.put(category, true);
+            }
         }
 
         ctx.temperature = new Temperature(current, current-yesterday, min, max);

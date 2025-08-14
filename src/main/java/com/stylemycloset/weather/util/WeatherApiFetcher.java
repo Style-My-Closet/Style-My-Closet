@@ -34,7 +34,7 @@ public class WeatherApiFetcher {
 
     public List<JsonNode> fetchAllPages(String baseDate, String baseTime, Location location) {
         List<JsonNode> allItems = new ArrayList<>();
-        int totalPages = (int) Math.ceil((double) 100 / numOfRows); // TODO: 총 개수 동적으로
+        int totalPages = 4; // TODO: 총 개수 동적으로
 
         for (int page = 1; page <= totalPages; page++) {
             try {

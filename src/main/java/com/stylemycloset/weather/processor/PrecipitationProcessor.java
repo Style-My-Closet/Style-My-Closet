@@ -18,6 +18,10 @@ public class PrecipitationProcessor implements WeatherCategoryProcessor {
 
     @Override
     public void process(WeatherBuilderHelperContext ctx, String category, String value) {
+        if (ctx.processedCategories.getOrDefault(category, false)) {
+            return;
+        }
+
         Precipitation old = ctx.precipitation;
 
         Double amount = old.getAmount();
@@ -25,11 +29,19 @@ public class PrecipitationProcessor implements WeatherCategoryProcessor {
         AlertType alertType = ctx.alertType; // 그대로 유지
 
         switch (category) {
-            case "PCP" -> amount = parseDoubleSafe(value);
-            case "POP" -> probability = parseDoubleSafe(value);
+            case "PCP" -> {
+                amount = parseDoubleSafe(value);
+                ctx.processedCategories.put(category, true);
+            }
+            case "POP" -> {
+                probability = parseDoubleSafe(value);
+                ctx.processedCategories.put(category, true);
+            }
             case "PTY" -> {
                 // PTY는 강수 형태이므로 AlertType을 추론해서 바꿔줄 수도 있음
                 alertType = convertToAlertType(value);
+                ctx.processedCategories.put(category, true);
+
             }
         }
 

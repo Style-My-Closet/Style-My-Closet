@@ -19,13 +19,6 @@ public class DateTimeUtils {
 
         // ALLOWED_BASE_TIMES에서 현재 시간 이하 중 가장 큰 값 찾기
         int baseHour = ALLOWED_BASE_TIMES[0];
-        for (int time : ALLOWED_BASE_TIMES) {
-            if (currentHour >= time) {
-                baseHour = time;
-            } else {
-                break;
-            }
-        }
 
         // 만약 현재 시간이 0~1시 사이면 전날 2300 사용해야 하므로
         if (currentHour < ALLOWED_BASE_TIMES[0]) {

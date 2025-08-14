@@ -18,7 +18,7 @@ public interface WeatherRepository extends JpaRepository<Weather, Long> {
       AND w.forecastAt >= :startDate
     ORDER BY w.forecastAt DESC
 """)
-    List<Weather> findRecent5DaysByLocation(
+    List<Weather> findTheNext5DaysByLocation(
         @Param("latitude") double latitude,
         @Param("longitude") double longitude,
         @Param("startDate") LocalDateTime startDate
