@@ -46,8 +46,8 @@ public class WeatherController {
 
     @GetMapping("/location")
     public ResponseEntity<WeatherAPILocation> getWeatherLocation(
-        @RequestParam double latitude,
-        @RequestParam double longitude
+        @RequestParam double longitude,
+        @RequestParam double latitude
     )
         throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
         JobParameters params = new JobParametersBuilder()
@@ -58,7 +58,7 @@ public class WeatherController {
 
         jobLauncher.run(weatherJob, params);
 
-        kakaoApiService.createLocation(latitude, longitude);
+        kakaoApiService.createLocation(longitude, latitude);
 
         WeatherAPILocation location = weatherService.getLocation(latitude,longitude);
         return ResponseEntity.ok(location);

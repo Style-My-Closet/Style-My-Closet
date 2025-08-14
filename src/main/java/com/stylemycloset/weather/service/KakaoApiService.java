@@ -37,7 +37,7 @@ public class KakaoApiService {
         return locationRepository.save(location);
     }
 
-    private JsonNode fetchDocumentsFromKakao(double latitude, double longitude) {
+    private JsonNode fetchDocumentsFromKakao(double longitude, double latitude) {
         try {
             String apiUrl = String.format("%s?x=%f&y=%f", baseUrl, longitude, latitude);
             URI uri = new URI(apiUrl);
