@@ -30,6 +30,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
@@ -49,8 +51,13 @@ class WeatherControllerTest {
     @Mock
     private WeatherService weatherService;
 
-    private WeatherMapper weatherMapper = new WeatherMapper();
+    @Mock
+    private JobLauncher jobLauncher;
 
+    @Mock
+    private Job weatherJob;
+
+    private WeatherMapper weatherMapper = new WeatherMapper();
 
     @InjectMocks
     private WeatherController weatherController;
@@ -60,7 +67,7 @@ class WeatherControllerTest {
         // 진짜 구현체 생성, 내부 필드는 mock
 
         // Controller에 직접 구현체 주입
-        weatherController = new WeatherController(weatherService);
+        weatherController = new WeatherController(weatherService,jobLauncher,weatherJob);
 
       mockMvc = MockMvcBuilders.standaloneSetup(weatherController)
           .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())

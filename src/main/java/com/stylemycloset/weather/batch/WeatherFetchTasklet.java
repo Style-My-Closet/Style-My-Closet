@@ -9,8 +9,10 @@ import com.stylemycloset.weather.service.ForecastApiService;
 import com.stylemycloset.weather.service.KakaoApiService;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -27,8 +29,13 @@ public class WeatherFetchTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-        double lat = 37.5665;    // 예시 좌표 (서울)
-        double lon = 126.9780;
+        JobParameters params = chunkContext.getStepContext()
+            .getStepExecution()
+            .getJobParameters();
+
+        double lat = Double.parseDouble(Objects.requireNonNull(params.getString("lat")));
+        double lon = Double.parseDouble(Objects.requireNonNull(params.getString("lon")));
+
 
         Location location = kakaoApiService.createLocation(lon,lat);
 
