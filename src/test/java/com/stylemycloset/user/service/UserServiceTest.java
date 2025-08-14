@@ -37,7 +37,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.mail.MailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
@@ -290,8 +289,8 @@ public class UserServiceTest {
     ResetPasswordRequest request = new ResetPasswordRequest(userEmail);
     String encodedPassword = "encodedRandomPassword";
 
-    when(userRepository.findByEmail(userEmail)).thenReturn(Optional.of(testUser));
-    when(passwordEncoder.encode(anyString())).thenReturn(encodedPassword);
+    given(userRepository.findByEmail(userEmail)).willReturn(Optional.of(testUser));
+    given(passwordEncoder.encode(anyString())).willReturn(encodedPassword);
 
     //when
     userService.resetPassword(request);
