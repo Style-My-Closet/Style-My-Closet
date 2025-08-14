@@ -1,17 +1,17 @@
 package com.stylemycloset.directmessage.controller;
 
-import com.stylemycloset.directmessage.dto.request.DirectMessageCreateRequest;
 import com.stylemycloset.directmessage.dto.DirectMessageResult;
+import com.stylemycloset.directmessage.dto.request.DirectMessageCreateRequest;
 import com.stylemycloset.directmessage.dto.request.DirectMessageSearchCondition;
 import com.stylemycloset.directmessage.dto.response.DirectMessageResponse;
 import com.stylemycloset.directmessage.entity.DirectMessageKey;
 import com.stylemycloset.directmessage.service.DirectMessageService;
-import com.stylemycloset.security.ClosetUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,12 +34,13 @@ public class DirectMessageController {
   }
 
   @GetMapping("/api/direct-messages")
+  @PreAuthorize("isAuthenticated()")
   public ResponseEntity<DirectMessageResponse<DirectMessageResult>> getDirectMessageByUser(
       @Valid DirectMessageSearchCondition condition,
-      @AuthenticationPrincipal ClosetUserDetails principal
+      @AuthenticationPrincipal(expression = "userId") Long viewerId
   ) {
     DirectMessageResponse<DirectMessageResult> messages = directMessageService.getDirectMessageBetweenParticipants(
-        condition, principal.getUserId());
+        condition, viewerId);
     return ResponseEntity.ok(messages);
   }
 
