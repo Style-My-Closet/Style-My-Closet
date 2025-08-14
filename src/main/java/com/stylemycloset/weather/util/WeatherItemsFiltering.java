@@ -8,20 +8,25 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
-public class WeatherItemDeduplicator {
+public class WeatherItemsFiltering {
 
     private final Set<String> seenKeys = new HashSet<>();
+    private final Set<String> AVAILABLE_CATEGORIES = Set.of("TMP", "TMN", "TMX", "POP", "PTY", "PCP","REH","WSD");
 
-    public List<JsonNode> deduplicate(List<JsonNode> items) {
+    public List<JsonNode> filtering(List<JsonNode> items) {
         List<JsonNode> result = new ArrayList<>();
 
         for (JsonNode item : items) {
             String key = createUniqueKey(item);
-            if (seenKeys.add(key)) {
+            if (seenKeys.add(key) && dataCleaning(item)) {
                 result.add(item);
             }
         }
         return result;
+    }
+
+    private Boolean dataCleaning(JsonNode item) {
+        return AVAILABLE_CATEGORIES.contains(item.path("category").asText());
     }
 
     private String createUniqueKey(JsonNode item) {

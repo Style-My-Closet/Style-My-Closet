@@ -10,7 +10,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.location.Location;
 import com.stylemycloset.location.LocationRepository;
@@ -21,21 +20,17 @@ import com.stylemycloset.weather.processor.HumidityProcessor;
 import com.stylemycloset.weather.processor.TmpProcessor;
 import com.stylemycloset.weather.processor.WeatherCategoryProcessor;
 import com.stylemycloset.weather.repository.WeatherRepository;
-import com.stylemycloset.weather.util.WeatherApiFetcher;
 import com.stylemycloset.weather.util.WeatherBuilderHelperContext;
-import com.stylemycloset.weather.util.WeatherItemDeduplicator;
+import com.stylemycloset.weather.util.WeatherItemsFiltering;
 import com.stylemycloset.weather.utils.FakeWeatherApiFetcher;
-import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("forecast")
@@ -48,7 +43,7 @@ class ForecastApiServiceTest {
     private LocationRepository locationRepository;
 
     @Mock
-    private WeatherItemDeduplicator deduplicator;
+    private WeatherItemsFiltering deduplicator;
 
     private TmpProcessor tmpProcessor;
     private HumidityProcessor humidProcessor;
@@ -110,11 +105,11 @@ class ForecastApiServiceTest {
     @Test
     void fetchData_shouldSaveWeatherAndLocation() {
         // when
-        Weather weather = forecastApiService.fetchData(location);
+        List<Weather> weathers = forecastApiService.fetchData(location);
 
-        weatherRepository.save(weather);
+        weatherRepository.saveAll(weathers);
         // then
-        verify(weatherRepository).save(any(Weather.class));
+        verify(weatherRepository).saveAll(anyList());
         verify(locationRepository).save(any(Location.class));
     }
 }
