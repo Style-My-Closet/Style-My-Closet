@@ -41,7 +41,8 @@ public class WeatherServiceImpl implements WeatherService {
         if(weathers.isEmpty()){
             Location location = locationRepository.findByLatitudeAndLongitude(latitude,longitude).orElseGet(
                 ()->kakaoApiService.createLocation(longitude,latitude)  );
-            forecastApiService.fetchData(location);
+            weathers = forecastApiService.fetchData(location);
+            weatherRepository.saveAll(weathers);
         }
         return weathers.stream()
             .map(weatherMapper::toDto)

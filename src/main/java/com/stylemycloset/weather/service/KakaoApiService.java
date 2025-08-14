@@ -1,11 +1,14 @@
 package com.stylemycloset.weather.service;
 
+import static com.stylemycloset.location.util.LamcConverter.lamcProj;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.location.Location;
 import com.stylemycloset.location.LocationRepository;
+import com.stylemycloset.location.util.LamcConverter;
 import com.stylemycloset.weather.dto.LocationInfo;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -89,9 +92,10 @@ public class KakaoApiService {
     }
 
     private Location buildLocationFromInfo(LocationInfo info) {
+        double[] xy = lamcProj(info.x(), info.y(), 0);
         return Location.builder()
-            .x((int) info.x())
-            .y((int)info.y())
+            .x((int)xy[0])
+            .y((int)xy[1])
             .latitude(info.y())
             .longitude(info.x())
             .locationNames(info.locationNames())

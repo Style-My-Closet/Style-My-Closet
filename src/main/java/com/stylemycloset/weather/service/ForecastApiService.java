@@ -13,6 +13,7 @@ import com.stylemycloset.weather.util.WeatherApiFetcher;
 import com.stylemycloset.weather.util.WeatherBuilderHelper;
 import com.stylemycloset.weather.util.WeatherItemDeduplicator;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,7 @@ public class ForecastApiService {
     private final LocationRepository locationRepository;
     private final List<WeatherCategoryProcessor> processors;
 
-    public Weather fetchData(Location location) {
+    public List<Weather> fetchData(Location location) {
 
         LocalDateTime now = LocalDateTime.now();
         List<String> forecastTime = DateTimeUtils.toBaseDateAndTime(now);
@@ -57,13 +58,13 @@ public class ForecastApiService {
 
         }
 
-        Weather latestWeather = null;
+        List<Weather> latestWeather = new ArrayList<>();
         for (WeatherBuilderHelper builder : builders.values()) {
-            latestWeather = builder.build();
+            latestWeather.add(builder.build()) ;
             log.info("Weather built: {}", latestWeather);
         }
 
-        locationRepository.save(Objects.requireNonNull(latestWeather).getLocation());
+
         return latestWeather;
 
     }

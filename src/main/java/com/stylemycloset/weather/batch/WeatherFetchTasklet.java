@@ -43,11 +43,12 @@ public class WeatherFetchTasklet implements Tasklet {
 
         Optional.ofNullable(location)
             .orElseThrow(() -> new StyleMyClosetException(ErrorCode.ERROR_CODE,Map.of("location 없음","null")));
-        Weather weather = forecastApiService.fetchData
+        List<Weather> weathers = forecastApiService.fetchData
             (location);
 
-        weatherRepository.save(Optional.ofNullable(weather).orElseThrow(() ->
-            new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("weather", "latestWeather"))));
+        weatherRepository.saveAll(Optional.of(weathers).orElseThrow(
+            ()-> new StyleMyClosetException(ErrorCode.ERROR_CODE,Map.of("weather","list"))
+        ) );
 
         return RepeatStatus.FINISHED;
     }
