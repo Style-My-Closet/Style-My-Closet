@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class WeatherController {
 
     private final WeatherService weatherService;
-    private final KakaoApiService kakaoApiService;
     private final JobLauncher jobLauncher;
     private final Job weatherJob;
 
@@ -57,8 +56,6 @@ public class WeatherController {
             .toJobParameters();
 
         jobLauncher.run(weatherJob, params);
-
-        kakaoApiService.createLocation(longitude, latitude);
 
         WeatherAPILocation location = weatherService.getLocation(latitude,longitude);
         return ResponseEntity.ok(location);

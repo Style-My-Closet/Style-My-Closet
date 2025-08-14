@@ -56,9 +56,6 @@ class WeatherControllerTest {
     private JobLauncher jobLauncher;
 
     @Mock
-    private KakaoApiService kakaoApiService;
-
-    @Mock
     private Job weatherJob;
 
     private WeatherMapper weatherMapper = new WeatherMapper();
@@ -71,7 +68,7 @@ class WeatherControllerTest {
         // 진짜 구현체 생성, 내부 필드는 mock
 
         // Controller에 직접 구현체 주입
-        weatherController = new WeatherController(weatherService,kakaoApiService,jobLauncher,weatherJob);
+        weatherController = new WeatherController(weatherService,jobLauncher,weatherJob);
 
       mockMvc = MockMvcBuilders.standaloneSetup(weatherController)
           .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())

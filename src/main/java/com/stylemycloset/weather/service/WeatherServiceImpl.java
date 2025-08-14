@@ -31,7 +31,7 @@ public class WeatherServiceImpl implements WeatherService {
     private final LocationMapper locationMapper;
     private final LocationRepository locationRepository;
     private final ApplicationEventPublisher eventPublisher;
-
+    private final KakaoApiService kakaoApiService;
 
     public List<WeatherDto> getWeatherByCoordinates(double latitude, double longitude) {
         List<Weather> weathers = weatherRepository.findByLocation(latitude, longitude);
@@ -40,13 +40,13 @@ public class WeatherServiceImpl implements WeatherService {
             .toList();
     }
 
-    public WeatherAPILocation getLocation(Double latitude, Double longitude) {
-        Location location = locationRepository.findByLatitudeAndLongitude(latitude,longitude).orElseThrow(
-            ()->  new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("weather", "weather")  ));
+    public WeatherAPILocation getLocation(double latitude, double longitude) {
+        Location location = locationRepository.findByLatitudeAndLongitude(latitude,longitude).orElseGet(
+            ()->kakaoApiService.createLocation(longitude,latitude)  );
         return locationMapper.toDto(location);
     }
 
-    public void checkWeather(Double latitude, Double longitude, Long userId) {
+    public void checkWeather(double latitude, double longitude, Long userId) {
 
         Optional<Weather> weather=  getTodayWeatherByLocation(latitude, longitude);
         Weather data = weather.orElseThrow(
