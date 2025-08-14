@@ -66,7 +66,7 @@ public class NotificationServiceImpl implements NotificationService {
 
   @Override
   @Transactional(readOnly = true)
-  // @PreAuthorize("principal.userDto.id == #userId")
+  // @PreAuthorize("principal.userDto.id == #id")
   public NotificationDtoCursorResponse findAllByCursor(long userId, NotificationFindAllRequest request) {
     List<Notification> notifications = notificationQueryRepository.findAllByCursor(request, userId);
     long totalCount = notificationRepository.countByReceiverId(userId);

@@ -1,14 +1,22 @@
 package com.stylemycloset.user.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.IntegrationTestSupport;
+import com.stylemycloset.notification.dto.NotificationDto;
+import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.user.dto.request.ChangePasswordRequest;
 import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
 import com.stylemycloset.user.dto.request.UserCreateRequest;
@@ -28,8 +36,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +55,9 @@ public class UserControllerTest extends IntegrationTestSupport {
 
   @Autowired
   private UserRepository userRepository;
+
+  @MockitoBean
+  private SseService sseService;
 
   private UserCreateRequest userRequest1 = new UserCreateRequest("tester1", "tester1@naver.com",
       "testtest123!");
@@ -110,13 +122,20 @@ public class UserControllerTest extends IntegrationTestSupport {
     String jsonRequest = objectMapper.writeValueAsString(request);
 
     // when & then
-    mockMvc.perform(patch("/api/users/{userId}/role", user.getId())
+    mockMvc.perform(patch("/api/users/{id}/role", user.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonRequest)
             .with(csrf()))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.role").value("ADMIN"));
+
+    if (TestTransaction.isActive()) {
+      TestTransaction.flagForCommit();
+      TestTransaction.end();
+    }
+
+    verify(sseService).sendNotification(any(NotificationDto.class));
   }
 
   @Test
@@ -130,7 +149,7 @@ public class UserControllerTest extends IntegrationTestSupport {
     String jsonRequest = objectMapper.writeValueAsString(request);
 
     //when & then
-    mockMvc.perform(patch("/api/users/{userId}/password", user.getId())
+    mockMvc.perform(patch("/api/users/{id}/password", user.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonRequest)
             .with(csrf()))
@@ -149,7 +168,7 @@ public class UserControllerTest extends IntegrationTestSupport {
     String jsonRequest = objectMapper.writeValueAsString(request);
 
     // when & then
-    mockMvc.perform(patch("/api/users/{userId}/lock", user.getId())
+    mockMvc.perform(patch("/api/users/{id}/lock", user.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonRequest)
             .with(csrf()))
@@ -177,7 +196,6 @@ public class UserControllerTest extends IntegrationTestSupport {
     User deletedUser = userRepository.findById(user.getId()).get();
     assertThat(deletedUser.getDeletedAt()).isNotNull();
   }
-
 
   @Test
   @DisplayName("프로필 수정 API를 호출하면 프로필이 수정되고 200 OK를 반환한다")

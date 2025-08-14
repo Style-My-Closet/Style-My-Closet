@@ -70,7 +70,6 @@ public class SecurityConfig {
         .addFilterBefore(new JwtAuthenticationFilter(jwtService, objectMapper),
             JsonUsernamePasswordAuthenticationFilter.class);
 
-    ;
     return http.build();
   }
 

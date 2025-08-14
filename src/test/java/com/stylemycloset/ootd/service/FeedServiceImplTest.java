@@ -14,6 +14,7 @@ import com.stylemycloset.cloth.entity.ClothingCategoryType;
 import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
+import com.stylemycloset.notification.event.domain.FeedLikedEvent;
 import com.stylemycloset.ootd.dto.FeedCreateRequest;
 import com.stylemycloset.ootd.dto.FeedDto;
 import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
@@ -42,6 +43,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,6 +65,8 @@ class FeedServiceImplTest {
   private WeatherRepository weatherRepository;
   @Mock
   private FeedLikeRepository feedLikeRepository;
+  @Mock
+  private ApplicationEventPublisher publisher;
 
   @Nested
   @DisplayName("피드 생성")
@@ -199,13 +203,15 @@ class FeedServiceImplTest {
     when(feedRepository.findById(feedId)).thenReturn(Optional.of(mockFeed));
     when(feedLikeRepository.findByUserAndFeed(mockUser, mockFeed)).thenReturn(Optional.empty());
     when(mockFeed.getAuthor()).thenReturn(mock(User.class));
-
+    when(mockFeed.getId()).thenReturn(feedId);
+    when(mockUser.getId()).thenReturn(userId);
     // when
     feedService.toggleLike(userId, feedId);
 
     // then
     verify(feedLikeRepository, times(1)).save(any(FeedLike.class));
     verify(feedLikeRepository, times(0)).delete(any());
+    verify(publisher).publishEvent(any(FeedLikedEvent.class));
   }
 
   @Test

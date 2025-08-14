@@ -14,9 +14,11 @@ import com.stylemycloset.follow.exception.FollowSelfForbiddenException;
 import com.stylemycloset.follow.mapper.FollowMapper;
 import com.stylemycloset.follow.repository.FollowRepository;
 import com.stylemycloset.follow.service.FollowService;
+import com.stylemycloset.notification.event.domain.FollowEvent;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,7 @@ public class FollowServiceImpl implements FollowService {
   private final FollowRepository followRepository;
   private final UserRepository userRepository;
   private final FollowMapper followMapper;
+  private final ApplicationEventPublisher publisher;
 
   @Transactional
   @Override
@@ -45,6 +48,8 @@ public class FollowServiceImpl implements FollowService {
       return deletedFollow;
     }).orElseGet(() -> new Follow(followee, follower));
     Follow savedFollow = followRepository.save(follow);
+
+    publisher.publishEvent(new FollowEvent(followee.getId(), follower.getName()));
 
     return followMapper.toResult(savedFollow);
   }

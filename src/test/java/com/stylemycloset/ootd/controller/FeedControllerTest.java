@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.IntegrationTestSupport;
+import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.cloth.entity.Closet;
 import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingCategory;
@@ -28,9 +29,11 @@ import com.stylemycloset.ootd.entity.FeedLike;
 import com.stylemycloset.ootd.repo.FeedCommentRepository;
 import com.stylemycloset.ootd.repo.FeedLikeRepository;
 import com.stylemycloset.ootd.repo.FeedRepository;
+import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,8 +43,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @AutoConfigureMockMvc
@@ -66,32 +71,54 @@ public class FeedControllerTest extends IntegrationTestSupport {
   private FeedLikeRepository feedLikeRepository;
   @Autowired
   private FeedCommentRepository feedCommentRepository;
+  @MockitoBean
+  private SseService sseService;
+  @MockitoBean
+  private EntityManager em;
 
   private User testUser;
+  private Closet testCloset;
+  private ClothingCategory topCategory;
   private Cloth testCloth1;
   private Cloth testCloth2;
 
-
   @BeforeEach
   void setUp() {
+    testUser = userRepository.findAll().stream()
+        .filter(u -> "user".equals(u.getEmail()))
+        .findFirst()
+        .orElseGet(() -> {
+          User u = new User();
+          ReflectionTestUtils.setField(u, "name", "test");
+          ReflectionTestUtils.setField(u, "email", "user");
+          ReflectionTestUtils.setField(u, "password", "password");
+          ReflectionTestUtils.setField(u, "role", Role.USER);
+          ReflectionTestUtils.setField(u, "locked", false);
+          return userRepository.save(u);
+        });
 
-    testUser = new User();
-    ReflectionTestUtils.setField(testUser, "name", "test");
-    ReflectionTestUtils.setField(testUser, "email", "user");
-    ReflectionTestUtils.setField(testUser, "password", "password");
-    ReflectionTestUtils.setField(testUser, "role", Role.USER);
-    ReflectionTestUtils.setField(testUser, "locked", false);
-    userRepository.save(testUser);
+    topCategory = categoryRepository.findAll().stream()
+        .filter(c -> c.getName() == ClothingCategoryType.TOP)
+        .findFirst()
+        .orElseGet(() -> categoryRepository.save(new ClothingCategory(ClothingCategoryType.TOP)));
 
-    Closet closet = new Closet(testUser);
-    closetRepository.save(closet);
+    testCloset = closetRepository.findAll().stream()
+        .filter(z -> z.getUser().getId().equals(testUser.getId()))
+        .findFirst()
+        .orElseGet(() -> closetRepository.save(new Closet(testUser)));
 
-    ClothingCategory category = new ClothingCategory(ClothingCategoryType.TOP);
-    categoryRepository.save(category);
+    testCloth1 = saveCloth("옷1", testCloset, topCategory, null);
+    testCloth2 = saveCloth("옷2", testCloset, topCategory, null);
+  }
 
-    testCloth1 = clothRepository.save(Cloth.createCloth("옷1", closet, category, null));
-
-    testCloth2 = clothRepository.save(Cloth.createCloth("옷2", closet, category, null));
+  private Cloth saveCloth(String name, Closet closet, ClothingCategory category, BinaryContent bin) {
+    Cloth c = Cloth.builder()
+        .name(name)
+        .closet(closet)
+        .category(category)
+        .binaryContent(bin)
+        .build();
+    return clothRepository.save(c);
   }
 
   @Nested
@@ -100,6 +127,7 @@ public class FeedControllerTest extends IntegrationTestSupport {
 
     @Test
     @DisplayName("새로운 OOTD 피드를 등록하면 201 Created 상태와 함께 피드 정보를 반환한다")
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @WithMockUser
     void createFeed_Returns201AndFeedDto() throws Exception {
       // given (준비)
@@ -142,6 +170,7 @@ public class FeedControllerTest extends IntegrationTestSupport {
 
   @Test
   @DisplayName("좋아요 토글 - 성공 시 (좋아요 추가) 200 OK와 업데이트된 피드 정보를 반환한다")
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   @WithMockUser
   void toggleLike_whenNotLiked_returnsOkWithFeedDto() throws Exception {
     Feed feed = feedRepository.save(Feed.createFeed(testUser, null, "좋아요 테스트용 피드"));
@@ -276,6 +305,7 @@ public class FeedControllerTest extends IntegrationTestSupport {
 
     @Test
     @DisplayName("새로운 댓글을 등록하면 201 Created 상태와 함께 생성된 댓글 정보를 반환한다")
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @WithMockUser
     void createComment_Success() throws Exception {
       // given (준비)

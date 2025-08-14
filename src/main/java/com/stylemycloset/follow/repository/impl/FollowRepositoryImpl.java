@@ -1,22 +1,21 @@
 package com.stylemycloset.follow.repository.impl;
 
+import static com.stylemycloset.follow.entity.QFollow.follow;
+
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.stylemycloset.common.repository.cursor.CursorStrategy;
 import com.stylemycloset.follow.entity.Follow;
-import com.stylemycloset.follow.entity.QFollow;
 import com.stylemycloset.follow.repository.FollowRepositoryCustom;
-import com.stylemycloset.follow.repository.cursor.strategy.CursorStrategy;
 import com.stylemycloset.follow.repository.cursor.FollowCursorField;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
 
-@Slf4j
 @RequiredArgsConstructor
 public class FollowRepositoryImpl implements FollowRepositoryCustom {
 
@@ -32,22 +31,21 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
       String sortBy,
       String sortDirection
   ) {
-    CursorStrategy<?> cursorStrategy = FollowCursorField.resolveStrategy(sortBy);
-    CursorStrategy<?> idAfterStrategy = FollowCursorField.resolveStrategy(
-        QFollow.follow.id.getMetadata().getName()
+    CursorStrategy<?, Follow> cursorStrategy = FollowCursorField.resolveStrategy(sortBy);
+    CursorStrategy<?, Follow> idAfterStrategy = FollowCursorField.resolveStrategy(
+        follow.id.getMetadata().getName()
     );
 
     List<Follow> follows = queryFactory
-        .selectFrom(QFollow.follow)
-        .join(QFollow.follow.followee).fetchJoin()
-        .join(QFollow.follow.follower).fetchJoin()
+        .selectFrom(follow)
+        .join(follow.followee).fetchJoin()
+        .join(follow.follower).fetchJoin()
         .where(
-            QFollow.follow.follower.id.eq(followerId),
+            follow.follower.id.eq(followerId),
             buildFolloweeNameLikeCondition(nameLike),
-            cursorStrategy.buildPredicate(sortDirection, cursor),
-            idAfterStrategy.buildPredicate(sortDirection, idAfter),
-            QFollow.follow.deletedAt.isNull(),
-            QFollow.follow.followee.deletedAt.isNull()
+            buildPredicate(cursor, idAfter, sortDirection, cursorStrategy, idAfterStrategy),
+            follow.deletedAt.isNull(),
+            follow.followee.deletedAt.isNull()
         )
         .orderBy(
             cursorStrategy.buildOrder(sortDirection, cursor),
@@ -69,22 +67,21 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
       String sortBy,
       String sortDirection
   ) {
-    CursorStrategy<?> cursorStrategy = FollowCursorField.resolveStrategy(sortBy);
-    CursorStrategy<?> idAfterStrategy = FollowCursorField.resolveStrategy(
-        QFollow.follow.id.getMetadata().getName()
+    CursorStrategy<?, Follow> cursorStrategy = FollowCursorField.resolveStrategy(sortBy);
+    CursorStrategy<?, Follow> idAfterStrategy = FollowCursorField.resolveStrategy(
+        follow.id.getMetadata().getName()
     );
 
     List<Follow> follows = queryFactory
-        .selectFrom(QFollow.follow)
-        .join(QFollow.follow.followee).fetchJoin()
-        .join(QFollow.follow.follower).fetchJoin()
+        .selectFrom(follow)
+        .join(follow.followee).fetchJoin()
+        .join(follow.follower).fetchJoin()
         .where(
-            QFollow.follow.followee.id.eq(followerId),
+            follow.followee.id.eq(followerId),
             buildFollowerNameLikeCondition(nameLike),
-            cursorStrategy.buildPredicate(sortDirection, cursor),
-            idAfterStrategy.buildPredicate(sortDirection, idAfter),
-            QFollow.follow.deletedAt.isNull(),
-            QFollow.follow.follower.deletedAt.isNull()
+            buildPredicate(cursor, idAfter, sortDirection, cursorStrategy, idAfterStrategy),
+            follow.deletedAt.isNull(),
+            follow.follower.deletedAt.isNull()
         )
         .orderBy(
             cursorStrategy.buildOrder(sortDirection, cursor),
@@ -96,16 +93,34 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
     return convertToSlice(limit, follows, cursorStrategy, sortDirection);
   }
 
+  private BooleanExpression buildPredicate(
+      String cursor,
+      String idAfter,
+      String sortDirection,
+      CursorStrategy<?, Follow> cursorStrategy,
+      CursorStrategy<?, Follow> idAfterStrategy
+  ) {
+    BooleanExpression booleanExpression = cursorStrategy.buildInequalityPredicate(sortDirection,
+        cursor);
+    BooleanExpression buildEq = cursorStrategy.buildEq(cursor);
+    BooleanExpression buildSecondary = idAfterStrategy.buildInequalityPredicate(sortDirection,
+        idAfter);
+    if (buildEq != null && buildSecondary != null) {
+      booleanExpression.or(buildEq.and(buildSecondary));
+    }
+    return booleanExpression;
+  }
+
   private BooleanExpression buildFollowerNameLikeCondition(String nameLike) {
     if (nameLike != null && !nameLike.isBlank()) {
-      return QFollow.follow.follower.name.containsIgnoreCase(nameLike);
+      return follow.follower.name.containsIgnoreCase(nameLike);
     }
     return null;
   }
 
   private BooleanExpression buildFolloweeNameLikeCondition(String nameLike) {
     if (nameLike != null && !nameLike.isBlank()) {
-      return QFollow.follow.followee.name.containsIgnoreCase(nameLike);
+      return follow.followee.name.containsIgnoreCase(nameLike);
     }
     return null;
   }
@@ -113,7 +128,7 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
   private SliceImpl<Follow> convertToSlice(
       Integer limit,
       List<Follow> follows,
-      CursorStrategy<?> cursorStrategy,
+      CursorStrategy<?, ?> cursorStrategy,
       String sortDirection
   ) {
     Objects.requireNonNull(limit, "limit은 null이 될 수 없습니다");

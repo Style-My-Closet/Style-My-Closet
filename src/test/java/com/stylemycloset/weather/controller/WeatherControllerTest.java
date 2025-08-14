@@ -2,27 +2,24 @@ package com.stylemycloset.weather.controller;
 
 
 import static org.hamcrest.Matchers.hasSize;
-
 import static org.junit.jupiter.api.AssertionsKt.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 import com.stylemycloset.location.Location;
-import com.stylemycloset.weather.dto.HumidityDto;
-import com.stylemycloset.weather.dto.PrecipitationDto;
-import com.stylemycloset.weather.dto.TemperatureDto;
+import com.stylemycloset.security.ClosetUserDetails;
 import com.stylemycloset.weather.dto.WeatherDto;
-import com.stylemycloset.weather.dto.WindSpeedDto;
-import com.stylemycloset.weather.entity.*;
+import com.stylemycloset.weather.entity.Humidity;
+import com.stylemycloset.weather.entity.Precipitation;
+import com.stylemycloset.weather.entity.Temperature;
+import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.entity.Weather.AlertType;
 import com.stylemycloset.weather.entity.Weather.SkyStatus;
+import com.stylemycloset.weather.entity.WindSpeed;
 import com.stylemycloset.weather.mapper.WeatherInfosMapper;
 import com.stylemycloset.weather.mapper.WeatherMapper;
-import com.stylemycloset.weather.repository.WeatherRepository;
 import com.stylemycloset.weather.service.WeatherService;
-import com.stylemycloset.weather.service.WeatherServiceImpl;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +31,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -61,7 +62,9 @@ class WeatherControllerTest {
         // Controller에 직접 구현체 주입
         weatherController = new WeatherController(weatherService);
 
-        mockMvc = MockMvcBuilders.standaloneSetup(weatherController).build();
+      mockMvc = MockMvcBuilders.standaloneSetup(weatherController)
+          .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+          .build();
     }
 
 
@@ -121,6 +124,15 @@ class WeatherControllerTest {
 
         Mockito.when(weatherService.getWeatherByCoordinates(latitude, longitude))
             .thenReturn(dummyList);
+
+        ClosetUserDetails principal = Mockito.mock(ClosetUserDetails.class);
+        Mockito.when(principal.getUserId()).thenReturn(1L);
+        Mockito.when(principal.getAuthorities()).thenReturn(List.of());
+
+        SecurityContext ctx = SecurityContextHolder.createEmptyContext();
+        ctx.setAuthentication(new UsernamePasswordAuthenticationToken(
+            principal, "N/A", principal.getAuthorities()));
+        SecurityContextHolder.setContext(ctx);
 
         // when & then
         mockMvc.perform(get("/api/weathers")
