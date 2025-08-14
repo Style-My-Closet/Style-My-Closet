@@ -19,6 +19,7 @@ import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import com.stylemycloset.weather.entity.WindSpeed;
 import com.stylemycloset.weather.mapper.WeatherInfosMapper;
 import com.stylemycloset.weather.mapper.WeatherMapper;
+import com.stylemycloset.weather.service.ForecastApiService;
 import com.stylemycloset.weather.service.KakaoApiService;
 import com.stylemycloset.weather.service.WeatherService;
 import java.time.LocalDateTime;

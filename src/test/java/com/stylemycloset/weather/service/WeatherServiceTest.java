@@ -58,6 +58,9 @@ public class WeatherServiceTest {
     private KakaoApiService kakaoApiService;
 
     @Mock
+    private ForecastApiService forecastApiService;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @Test

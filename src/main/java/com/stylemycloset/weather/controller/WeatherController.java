@@ -38,8 +38,8 @@ public class WeatherController {
         @RequestParam double latitude,
         @AuthenticationPrincipal(expression = "userId") Long userId
     ) {
-        weatherService.checkWeather(latitude, longitude, userId);
         List<WeatherDto> weathers = weatherService.getWeatherByCoordinates(latitude, longitude);
+        weatherService.checkWeather(latitude, longitude, userId);
         return ResponseEntity.ok(weathers);
     }
 
