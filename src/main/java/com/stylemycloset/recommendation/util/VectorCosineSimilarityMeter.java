@@ -24,10 +24,10 @@ public class VectorCosineSimilarityMeter {
     private final ClothingConditionRepository repository;
     private final WeatherRepository weatherRepository;
     private final UserRepository userRepository;
-
+    private final ConditionVectorizer conditionVectorizer;
 
     // 코사인 유사도 계산
-    private double cosineSimilarity(double[] v1, double[] v2) {
+    private double cosineSimilarity(float[] v1, float[] v2) {
         double dot = 0.0, norm1 = 0.0, norm2 = 0.0;
         for (int i = 0; i < v1.length; i++) {
             dot += v1[i] * v2[i];
@@ -54,14 +54,14 @@ public class VectorCosineSimilarityMeter {
         );
 
 
-        double[] inputVector = parseToVector(ClothingConditionMapper.fromRecommendationDto
+        float[] inputVector =  conditionVectorizer.toConditionVector(ClothingConditionMapper.fromRecommendationDto
             (dto, weather, user));
 
         ClothingCondition mostSimilar = null;
         double highestSimilarity = -1;
 
         for (ClothingCondition f : features) {
-            double[] dbVector = parseToVector(f);
+            float[] dbVector = conditionVectorizer.toConditionVector(f);
             double similarity = cosineSimilarity(inputVector, dbVector);
             if (similarity > highestSimilarity) {
                 highestSimilarity = similarity;
@@ -70,18 +70,6 @@ public class VectorCosineSimilarityMeter {
         }
 
         return mostSimilar != null && mostSimilar.getLabel();
-    }
-
-    public double[] parseToVector(ClothingCondition f) {
-
-        return new double[]{
-            f.getTemperature(),
-            f.getHumidity(),
-            f.getWindSpeed(),
-            f.getTemperatureSensitivity(),
-            f.getWeatherType().hashCode() % 1000,
-            f.getGender().hashCode() % 1000
-        };
     }
 
     // 사용자 피드백 데이터 저장
