@@ -19,6 +19,7 @@ import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import com.stylemycloset.weather.entity.WindSpeed;
 import com.stylemycloset.weather.mapper.WeatherInfosMapper;
 import com.stylemycloset.weather.mapper.WeatherMapper;
+import com.stylemycloset.weather.service.KakaoApiService;
 import com.stylemycloset.weather.service.WeatherService;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -55,6 +56,9 @@ class WeatherControllerTest {
     private JobLauncher jobLauncher;
 
     @Mock
+    private KakaoApiService kakaoApiService;
+
+    @Mock
     private Job weatherJob;
 
     private WeatherMapper weatherMapper = new WeatherMapper();
@@ -67,7 +71,7 @@ class WeatherControllerTest {
         // 진짜 구현체 생성, 내부 필드는 mock
 
         // Controller에 직접 구현체 주입
-        weatherController = new WeatherController(weatherService,jobLauncher,weatherJob);
+        weatherController = new WeatherController(weatherService,kakaoApiService,jobLauncher,weatherJob);
 
       mockMvc = MockMvcBuilders.standaloneSetup(weatherController)
           .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())

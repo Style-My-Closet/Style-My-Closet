@@ -17,11 +17,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthServiceImpl implements AuthService {
 
-  @Value("${closet.admin.username}")
+  @Value("${style-my-closet.admin.username}")
   private String username;
-  @Value("${closet.admin.email}")
+  @Value("${style-my-closet.admin.email}")
   private String email;
-  @Value("${closet.admin.password}")
+  @Value("${style-my-closet.admin.password}")
   private String password;
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;

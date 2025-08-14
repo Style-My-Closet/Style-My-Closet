@@ -2,6 +2,7 @@ package com.stylemycloset.weather.controller;
 
 import com.stylemycloset.weather.dto.WeatherAPILocation;
 import com.stylemycloset.weather.dto.WeatherDto;
+import com.stylemycloset.weather.service.KakaoApiService;
 import com.stylemycloset.weather.service.WeatherService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class WeatherController {
 
     private final WeatherService weatherService;
+    private final KakaoApiService kakaoApiService;
     private final JobLauncher jobLauncher;
     private final Job weatherJob;
 
@@ -55,6 +57,8 @@ public class WeatherController {
             .toJobParameters();
 
         jobLauncher.run(weatherJob, params);
+
+        kakaoApiService.createLocation(latitude, longitude);
 
         WeatherAPILocation location = weatherService.getLocation(latitude,longitude);
         return ResponseEntity.ok(location);
