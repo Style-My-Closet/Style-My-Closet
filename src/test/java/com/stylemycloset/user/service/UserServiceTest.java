@@ -2,15 +2,18 @@ package com.stylemycloset.user.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.user.dto.data.ProfileDto;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.dto.request.ChangePasswordRequest;
 import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
+import com.stylemycloset.user.dto.request.ResetPasswordRequest;
 import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.dto.request.UserLockUpdateRequest;
 import com.stylemycloset.user.dto.request.UserPageRequest;
@@ -21,6 +24,7 @@ import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.mapper.UserMapper;
 import com.stylemycloset.user.repository.UserRepository;
+import com.stylemycloset.user.util.MailService;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,6 +37,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.mail.MailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,6 +60,9 @@ public class UserServiceTest {
 
   @Mock
   private JwtService jwtService;
+
+  @Mock
+  private MailService mailService;
 
   private final UserCreateRequest testUserCreateRequest = new UserCreateRequest("tester",
       "test@naver.com", "testtest123!");
@@ -270,6 +278,29 @@ public class UserServiceTest {
 
     }
 
+  }
+
+  @Test
+  @DisplayName("비밀번호 초기화 테스트")
+  void resetPassword_Success_WhenUserExists() {
+    //given
+    User testUser = createTestUser(testUserCreateRequest);
+
+    String userEmail = "test@naver.com";
+    ResetPasswordRequest request = new ResetPasswordRequest(userEmail);
+    String encodedPassword = "encodedRandomPassword";
+
+    when(userRepository.findByEmail(userEmail)).thenReturn(Optional.of(testUser));
+    when(passwordEncoder.encode(anyString())).thenReturn(encodedPassword);
+
+    //when
+    userService.resetPassword(request);
+
+    //then
+    verify(userRepository, times(1)).findByEmail(userEmail);
+
+    assertNotNull(testUser.getTempPassword());
+    assertNotNull(testUser.getResetPasswordTime());
   }
 
   //헬퍼 메소드

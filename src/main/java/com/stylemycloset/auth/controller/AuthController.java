@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
   private final JwtService jwtService;
+  private final UserService userService;
 
   @GetMapping("csrf-token")
   public ResponseEntity<CsrfToken> getCsrfToken(CsrfToken csrfToken) {
@@ -59,5 +60,12 @@ public class AuthController {
         ;
   }
 
-
+  @PostMapping("/reset-password")
+  public ResponseEntity<Void> resetPassword(
+      @RequestBody ResetPasswordRequest request
+  ) {
+    log.info("비밀번호 초기화 시작", request.email());
+    userService.resetPassword(request);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+  }
 }

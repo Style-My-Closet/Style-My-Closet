@@ -1,6 +1,8 @@
 package com.stylemycloset.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stylemycloset.security.ClosetUserDetailsService;
+import com.stylemycloset.security.CustomAuthenticationProvider;
 import com.stylemycloset.security.CustomLoginFailureHandler;
 import com.stylemycloset.security.CustomLoginSuccessHandler;
 import com.stylemycloset.security.JsonUsernamePasswordAuthenticationFilter;
@@ -9,6 +11,7 @@ import com.stylemycloset.security.jwt.JwtAuthenticationFilter;
 import com.stylemycloset.security.jwt.JwtLogoutHandler;
 import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.user.entity.Role;
+import com.stylemycloset.user.repository.UserRepository;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -79,13 +82,13 @@ public class SecurityConfig {
 
   @Bean
   public DaoAuthenticationProvider daoAuthenticationProvider(
+      UserRepository userRepository,
       UserDetailsService userDetailsService,
       PasswordEncoder passwordEncoder,
       RoleHierarchy roleHierarchy
   ) {
-    DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-    provider.setUserDetailsService(userDetailsService);
-    provider.setPasswordEncoder(passwordEncoder);
+    DaoAuthenticationProvider provider = new CustomAuthenticationProvider(userRepository,
+        passwordEncoder, (ClosetUserDetailsService) userDetailsService);
     provider.setAuthoritiesMapper(new RoleHierarchyAuthoritiesMapper(roleHierarchy));
     return provider;
   }
