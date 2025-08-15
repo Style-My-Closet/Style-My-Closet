@@ -10,6 +10,7 @@ import com.stylemycloset.follow.service.FollowService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,9 +38,10 @@ public class FollowController {
   }
 
   @GetMapping("/summary")
+  @PreAuthorize("isAuthenticated()")
   public ResponseEntity<FollowSummaryResult> getFollowSummaryResult(
       @RequestParam(value = "userId") Long userId,
-      @AuthenticationPrincipal Long logInUserId // 시큐리티 추가시 넣을 예정
+      @AuthenticationPrincipal(expression = "userId") Long logInUserId
   ) {
     FollowSummaryResult followSummaryResult = followService.getFollowSummary(userId, logInUserId);
     return ResponseEntity.ok(followSummaryResult);

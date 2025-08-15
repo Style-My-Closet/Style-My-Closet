@@ -24,10 +24,12 @@ public class SecurityMatchers {
   public static final RequestMatcher REFRESH = new AntPathRequestMatcher(
       "/api/auth/refresh", HttpMethod.POST.name()
   );
-
+  public static final RequestMatcher RESET_PASSWORD = new AntPathRequestMatcher(
+      "/api/auth/reset-password", HttpMethod.POST.name()
+  );
   public static final RequestMatcher DM = new AntPathRequestMatcher("/ws/**");
 
   public static final RequestMatcher[] PUBLIC_MATCHERS = new RequestMatcher[]{
-      NON_API, GET_CSRF_TOKEN, SIGN_UP, LOGIN, LOGOUT, ME, REFRESH, DM
+      NON_API, GET_CSRF_TOKEN, SIGN_UP, LOGIN, LOGOUT, ME, REFRESH, RESET_PASSWORD, DM
   };
 }

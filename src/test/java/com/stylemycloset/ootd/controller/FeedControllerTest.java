@@ -2,6 +2,7 @@ package com.stylemycloset.ootd.controller;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -29,6 +30,7 @@ import com.stylemycloset.ootd.entity.FeedLike;
 import com.stylemycloset.ootd.repo.FeedCommentRepository;
 import com.stylemycloset.ootd.repo.FeedLikeRepository;
 import com.stylemycloset.ootd.repo.FeedRepository;
+import com.stylemycloset.security.ClosetUserDetails;
 import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.entity.User;
@@ -114,6 +116,10 @@ public class FeedControllerTest extends IntegrationTestSupport {
     return clothRepository.save(c);
   }
 
+  private ClosetUserDetails createUserDetails() {
+    return new ClosetUserDetails(testUser.getId(), "USER", testUser.getName());
+  }
+
   @Nested
   @DisplayName("피드 생성 및 조회 API")
   class FeedCreateAndGet {
@@ -121,7 +127,6 @@ public class FeedControllerTest extends IntegrationTestSupport {
     @Test
     @DisplayName("새로운 OOTD 피드를 등록하면 201 Created 상태와 함께 피드 정보를 반환한다")
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    @WithMockUser
     void createFeed_Returns201AndFeedDto() throws Exception {
       // given (준비)
       List<Long> clothesIds = List.of(testCloth1.getId(), testCloth2.getId());
@@ -129,11 +134,14 @@ public class FeedControllerTest extends IntegrationTestSupport {
           "통합 테스트 피드 내용");
       String requestJson = objectMapper.writeValueAsString(request);
 
+      ClosetUserDetails userDetails = createUserDetails();
+
       // when & then (실행 및 검증)
       mockMvc.perform(post("/api/feeds")
               .contentType(MediaType.APPLICATION_JSON)
               .content(requestJson)
-              .with(csrf()))
+              .with(csrf())
+              .with(user(userDetails)))
           .andDo(print())
           .andExpect(status().isCreated())
           .andExpect(jsonPath("$.content").value("통합 테스트 피드 내용"))
@@ -164,12 +172,14 @@ public class FeedControllerTest extends IntegrationTestSupport {
   @Test
   @DisplayName("좋아요 토글 - 성공 시 (좋아요 추가) 200 OK와 업데이트된 피드 정보를 반환한다")
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  @WithMockUser
   void toggleLike_whenNotLiked_returnsOkWithFeedDto() throws Exception {
     Feed feed = feedRepository.save(Feed.createFeed(testUser, null, "좋아요 테스트용 피드"));
 
+    ClosetUserDetails principal = createUserDetails();
+
     mockMvc.perform(post("/api/feeds/{feedId}/like", feed.getId())
-            .with(csrf()))
+            .with(csrf())
+            .with(user(principal)))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.likedByMe").value(true))
@@ -178,13 +188,15 @@ public class FeedControllerTest extends IntegrationTestSupport {
 
   @Test
   @DisplayName("좋아요 토글 - 성공 시 (좋아요 취소) 200 OK와 업데이트된 피드 정보를 반환한다")
-  @WithMockUser
   void toggleLike_whenAlreadyLiked_returnsOkWithFeedDto() throws Exception {
     Feed feed = feedRepository.save(Feed.createFeed(testUser, null, "좋아요 테스트용 피드"));
     feedLikeRepository.save(FeedLike.createFeedLike(testUser, feed));
 
+    ClosetUserDetails principal = createUserDetails();
+
     mockMvc.perform(post("/api/feeds/{feedId}/like", feed.getId())
-            .with(csrf()))
+            .with(csrf())
+            .with(user(principal)))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.likedByMe").value(false))
@@ -197,16 +209,18 @@ public class FeedControllerTest extends IntegrationTestSupport {
 
     @Test
     @DisplayName("자신이 작성한 피드의 내용을 수정하면 200 OK와 함께 피드 정보를 반환한다.")
-    @WithMockUser
     void updateFeed_Success() throws Exception {
       Feed myFeed = feedRepository.save(Feed.createFeed(testUser, null, "수정 전 피드 내용"));
       FeedUpdateRequest request = new FeedUpdateRequest("수정 후 새로운 피드 내용");
       String requestJson = objectMapper.writeValueAsString(request);
 
+      ClosetUserDetails principal = createUserDetails();
+
       mockMvc.perform(patch("/api/feeds/{feedId}", myFeed.getId())
               .contentType(MediaType.APPLICATION_JSON)
               .content(requestJson)
-              .with(csrf()))
+              .with(csrf())
+              .with(user(principal)))
           .andDo(print())
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.id").value(myFeed.getId()))
@@ -215,18 +229,20 @@ public class FeedControllerTest extends IntegrationTestSupport {
 
     @Test
     @DisplayName("피드 내용을 비워서 수정 요청하면 400 Bad Request 상태를 반환한다")
-    @WithMockUser
     void updateFeed_Fail_InvalidRequest() throws Exception {
       // given
       Feed myFeed = feedRepository.save(Feed.createFeed(testUser, null, "원래 내용"));
       FeedUpdateRequest request = new FeedUpdateRequest(" "); // 공백 문자열
       String requestJson = objectMapper.writeValueAsString(request);
 
+      ClosetUserDetails principal = createUserDetails();
+
       // when & then
       mockMvc.perform(patch("/api/feeds/{feedId}", myFeed.getId())
               .contentType(MediaType.APPLICATION_JSON)
               .content(requestJson)
-              .with(csrf()))
+              .with(csrf())
+              .with(user(principal)))
           .andDo(print())
           .andExpect(status().isBadRequest());
     }
@@ -235,12 +251,14 @@ public class FeedControllerTest extends IntegrationTestSupport {
 
   @Test
   @DisplayName("피드 삭제 API - 자신이 작성한 피드를 삭제하면 204 No Content 상태를 반환")
-  @WithMockUser
   void deleteFeed_Success() throws Exception {
     Feed myFeed = feedRepository.save(Feed.createFeed(testUser, null, "삭제될 피드"));
 
+    ClosetUserDetails principal = createUserDetails();
+
     mockMvc.perform(delete("/api/feeds/{feedId}", myFeed.getId())
-            .with(csrf()))
+            .with(csrf())
+            .with(user(principal)))
         .andDo(print())
         .andExpect(status().isNoContent());
 
@@ -299,7 +317,6 @@ public class FeedControllerTest extends IntegrationTestSupport {
     @Test
     @DisplayName("새로운 댓글을 등록하면 201 Created 상태와 함께 생성된 댓글 정보를 반환한다")
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    @WithMockUser
     void createComment_Success() throws Exception {
       // given (준비)
       // 1. 댓글을 달 피드 생성
@@ -313,11 +330,14 @@ public class FeedControllerTest extends IntegrationTestSupport {
       );
       String requestJson = objectMapper.writeValueAsString(request);
 
+      ClosetUserDetails principal = createUserDetails();
+
       // when & then (실행 및 검증)
       mockMvc.perform(post("/api/feeds/{feedId}/comments", feed.getId())
               .contentType(MediaType.APPLICATION_JSON)
               .content(requestJson)
-              .with(csrf()))
+              .with(csrf())
+              .with(user(principal)))
           .andDo(print())
           .andExpect(status().isCreated())
           .andExpect(jsonPath("$.content").value("새로운 댓글입니다!"))
@@ -327,7 +347,6 @@ public class FeedControllerTest extends IntegrationTestSupport {
 
     @Test
     @DisplayName("댓글 내용이 비어있는 요청을 보내면 400 Bad Request를 반환한다")
-    @WithMockUser
     void createComment_Fail_BlankContent() throws Exception {
       // given
       Feed feed = feedRepository.save(Feed.createFeed(testUser, null, "댓글 등록용 피드"));
@@ -336,11 +355,14 @@ public class FeedControllerTest extends IntegrationTestSupport {
           " "); // 내용이 공백
       String requestJson = objectMapper.writeValueAsString(request);
 
+      ClosetUserDetails principal = createUserDetails();
+
       // when & then
       mockMvc.perform(post("/api/feeds/{feedId}/comments", feed.getId())
               .contentType(MediaType.APPLICATION_JSON)
               .content(requestJson)
-              .with(csrf()))
+              .with(csrf())
+              .with(user(principal)))
           .andDo(print())
           .andExpect(status().isBadRequest());
     }

@@ -11,6 +11,7 @@ import com.stylemycloset.user.dto.data.ProfileDto;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.dto.request.ChangePasswordRequest;
 import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
+import com.stylemycloset.user.dto.request.ResetPasswordRequest;
 import com.stylemycloset.user.dto.request.UserCreateRequest;
 import com.stylemycloset.user.dto.request.UserLockUpdateRequest;
 import com.stylemycloset.user.dto.request.UserPageRequest;
@@ -22,9 +23,12 @@ import com.stylemycloset.user.exception.EmailDuplicateException;
 import com.stylemycloset.user.exception.UserNotFoundException;
 import com.stylemycloset.user.mapper.UserMapper;
 import com.stylemycloset.user.repository.UserRepository;
+import com.stylemycloset.user.util.MailService;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -44,6 +48,7 @@ public class UserServiceImpl implements UserService {
   private final ClosetRepository closetRepository;
 
   private final JwtService jwtService;
+  private final MailService mailSender;
 
 
   @Transactional
@@ -66,8 +71,7 @@ public class UserServiceImpl implements UserService {
   @Transactional
   @Override
   public UserDto updateRole(Long userId, UserRoleUpdateRequest updateRequest) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(UserNotFoundException::new);
+    User user = findUserById(userId);
 
     Role previousRole = user.getRole();
 
@@ -79,20 +83,21 @@ public class UserServiceImpl implements UserService {
   @Transactional
   @Override
   public void changePassword(Long userId, ChangePasswordRequest request) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(UserNotFoundException::new);
+    User user = findUserById(userId);
 
     String encodedPassword = passwordEncoder.encode(request.password());
 
     user.changePassword(encodedPassword);
+    if (user.getTempPassword() != null) {
+      user.resetTempPassword(null, null);
+    }
   }
 
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
   @Override
   public void changeLockUser(Long userId, UserLockUpdateRequest updateRequest) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(UserNotFoundException::new);
+    User user = findUserById(userId);
     boolean locked = updateRequest.locked();
     user.lockUser(locked);
 
@@ -105,8 +110,7 @@ public class UserServiceImpl implements UserService {
   @Transactional
   @Override
   public void deleteUser(Long userId) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(UserNotFoundException::new);
+    User user = findUserById(userId);
 
     user.softDelete();
   }
@@ -115,8 +119,7 @@ public class UserServiceImpl implements UserService {
   @Override
   public ProfileDto updateProfile(Long userId, ProfileUpdateRequest request,
       MultipartFile image) {//이미지 구현은 나중에 binarycontent생기면 할예정
-    User user = userRepository.findById(userId)
-        .orElseThrow(UserNotFoundException::new);
+    User user = findUserById(userId);
 
     user.updateProfile(request);
     return userMapper.UsertoProfileDto(user);
@@ -125,8 +128,7 @@ public class UserServiceImpl implements UserService {
   @Transactional(readOnly = true)
   @Override
   public ProfileDto getProfile(Long userId) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(UserNotFoundException::new);
+    User user = findUserById(userId);
 
     return userMapper.UsertoProfileDto(user);
   }
@@ -173,5 +175,27 @@ public class UserServiceImpl implements UserService {
         request.sortBy(),
         request.sortDirection()
     );
+  }
+
+  @Override
+  @Transactional
+  public void resetPassword(ResetPasswordRequest request) {
+    User user = findUserByEmail(request.email());
+
+    String randomPassword = RandomStringUtils.randomAlphanumeric(8);
+
+    user.resetTempPassword(passwordEncoder.encode(randomPassword),
+        Instant.now().plus(3, ChronoUnit.MINUTES));
+
+    mailSender.sendTempPassword(user.getEmail(), randomPassword);
+  }
+
+
+  private User findUserById(Long userId) {
+    return userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+  }
+
+  private User findUserByEmail(String email) {
+    return userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
   }
 }
