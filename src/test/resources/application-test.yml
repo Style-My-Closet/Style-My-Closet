@@ -29,6 +29,9 @@ spring:
       initialize-schema: never
   main:
     allow-bean-definition-overriding: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration
 
 app:
   aws:
@@ -82,3 +85,5 @@ CUSTOM_AI_AUTH_VALUE: test-custom-ai-auth
 OPENAI_MODEL: gpt-4-vision-preview-test
 OPENAI_ORG_ID: test-org-id
 OPENAI_PROJECT_ID: test-project-id
+
+

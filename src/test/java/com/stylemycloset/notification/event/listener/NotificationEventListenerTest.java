@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 
 import static org.mockito.Mockito.*;
@@ -39,7 +40,7 @@ class NotificationEventListenerTest {
     NotificationDto dto = NotificationDto.builder()
         .id(1L).createdAt(Instant.now()).receiverId(1L)
         .title("t").content("c").level(NotificationLevel.INFO).build();
-    when(notificationService.createAll(anySet(), anyString(), anyString(), any())).thenReturn(java.util.List.of(dto));
+    when(notificationService.createAll(anySet(), anyString(), anyString(), any())).thenReturn(List.of(dto));
 
     NewClothAttributeEvent event = new NewClothAttributeEvent(10L, "재질");
 
@@ -59,7 +60,7 @@ class NotificationEventListenerTest {
     NotificationDto dto = NotificationDto.builder()
         .id(2L).createdAt(Instant.now()).receiverId(1L)
         .title("t").content("c").level(NotificationLevel.INFO).build();
-    when(notificationService.createAll(anySet(), anyString(), anyString(), any())).thenReturn(java.util.List.of(dto));
+    when(notificationService.createAll(anySet(), anyString(), anyString(), any())).thenReturn(List.of(dto));
 
     ClothAttributeChangedEvent event = new ClothAttributeChangedEvent(11L, "색상");
 

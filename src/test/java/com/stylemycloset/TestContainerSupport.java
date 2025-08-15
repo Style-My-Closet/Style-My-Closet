@@ -7,9 +7,16 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import com.stylemycloset.security.jwt.JwtSessionRepository;
+import com.stylemycloset.binarycontent.service.ImageStoragePort;
+import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
+import org.mockito.Mockito;
 
 
-@ContextConfiguration(classes = TestContainerSupport.TestContainersConfiguration.class)
+@ContextConfiguration(classes = {TestContainerSupport.TestContainersConfiguration.class})
 abstract class TestContainerSupport {
 
   private static final PostgreSQLContainer<?> POSTGRES_CONTAINER = new PostgreSQLContainer<>(
@@ -35,8 +42,27 @@ abstract class TestContainerSupport {
   }
 
   @TestConfiguration
+  @EnableJpaRepositories(basePackages = "com.stylemycloset")
   static class TestContainersConfiguration {
     // PostgreSQL만 사용하는 깔끔한 테스트 환경
+    
+    @Bean
+    @Primary
+    public JwtSessionRepository jwtSessionRepository() {
+      return Mockito.mock(JwtSessionRepository.class);
+    }
+    
+    @Bean
+    @Primary
+    public ImageStoragePort imageStoragePort() {
+      return Mockito.mock(ImageStoragePort.class);
+    }
+    
+    @Bean
+    @Primary
+    public BinaryContentStorage binaryContentStorage() {
+      return Mockito.mock(BinaryContentStorage.class);
+    }
   }
 
 }

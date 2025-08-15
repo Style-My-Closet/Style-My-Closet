@@ -3,6 +3,7 @@ package com.stylemycloset.binarycontent.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -19,15 +20,16 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnProperty(name = "style-my-closet.storage.type", havingValue = "s3")
 public class S3ImageStorageService implements ImageStoragePort {
 
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
 
-    @Value("${style-my-closet.storage.s3.bucket-name}")
+    @Value("${style-my-closet.storage.s3.bucket-name:test-bucket}")
     private String bucket;
 
-    @Value("${style-my-closet.storage.s3.region}")
+    @Value("${style-my-closet.storage.s3.region:us-east-1}")
     private String region;
 
     @Value("${style-my-closet.storage.s3.public-base-url:https://%s.s3.%s.amazonaws.com}")

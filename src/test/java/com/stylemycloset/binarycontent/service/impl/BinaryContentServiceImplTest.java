@@ -11,6 +11,7 @@ import com.stylemycloset.binarycontent.exception.BinaryContentNotFoundException;
 import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
 import com.stylemycloset.binarycontent.service.BinaryContentService;
 import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
+import com.stylemycloset.security.jwt.JwtSessionRepository;
 import com.stylemycloset.IntegrationTestSupport;
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +31,9 @@ class BinaryContentServiceImplTest extends IntegrationTestSupport {
 
   @MockBean
   private BinaryContentStorage binaryContentStorage;
+  
+  @MockBean
+  private JwtSessionRepository jwtSessionRepository;
 
   @BeforeEach
   void beforeEach() {
