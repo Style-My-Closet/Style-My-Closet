@@ -40,7 +40,7 @@ app:
 
 style-my-closet:
   storage:
-    type: s3
+    type: local
     local:
       root-path: .stylemycloset/storage/test
     s3:
