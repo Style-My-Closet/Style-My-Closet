@@ -10,8 +10,10 @@ import java.net.URL;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -68,6 +70,38 @@ public class BinaryContentController {
     URL url = binaryContentStorage.getUrl(binaryContentId);
 
     return ResponseEntity.ok().body(url.toString());
+  }
+
+  @GetMapping("/binary/{binaryContentId}")
+  public ResponseEntity<InputStreamResource> downloadBinary(
+      @PathVariable(value = "binaryContentId") UUID binaryContentId
+  ) {
+    BinaryContentResult meta = binaryContentService.getById(binaryContentId);
+    URL presignedUrl = binaryContentStorage.getUrl(binaryContentId);
+    InputStreamResource resource;
+    try {
+      resource = new InputStreamResource(presignedUrl.openStream());
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to open presigned URL stream", e);
+    }
+
+    String contentType = meta.contentType() != null ? meta.contentType() : MediaType.APPLICATION_OCTET_STREAM_VALUE;
+    String filename = meta.originalFileName() != null ? meta.originalFileName() : binaryContentId.toString();
+
+    return ResponseEntity.ok()
+        .contentType(MediaType.parseMediaType(contentType))
+        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+        .body(resource);
+  }
+
+  @GetMapping("/redirect/{binaryContentId}")
+  public ResponseEntity<Void> redirectToPresignedUrl(
+      @PathVariable(value = "binaryContentId") UUID binaryContentId
+  ) {
+    URL url = binaryContentStorage.getUrl(binaryContentId);
+    return ResponseEntity.status(302)
+        .header(HttpHeaders.LOCATION, url.toString())
+        .build();
   }
 
   @DeleteMapping("/{binaryContentId}")

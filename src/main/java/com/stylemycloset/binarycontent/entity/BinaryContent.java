@@ -35,9 +35,6 @@ public class BinaryContent extends SoftDeletableEntity {
   @Column(name = "image_url")
   private String imageUrl;
 
-  // key
-  @Column(name = "object_key")
-  private String objectKey;
 
   public BinaryContent(String originalFileName, String contentType, Long size) {
     this.originalFileName = originalFileName;
@@ -45,13 +42,9 @@ public class BinaryContent extends SoftDeletableEntity {
     this.size = size;
   }
 
-  // 파일 경로를 요구할 때 objectKey 반환
-  public String getFileName() {
-    return this.objectKey;
-  }
 
-  public void updateFileInfo(String objectKey, String publicUrl) {
-    this.objectKey = objectKey;
+
+  public void updateImageUrl(String publicUrl) {
     this.imageUrl = publicUrl;
   }
 }

@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Where;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,15 +24,12 @@ public class Closet extends SoftDeletableEntity {
   private Long userId;
 
   @OneToMany(mappedBy = "closet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  @Where(clause = "deleted_at IS NULL")
   private List<Cloth> clothes = new ArrayList<>();
 
 
   public void addCloth(Cloth cloth) {
     if (cloth == null) return;
-    if (!this.clothes.contains(cloth)) {
-      this.clothes.add(cloth);
-    }
+    this.clothes.add(cloth);
     if (cloth.getCloset() != this) {
       cloth.setCloset(this);
     }
@@ -41,7 +37,8 @@ public class Closet extends SoftDeletableEntity {
 
   public void removeCloth(Cloth cloth) {
     if (cloth == null) return;
-    if (this.clothes.remove(cloth) && cloth.getCloset() == this) {
+    this.clothes.remove(cloth);
+    if (cloth.getCloset() == this) {
       cloth.setCloset(null);
     }
   }

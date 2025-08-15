@@ -3,6 +3,7 @@ package com.stylemycloset.cloth.service.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.binarycontent.entity.BinaryContent;
+import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
 import com.stylemycloset.binarycontent.service.ImageDownloadService;
 import com.stylemycloset.cloth.dto.ClothCreateRequestDto;
 import com.stylemycloset.cloth.dto.ClothResponseDto;
@@ -18,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,24 +32,91 @@ public class ExtractionServiceImpl implements ClothProductExtractionService {
     private final ImageDownloadService imageDownloadService;
     private final ClothService clothService;
     private final com.stylemycloset.cloth.service.ImageVisionService imageVisionService;
+    private final BinaryContentStorage binaryContentStorage;
 
     @Override
     public ClothResponseDto extractAndSave(String productUrl, Long userId) {
         // 1) 빠른 HTML 파싱으로 최소 정보 확보
         ClothExtractionResponseDto extracted = extractMinimalInfo(productUrl);
 
-        // 2) 이미지(있으면 1장) 선저장
-        java.util.List<BinaryContent> images = downloadFirstImage(extracted);
-
-        // 3) 의류 생성 요청 DTO 구성 및 저장
-        ClothCreateRequestDto createRequest = buildCreateRequest(extracted, images);
+        // 2) 기본 의류 생성 (이미지 없이)
+        ClothCreateRequestDto createRequest = buildCreateRequest(extracted);
         ClothResponseDto created = clothService.createCloth(createRequest, userId);
+        Long clothId = created.getId();
 
-        // 4) AI 분석으로 속성 저장 (data URI 또는 외부 URL 우선순위)
-        String imageUrl = chooseImageUrl(images, extracted);
-        created = analyzeAndUpsertAttributes(created, imageUrl);
+        // 3) 병렬 처리: AI 분석 + 이미지 저장
+        String originalImageUrl = getOriginalImageUrl(extracted);
+        if (originalImageUrl != null) {
+            // 3-1) AI 분석 (원본 무신사 URL 사용)
+            CompletableFuture<Void> aiAnalysis = CompletableFuture.runAsync(() -> {
+                try {
+                    String json = imageVisionService.analyzeImageToJson(originalImageUrl);
+                    if (json != null && !json.contains("AI_DISABLED") && !json.contains("AI_HTTP_ERROR")) {
+                        var root = ImageAiParser.extractContentJson(json);
+                        var attrs = ImageAiParser.mapAttributes(root);
+                        clothService.upsertAttributesByName(clothId, attrs);
+                    }
+                } catch (Exception e) {
+                    log.debug("AI 분석 실패: {}", e.getMessage());
+                }
+            });
+
+            // 3-2) 이미지 다운로드 및 S3 저장
+            CompletableFuture<BinaryContent> imageStorage = CompletableFuture.supplyAsync(() -> {
+                try {
+                    java.util.List<BinaryContent> saved = imageDownloadService.downloadAndSaveImages(List.of(originalImageUrl));
+                    if (!saved.isEmpty()) {
+                        // Cloth 엔티티에 이미지 ID 업데이트
+                        clothService.updateClothImage(clothId, saved.getFirst().getId());
+                        return saved.getFirst();
+                    }
+                } catch (Exception e) {
+                    log.debug("이미지 저장 실패: {}", e.getMessage());
+                }
+                return null;
+            });
+
+            // 4) 두 작업 완료 대기 (타임아웃 설정)
+            try {
+                CompletableFuture.allOf(aiAnalysis, imageStorage).get(30, java.util.concurrent.TimeUnit.SECONDS);
+                
+                // 저장된 이미지가 있으면 presigned URL로 응답 업데이트
+                BinaryContent savedImage = imageStorage.get();
+                if (savedImage != null) {
+                    try {
+                        java.net.URL presigned = binaryContentStorage.getUrl(savedImage.getId());
+                        if (presigned != null) {
+                            created.setImageUrl(presigned.toString());
+                        }
+                    } catch (Exception ignore) {}
+                }
+                
+                // AI 분석 결과 반영된 최신 데이터 다시 조회
+                created = clothService.getClothResponseById(clothId);
+                if (savedImage != null) {
+                    try {
+                        java.net.URL presigned = binaryContentStorage.getUrl(savedImage.getId());
+                        if (presigned != null) {
+                            created.setImageUrl(presigned.toString());
+                        }
+                    } catch (Exception ignore) {}
+                }
+            } catch (Exception e) {
+                log.debug("병렬 처리 타임아웃 또는 실패: {}", e.getMessage());
+            }
+        }
 
         return created;
+    }
+
+    private String getOriginalImageUrl(ClothExtractionResponseDto extracted) {
+        if (extracted != null && extracted.getImages() != null && !extracted.getImages().isEmpty()) {
+            String firstImage = extracted.getImages().getFirst();
+            if (firstImage != null && firstImage.startsWith("http")) {
+                return firstImage;
+            }
+        }
+        return null;
     }
 
     private ClothExtractionResponseDto extractMinimalInfo(String productUrl) {
@@ -55,54 +124,12 @@ public class ExtractionServiceImpl implements ClothProductExtractionService {
         return (ex != null) ? ex : ClothExtractionResponseDto.createFailureResponse(productUrl);
     }
 
-    private List<BinaryContent> downloadFirstImage(ClothExtractionResponseDto ex) {
-        if (ex == null || ex.getImages() == null || ex.getImages().isEmpty()) {
-            return List.of();
-        }
-        try {
-            return imageDownloadService.downloadAndSaveImages(List.of(ex.getImages().getFirst()));
-        } catch (Exception ignore) {
-            return List.of();
-        }
-    }
-
-    private ClothCreateRequestDto buildCreateRequest(ClothExtractionResponseDto ex, List<BinaryContent> images) {
+    private ClothCreateRequestDto buildCreateRequest(ClothExtractionResponseDto ex) {
         ClothCreateRequestDto req = new ClothCreateRequestDto();
         req.setName(ex != null ? ex.getProductName() : null);
         req.setType(ex != null ? ex.getCategory() : null);
-        if (images != null && !images.isEmpty()) {
-            req.setBinaryContentId(images.getFirst().getId());
-        }
+        // 이미지는 비동기로 별도 처리하므로 초기 생성 시에는 제외
         return req;
-    }
-
-    private String chooseImageUrl(List<BinaryContent> images, ClothExtractionResponseDto ex) {
-        try {
-            if (images != null && !images.isEmpty() && images.getFirst().getImageUrl() != null) {
-                return images.getFirst().getImageUrl();
-            }
-            if (ex != null && ex.getImages() != null && !ex.getImages().isEmpty() && ex.getImages().getFirst().startsWith("http")) {
-                return ex.getImages().getFirst();
-            }
-        } catch (Exception ignore) {}
-        return null;
-    }
-
-    private ClothResponseDto analyzeAndUpsertAttributes(ClothResponseDto created, String imageUrl) {
-        if (imageUrl == null) return created;
-        try {
-            String json = imageVisionService.analyzeImageToJson(imageUrl);
-            if (json == null || json.contains("AI_DISABLED") || json.contains("AI_HTTP_ERROR")) {
-                return created;
-            }
-            var root = ImageAiParser.extractContentJson(json);
-            var attrs = ImageAiParser.mapAttributes(root);
-            Long clothId = Long.valueOf(created.getId());
-            clothService.upsertAttributesByName(clothId, attrs);
-            return clothService.getClothResponseById(clothId);
-        } catch (Exception e) {
-            return created;
-        }
     }
 
     private ClothExtractionResponseDto fastExtractFromHtml(String productUrl) {

@@ -11,8 +11,8 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class ClothItemDto {
-    private String id;
-    private String ownerId;
+    private Long id;
+    private Long ownerId;
     private String name;
     private String imageUrl;
     private ClothingCategoryType type;
@@ -20,8 +20,8 @@ public class ClothItemDto {
 
     @QueryProjection
     public ClothItemDto(long id, long ownerId, String name, String imageUrl, ClothingCategoryType type) {
-        this.id = String.valueOf(id);
-        this.ownerId = String.valueOf(ownerId);
+        this.id = id;
+        this.ownerId = ownerId;
         this.name = name;
         this.imageUrl = imageUrl;
         this.type = type;
@@ -30,8 +30,8 @@ public class ClothItemDto {
 
     @QueryProjection
     public ClothItemDto(long id, long ownerId, String name, String imageUrl, ClothingCategoryType type, List<AttributeDto> attributes) {
-        this.id = String.valueOf(id);
-        this.ownerId = String.valueOf(ownerId);
+        this.id = id;
+        this.ownerId = ownerId;
         this.name = name;
         this.imageUrl = imageUrl;
         this.type = type;

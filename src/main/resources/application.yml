@@ -6,9 +6,6 @@ spring:
     import: optional:file:.env[.properties]
   profiles:
     active: dev
-  cloud:
-    compatibility-verifier:
-      enabled: false
   servlet:
     multipart:
       max-file-size: 20MB
@@ -58,30 +55,9 @@ style-my-closet:
       secret-key: ${AWS_S3_SECRET_KEY:secret-key}
       region: ${AWS_S3_REGION:region}
       bucket: ${AWS_S3_BUCKET:bucket}
+      bucket-name: ${AWS_S3_BUCKET:bucket}
       presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION_SECOND:600}
 
-resilience4j:
-  circuitbreaker:
-    instances:
-      crawling:
-        failureRateThreshold: 50
-        waitDurationInOpenState: 3s
-        permittedNumberOfCallsInHalfOpenState: 2
-        slidingWindowType: COUNT_BASED
-        slidingWindowSize: 5
-  ratelimiter:
-    instances:
-      crawling:
-        limitForPeriod: 10
-        limitRefreshPeriod: 1s
-        timeoutDuration: 0s
-  retry:
-    instances:
-      crawling:
-        maxAttempts: 2
-        waitDuration: 500ms
-        retryExceptions:
-          - org.springframework.web.client.ResourceAccessException
 
   admin:
     username: ${CLOSET_ADMIN_USERNAME}

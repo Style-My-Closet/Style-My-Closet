@@ -3,9 +3,6 @@ package com.stylemycloset.cloth.entity;
 
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import jakarta.persistence.*;
-
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,23 +22,12 @@ public class ClothingCategory extends SoftDeletableEntity {
   @Column(nullable = false, length = 50)
   private ClothingCategoryType name;
 
-  @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
-  private final List<Cloth> clothes = new ArrayList<>();
+  
 
   public ClothingCategory(ClothingCategoryType name) {
     this.name = name;
   }
 
-  public void addCloth(Cloth cloth) {
-    if (cloth == null) return;
-    if (!this.clothes.contains(cloth)) {
-      this.clothes.add(cloth);
-    }
-    // 소유자(Cloth) 측 동기화
-    if (cloth.getCategory() != this) {
-      cloth.setCategory(this);
-    }
-  }
 
 
 

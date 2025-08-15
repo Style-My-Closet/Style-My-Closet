@@ -4,10 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -24,47 +21,28 @@ import java.util.Map;
 @Slf4j
 public class S3ImageStorageService implements ImageStoragePort {
 
-    @Value("${app.aws.s3.bucket}")
+    private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
+
+    @Value("${style-my-closet.storage.s3.bucket-name}")
     private String bucket;
 
-    @Value("${app.aws.region}")
+    @Value("${style-my-closet.storage.s3.region}")
     private String region;
 
-    @Value("${app.aws.accessKeyId}")
-    private String accessKeyId;
-
-    @Value("${app.aws.secretAccessKey}")
-    private String secretAccessKey;
-
-    @Value("${app.aws.s3.public-base-url:https://%s.s3.%s.amazonaws.com}")
+    @Value("${style-my-closet.storage.s3.public-base-url:https://%s.s3.%s.amazonaws.com}")
     private String publicBaseUrlFormat;
-
-    private S3Client buildClient() {
-        return S3Client.builder()
-                .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(accessKeyId, secretAccessKey)))
-                .build();
-    }
-
-    private S3Presigner buildPresigner() {
-        return S3Presigner.builder()
-                .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(accessKeyId, secretAccessKey)))
-                .build();
-    }
 
     @Override
     public UploadResult upload(byte[] data, String objectKey, String contentType) {
         try {
-            S3Client client = buildClient();
+            // common 패키지의 S3Config에서 주입받은 클라이언트 사용
             PutObjectRequest put = PutObjectRequest.builder()
                     .bucket(bucket)
                     .key(objectKey)
                     .contentType(contentType)
                     .build();
-            client.putObject(put, RequestBody.fromBytes(data));
+            s3Client.putObject(put, RequestBody.fromBytes(data));
             String publicUrl = String.format(publicBaseUrlFormat, bucket, region) + "/" + objectKey;
             return new UploadResult(objectKey, publicUrl);
         } catch (Exception e) {
@@ -74,7 +52,7 @@ public class S3ImageStorageService implements ImageStoragePort {
 
     @Override
     public PresignedUrl presignPut(String objectKey, String contentType, long expirationSeconds) {
-        try (S3Presigner presigner = buildPresigner()) {
+        try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucket)
                     .key(objectKey)
@@ -86,7 +64,7 @@ public class S3ImageStorageService implements ImageStoragePort {
                     .putObjectRequest(putObjectRequest)
                     .build();
 
-            PresignedPutObjectRequest presigned = presigner.presignPutObject(presignRequest);
+            PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(presignRequest);
 
             Map<String, List<String>> signed = presigned.signedHeaders();
             Map<String, String> flattened = new HashMap<>();

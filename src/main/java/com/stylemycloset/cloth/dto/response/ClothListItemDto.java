@@ -3,24 +3,26 @@ package com.stylemycloset.cloth.dto.response;
 import com.querydsl.core.annotations.QueryProjection;
 import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingCategoryType;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import java.util.Objects;
 
-public record ClothListItemDto(
-    String id,
-    String ownerId,
-    String name,
-    String imageUrl,
-    ClothingCategoryType type
-) {
+@Getter
+@NoArgsConstructor
+public class ClothListItemDto {
+    private Long id;
+    private Long ownerId;
+    private String name;
+    private String imageUrl;
+    private ClothingCategoryType type;
+
     @QueryProjection
     public ClothListItemDto(Long id, Long ownerId, String name, String imageUrl, ClothingCategoryType type) {
-        this(
-            id.toString(),
-            ownerId.toString(),
-            name,
-            imageUrl,
-            type
-        );
+        this.id = id;
+        this.ownerId = ownerId;
+        this.name = name;
+        this.imageUrl = imageUrl;
+        this.type = type;
     }
 
     public static ClothListItemDto from(Cloth cloth) {
@@ -30,8 +32,8 @@ public record ClothListItemDto(
         Objects.requireNonNull(cloth.getCategory(), "Category cannot be null");
 
         return new ClothListItemDto(
-            cloth.getId().toString(),
-            cloth.getCloset().getUserId().toString(),
+            cloth.getId(),
+            cloth.getCloset().getUserId(),
             cloth.getName(),
             null,
             cloth.getCategory().getName()

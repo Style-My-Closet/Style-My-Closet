@@ -36,7 +36,6 @@ public class ClothRepositoryImpl implements ClothRepositoryCustom {
     private final JPAQueryFactory factory;
     private static final QAttributeOption selectedOption = new QAttributeOption("selectedOption");
 
-
     
     @Override
     public long countByUserId(Long userId) {
@@ -53,6 +52,7 @@ public class ClothRepositoryImpl implements ClothRepositoryCustom {
     public List<ClothItemDto> findClothItemDtosWithCursorPagination(Long userId, Long idAfter, int limitPlusOne, boolean isDescending, boolean hasIdAfter) {
         // 1) ID만 페이징으로 먼저 조회
         List<Long> ids = fetchPagedIds(userId, idAfter, limitPlusOne, isDescending, hasIdAfter);
+        
         if (ids.isEmpty()) {
             return List.of();
         }
@@ -60,7 +60,7 @@ public class ClothRepositoryImpl implements ClothRepositoryCustom {
         // 2) 기본 정보 조회 (ownerId, name, imageUrl, category)
         Map<Long, ClothItemDto> idToItem = fetchBaseInfo(ids);
 
-    // 3) 속성 조회 후 매핑 (IN으로 한 번에)
+        // 3) 속성 조회 후 매핑 (IN으로 한 번에)
         List<Tuple> attrRows = fetchAttributeTuples(ids);
         Map<Long, List<AttributeDto>> attrsByClothId = mapAttributesByClothId(attrRows);
         Set<String> attributeIdsInPage = collectAttributeIds(attrsByClothId);
@@ -72,10 +72,11 @@ public class ClothRepositoryImpl implements ClothRepositoryCustom {
         for (Long cId : ids) {
             ClothItemDto dto = idToItem.get(cId);
             if (dto != null) {
-                dto.setAttributes(attrsByClothId.getOrDefault(cId, java.util.List.of()));
+                dto.setAttributes(attrsByClothId.getOrDefault(cId, List.of()));
                 result.add(dto);
             }
         }
+        
         return result;
     }
 
@@ -158,7 +159,7 @@ public class ClothRepositoryImpl implements ClothRepositoryCustom {
         for (List<AttributeDto> list : attrsByClothId.values()) {
             for (AttributeDto attr : list) {
                 if (attr != null && attr.definitionId() != null) {
-                    attributeIdsInPage.add(attr.definitionId());
+                    attributeIdsInPage.add(attr.definitionId().toString());
                 }
             }
         }
@@ -208,7 +209,7 @@ public class ClothRepositoryImpl implements ClothRepositoryCustom {
         for (Map.Entry<Long, List<AttributeDto>> entry : attrsByClothId.entrySet()) {
             List<AttributeDto> enriched = new ArrayList<>();
             for (AttributeDto a : entry.getValue()) {
-                List<String> selectable = selectableValuesByAttributeId.getOrDefault(a.definitionId(), List.of());
+                List<String> selectable = selectableValuesByAttributeId.getOrDefault(a.definitionId().toString(), List.of());
                 enriched.add(new AttributeDto(a.definitionId(), a.definitionName(), selectable, a.value()));
             }
             entry.setValue(enriched);

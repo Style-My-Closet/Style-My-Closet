@@ -1,5 +1,9 @@
 spring:
   datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:style_my_closet}
+    username: ${DB_USERNAME:dev}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
   flyway:
@@ -23,9 +27,6 @@ spring:
       enabled: false
     jdbc:
       initialize-schema: never
-  cloud:
-    compatibility-verifier:
-      enabled: false
   main:
     allow-bean-definition-overriding: true
 
@@ -37,28 +38,7 @@ app:
     accessKeyId: test-access-key
     secretAccessKey: test-secret-key
 
-resilience4j:
-  circuitbreaker:
-    instances:
-      crawling:
-        failureRateThreshold: 50
-        waitDurationInOpenState: 3s
-        permittedNumberOfCallsInHalfOpenState: 2
-        slidingWindowType: COUNT_BASED
-        slidingWindowSize: 5
-  ratelimiter:
-    instances:
-      crawling:
-        limitForPeriod: 10
-        limitRefreshPeriod: 1s
-        timeoutDuration: 0s
-  retry:
-    instances:
-      crawling:
-        maxAttempts: 2
-        waitDuration: 500ms
-        retryExceptions:
-          - org.springframework.web.client.ResourceAccessException
+# resilience4j 설정 제거됨 (Spring Retry 사용)
 
 style-my-closet:
   storage:
@@ -70,6 +50,7 @@ style-my-closet:
       secret-key: test-secret-key
       region: us-east-1
       bucket: test-bucket
+      bucket-name: test-bucket
       presigned-url-expiration: 600
   batch:
     jdbc:

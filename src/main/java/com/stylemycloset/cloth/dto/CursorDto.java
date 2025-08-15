@@ -12,12 +12,10 @@ public record CursorDto(
     private static final String DEFAULT_SORT_BY = "id";
     private static final String DEFAULT_SORT_DIRECTION = "ASCENDING";
 
-    
     public static CursorDto ofDefault(int limit) {
         return new CursorDto(null, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_DIRECTION, null);
     }
 
-    
     public static CursorDto ofSearch(String keywordLike, int limit) {
         return new CursorDto(null, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_DIRECTION, keywordLike);
     }
@@ -25,10 +23,6 @@ public record CursorDto(
     public static CursorDto ofPagination(Long cursor, int limit) {
         return new CursorDto(cursor, null, limit, DEFAULT_SORT_BY, DEFAULT_SORT_DIRECTION, null);
     }
-    
-
-    
-
 
     
     // 기본값 처리

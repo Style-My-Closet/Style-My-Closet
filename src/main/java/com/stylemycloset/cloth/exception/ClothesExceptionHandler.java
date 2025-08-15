@@ -13,7 +13,7 @@ public class ClothesExceptionHandler {
     @ExceptionHandler(ClothesException.class)
     public ResponseEntity<ErrorResponse> handleClothesException(ClothesException e) {
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .exceptionName(e.getExceptionName().name())
+                .exceptionName(e.getErrorCode().name())
                 .message(e.getMessage())
                 .details(e.getDetails())
                 .build();

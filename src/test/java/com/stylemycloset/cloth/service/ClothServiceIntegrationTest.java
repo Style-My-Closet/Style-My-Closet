@@ -81,7 +81,7 @@ class ClothServiceIntegrationTest extends IntegrationTestSupport {
         Path temp = Files.createTempFile("test-img", ".jpg");
         Files.writeString(temp, "dummy");
         BinaryContent bin = new BinaryContent(temp.toString(), "image/jpeg", 5L);
-        bin.updateFileInfo("images/2025/08/09/dummy.jpg", "https://example.com/images/2025/08/09/dummy.jpg");
+        bin.updateImageUrl("https://example.com/images/2025/08/09/dummy.jpg");
         bin = binaryContentRepository.save(bin);
 
         ClothCreateRequestDto req = new ClothCreateRequestDto();

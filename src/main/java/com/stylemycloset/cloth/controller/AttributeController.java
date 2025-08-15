@@ -1,6 +1,5 @@
 package com.stylemycloset.cloth.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.cloth.dto.ClothesAttributeDefCreateRequest;
 import com.stylemycloset.cloth.dto.CursorDto;
 import com.stylemycloset.cloth.dto.ClothesAttributeDefDto;
@@ -22,7 +21,6 @@ import java.util.List;
 public class AttributeController {
 
     private final ClothAttributeService clothAttributeService;
-    private final ObjectMapper objectMapper;
 
     @GetMapping
     public ResponseEntity<PaginatedResponse<ClothesAttributeDefDto>> getAttributes(@Valid @ModelAttribute CursorDto cursorDto) {
@@ -33,7 +31,7 @@ public class AttributeController {
     @PostMapping
     public ResponseEntity<AttributeResponseDto> createAttribute(
             @Valid @RequestBody ClothesAttributeDefCreateRequest request) {
-
+    
         AttributeResponseDto response = clothAttributeService.createAttribute(request);
         return ResponseEntity.ok(response);
     }

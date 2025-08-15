@@ -6,7 +6,7 @@ import com.stylemycloset.cloth.entity.ClothingAttributeValue;
 import java.util.List;
 
 public record AttributeDto(
-    String definitionId,  
+    Long definitionId,  
     String definitionName,  
     List<String> selectableValues,  // 선택 가능한 값들 추가
     String value
@@ -14,7 +14,7 @@ public record AttributeDto(
     @QueryProjection
     public AttributeDto(Long definitionId, String definitionName, String value) {
         this(
-            definitionId.toString(),
+            definitionId,
             definitionName,
             List.of(),
             value
@@ -23,7 +23,7 @@ public record AttributeDto(
 
     public static AttributeDto from(ClothingAttributeValue clothingAttributeValue) {
         return new AttributeDto(
-            clothingAttributeValue.getAttribute().getId().toString(),  // Long을 String으로 변환
+            clothingAttributeValue.getAttribute().getId(),
             clothingAttributeValue.getAttribute().getName(),
             clothingAttributeValue.getAttribute().getOptions().stream()  // 선택 가능한 값들 추출
                     .map(option -> option.getValue())

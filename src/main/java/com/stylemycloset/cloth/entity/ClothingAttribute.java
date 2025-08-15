@@ -44,7 +44,7 @@ public class ClothingAttribute extends SoftDeletableEntity {
     ClothingAttribute attribute = ClothingAttribute.builder()
             .name(name)
             .build();
-    // 옵션 생성 시 자동으로 더하도록함
+    // 옵션 생성 시 자동으로 컬렉션에 추가됨 (양방향 관계)
     if (selectableValues != null) {
       selectableValues.forEach(v -> {
         if (v != null && !v.isBlank()) {

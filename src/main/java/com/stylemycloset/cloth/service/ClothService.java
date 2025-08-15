@@ -3,6 +3,7 @@ package com.stylemycloset.cloth.service;
 import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
 import com.stylemycloset.binarycontent.service.ImageDownloadService;
+
 import com.stylemycloset.cloth.dto.AttributeDto;
 import com.stylemycloset.cloth.dto.ClothCreateRequestDto;
 import com.stylemycloset.cloth.dto.ClothResponseDto;
@@ -21,7 +22,7 @@ import com.stylemycloset.cloth.entity.ClothingCategory;
 import com.stylemycloset.cloth.entity.ClothingCategoryType;
 import com.stylemycloset.cloth.entity.Closet;
 import com.stylemycloset.cloth.exception.ClothesException;
-import com.stylemycloset.cloth.exception.ClothingErrorCode;
+import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.cloth.repository.AttributeOptionRepository;
 import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.cloth.repository.ClothingAttributeRepository;
@@ -84,20 +85,20 @@ public class ClothService {
 
         boolean hasNext = clothes.size() > limit;
         List<ClothItemDto> paginatedClothes = hasNext ? clothes.subList(0, limit) : clothes;
-        String lastId = !paginatedClothes.isEmpty() ? paginatedClothes.getLast().getId() : null;
+        String lastId = !paginatedClothes.isEmpty() ? String.valueOf(paginatedClothes.getLast().getId()) : null;
 
         long totalCount = getTotalCount(userId);
 
         // 커서는 기존 빌더로 나두는 게 나음 조건이 변경이 잦음
-        return ClothListResponseDto.builder()
-                .data(paginatedClothes)
-                .nextCursor(lastId)
-                .nextIdAfter(lastId)
-                .hasNext(hasNext)
-                .totalCount(totalCount)
-                .sortBy(cursorDto.sortBy())
-                .sortDirection(SortDirection.fromString(cursorDto.sortDirection()))
-                .build();
+        return new ClothListResponseDto(
+                paginatedClothes,
+                lastId, // nextCursor
+                lastId, // nextIdAfter
+                hasNext,
+                totalCount,
+                cursorDto.sortBy(),
+                SortDirection.fromString(cursorDto.sortDirection())
+        );
     }
 
 
@@ -172,7 +173,7 @@ public class ClothService {
         Long userId = cloth.getCloset().getUserId();
         clothingAttributeValueRepository.softDeleteAllByClothId(clothId);
         Cloth managedCloth = clothRepository.findById(clothId)
-                .orElseThrow(() -> new ClothesException(ClothingErrorCode.CLOTH_NOT_FOUND));
+                .orElseThrow(() -> new ClothesException(ErrorCode.CLOTH_NOT_FOUND));
         managedCloth.softDeleteWithCleanup();
         clothRepository.save(managedCloth);
         afterCommit(userId);
@@ -182,16 +183,16 @@ public class ClothService {
     // 커서 값 검증
     private void validateUserAndCursor(Long userId, CursorDto cursorDto) {
         if (userId == null || userId <= 0) {
-            throw new ClothesException(ClothingErrorCode.UNAUTHORIZED_ACCESS);
+            throw new ClothesException(ErrorCode.UNAUTHORIZED_ACCESS);
         }
 
         if (cursorDto.limit() <= 0 || cursorDto.limit() > 100) {
-            throw new ClothesException(ClothingErrorCode.INVALID_PARAMETER);
+            throw new ClothesException(ErrorCode.INVALID_PARAMETER);
         }
 
         // 정렬 조건 검증
         if (cursorDto.sortBy() != null && !isValidSortBy(cursorDto.sortBy())) {
-            throw new ClothesException(ClothingErrorCode.INVALID_PARAMETER);
+            throw new ClothesException(ErrorCode.INVALID_PARAMETER);
         }
     }
 
@@ -216,7 +217,7 @@ public class ClothService {
 
     private ClothingCategory getCategoryById(Long categoryId) {
         return categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new ClothesException(ClothingErrorCode.CATEGORY_NOT_FOUND));
+                .orElseThrow(() -> new ClothesException(ErrorCode.CATEGORY_NOT_FOUND));
     }
 
     private ClothingCategory getOrCreateCategoryByType(ClothingCategoryType type) {
@@ -231,13 +232,13 @@ public class ClothService {
 
     private Cloth getClothById(Long clothId) {
         return clothRepository.findById(clothId)
-                .orElseThrow(() -> new ClothesException(ClothingErrorCode.CLOTH_NOT_FOUND));
+                .orElseThrow(() -> new ClothesException(ErrorCode.CLOTH_NOT_FOUND));
     }
 
 
     private ClothResponseDto getClothResponseDtoById(Long clothId) {
         return clothRepository.findClothResponseDtoById(clothId)
-                .orElseThrow(() -> new ClothesException(ClothingErrorCode.CLOTH_NOT_FOUND));
+                .orElseThrow(() -> new ClothesException(ErrorCode.CLOTH_NOT_FOUND));
     }
 
     private Cloth saveCloth(ClothCreateRequestDto requestDto, Closet closet,
@@ -258,9 +259,9 @@ public class ClothService {
             cloth.getAttributeValues().clear();
             for (ClothUpdateRequestDto.AttributeRequestDto attrDto : requestDto.getAttributes()) {
                 ClothingAttribute attribute = clothingAttributeRepository.findById(attrDto.getDefinitionId())
-                        .orElseThrow(() -> new ClothesException(ClothingErrorCode.ATTRIBUTE_NOT_FOUND));
+                        .orElseThrow(() -> new ClothesException(ErrorCode.ATTRIBUTE_NOT_FOUND));
                 AttributeOption option = attributeOptionRepository.findById(attrDto.getOptionId())
-                        .orElseThrow(() -> new ClothesException(ClothingErrorCode.INVALID_ATTRIBUTE));
+                        .orElseThrow(() -> new ClothesException(ErrorCode.INVALID_ATTRIBUTE));
                 cloth.addAttributeValue(attribute, option);
             }
         }
@@ -272,7 +273,7 @@ public class ClothService {
                     BinaryContent newBinaryContent = imageDownloadService.updateImage(null, image);
                     cloth.updateBinaryContentId(newBinaryContent.getId());
                 } catch (Exception e) {
-                    throw new ClothesException(ClothingErrorCode.IMAGE_UPLOAD_FAILED);
+                    throw new ClothesException(ErrorCode.IMAGE_UPLOAD_FAILED);
                 }
             }
         }
@@ -342,9 +343,9 @@ public class ClothService {
                 continue;
             }
             ClothingAttribute attribute = clothingAttributeRepository.findById(defId)
-                .orElseThrow(() -> new ClothesException(ClothingErrorCode.ATTRIBUTE_NOT_FOUND));
+                .orElseThrow(() -> new ClothesException(ErrorCode.ATTRIBUTE_NOT_FOUND));
             AttributeOption option = attributeOptionRepository.findById(optId)
-                .orElseThrow(() -> new ClothesException(ClothingErrorCode.INVALID_ATTRIBUTE));
+                .orElseThrow(() -> new ClothesException(ErrorCode.INVALID_ATTRIBUTE));
             cloth.addAttributeValue(attribute, option);
         }
         return clothRepository.save(cloth);
@@ -380,8 +381,28 @@ public class ClothService {
         }
     }
 
-    
+    @Transactional
+    public ClothResponseDto createClothWithImage(ClothCreateRequestDto request, MultipartFile image, Long userId) {
+        // 이미지가 있으면 먼저 저장
+        if (image != null && !image.isEmpty()) {
+            try {
+                BinaryContent savedImage = imageDownloadService.saveUploadedImage(image);
+                request.setBinaryContentId(savedImage.getId());
+            } catch (Exception e) {
+                log.error("이미지 저장 실패", e);
+                throw new ClothesException(ErrorCode.IMAGE_UPLOAD_FAILED);
+            }
+        }
+        
+        return createCloth(request, userId);
+    }
 
+    @Transactional
+    public void updateClothImage(Long clothId, java.util.UUID imageId) {
+        Cloth cloth = getClothById(clothId);
+        cloth.updateBinaryContentId(imageId);
+        clothRepository.save(cloth);
+    }
 
 }
 

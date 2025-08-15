@@ -18,15 +18,8 @@ repositories {
     mavenCentral()
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2024.0.0"
-    }
-}
-
 ext {
-    JJWT_VERSION = "0.12.3"
-    SPRING_CLOUD_VERSION = "2025.0.0"
+  
 }
 
 dependencies {
@@ -47,8 +40,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'com.github.ben-manes.caffeine:caffeine'
 
-    // Circuit Breaker
-    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+
 
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     runtimeOnly 'org.postgresql:postgresql'
@@ -66,9 +58,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     testImplementation "org.springframework.security:spring-security-test"
 
-    implementation "io.jsonwebtoken:jjwt-api:${JJWT_VERSION}"
-    runtimeOnly "io.jsonwebtoken:jjwt-impl:${JJWT_VERSION}"
-    runtimeOnly "io.jsonwebtoken:jjwt-gson:${JJWT_VERSION}"
+    // JJWT 제거됨 (nimbus-jose-jwt 사용)
 
     implementation 'org.springframework.retry:spring-retry'
 
@@ -100,17 +90,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-batch'
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${SPRING_CLOUD_VERSION}"
-    }
-}
 
 test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
     jvmArgs '-XX:+EnableDynamicAgentLoading'
-    systemProperty 'spring.profiles.active', System.getProperty('spring.profiles.active', 'test')
 }
 
 jacocoTestReport {

@@ -3,10 +3,6 @@ package com.stylemycloset.cloth.entity;
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Where;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "clothes_attributes_category_options")
@@ -28,36 +24,31 @@ public class AttributeOption extends SoftDeletableEntity {
     @Column(nullable = false, length = 50)
     private String value;
 
-    @OneToMany(mappedBy = "option", fetch = FetchType.LAZY)
-    @Where(clause = "deleted_at IS NULL")
-    @Builder.Default
-    private List<ClothingAttributeValue> attributeValues = new ArrayList<>();
+    // attributeValues 컬렉션 제거됨 (단방향으로 개선)
+    // 필요시 Repository에서 조회: findByOption(AttributeOption option)
 
-
-    public static void createOption(ClothingAttribute attribute, String value) {
-        if (attribute == null) return;
-        if (value == null || value.isBlank()) return;
+    public static AttributeOption createOption(ClothingAttribute attribute, String value) {
+        if (attribute == null) return null;
+        if (value == null || value.isBlank()) return null;
 
         AttributeOption option = AttributeOption.builder()
                 .attribute(attribute)
                 .value(value)
                 .build();
 
-        attribute.getOptions().add(option);
-
+        // 양방향 관계 동기화 (속성과 옵션은 항상 함께 사용)
+        if (attribute.getOptions() != null) {
+            attribute.getOptions().add(option);
+        }
+        return option;
     }
-
 
     @Override
     public void softDelete() {
         super.softDelete();
-        // 관계된 엔티티들의 메모리상 컬렉션에서 제거
+        // 양방향 관계 정리 (AttributeValue는 서비스에서 처리)
         if (attribute != null && attribute.getOptions() != null) {
             attribute.getOptions().remove(this);
-        }
-        if (attributeValues != null) {
-            attributeValues.forEach(ClothingAttributeValue::softDelete);
-            attributeValues.clear();
         }
     }
 

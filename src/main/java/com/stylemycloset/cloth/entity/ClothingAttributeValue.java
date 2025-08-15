@@ -2,12 +2,11 @@ package com.stylemycloset.cloth.entity;
 
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import jakarta.persistence.*;
-import jakarta.persistence.Persistence;
-import jakarta.persistence.PersistenceUtil;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import java.util.List;
 
 @Entity
 @Table(name = "clothes_to_attribute_options")
@@ -38,36 +37,49 @@ public class ClothingAttributeValue extends SoftDeletableEntity {
     this.attribute = attribute;
     this.option = option;
   }
-  // 동기화 메서드
-  public static void createValue(Cloth cloth, ClothingAttribute attribute, AttributeOption option) {
+  // 양방향 관계 동기화를 위한 팩토리 메서드
+  public static ClothingAttributeValue createValue(Cloth cloth, ClothingAttribute attribute, AttributeOption option) {
     ClothingAttributeValue value = ClothingAttributeValue.builder()
             .cloth(cloth)
             .attribute(attribute)
             .option(option)
             .build();
     
-    cloth.getAttributeValues().add(value);
-    attribute.getAttributeValues().add(value);
-    option.getAttributeValues().add(value);
-
+    value.syncToCollections();
+    return value;
   }
 
+  // 컬렉션 동기화 헬퍼 메서드 (option 제거)
+  private void syncToCollections() {
+    addToCollectionIfLoaded(cloth, cloth != null ? cloth.getAttributeValues() : null);
+    addToCollectionIfLoaded(attribute, attribute != null ? attribute.getAttributeValues() : null);
+  }
 
-
-  // Soft delete 시 관계 정리
+  // Soft delete 시 관계 정리 (간소화)
   @Override
   public void softDelete() {
     super.softDelete();
-    // 관계된 엔티티들의 메모리상 컬렉션에서 제거
-    PersistenceUtil util = Persistence.getPersistenceUtil();
-    if (cloth != null && util.isLoaded(cloth, "attributeValues")) {
-      cloth.getAttributeValues().remove(this);
+    removeFromCollections();
+  }
+
+  // 컬렉션에서 제거하는 헬퍼 메서드 (option 제거)
+  private void removeFromCollections() {
+    removeFromCollectionIfLoaded(cloth, cloth != null ? cloth.getAttributeValues() : null);
+    removeFromCollectionIfLoaded(attribute, attribute != null ? attribute.getAttributeValues() : null);
+    // option.getAttributeValues() 제거됨 (단방향으로 개선)
+  }
+
+  // 간단한 컬렉션 추가 (JPA가 자동으로 Lazy Loading 처리)
+  private void addToCollectionIfLoaded(Object entity, List<ClothingAttributeValue> collection) {
+    if (entity != null && collection != null) {
+      collection.add(this);
     }
-    if (attribute != null && util.isLoaded(attribute, "attributeValues")) {
-      attribute.getAttributeValues().remove(this);
-    }
-    if (option != null && util.isLoaded(option, "attributeValues")) {
-      option.getAttributeValues().remove(this);
+  }
+
+  // 간단한 컬렉션 제거 (JPA가 자동으로 Lazy Loading 처리)
+  private void removeFromCollectionIfLoaded(Object entity, List<ClothingAttributeValue> collection) {
+    if (entity != null && collection != null) {
+      collection.remove(this);
     }
   }
 }

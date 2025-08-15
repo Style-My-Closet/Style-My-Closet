@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface AttributeResponseMapper {
     
-    @Mapping(target = "id", expression = "java(entity.getId() == null ? null : entity.getId().toString())")
+    @Mapping(target = "id", source = "id")
     @Mapping(target = "name", source = "name")
     @Mapping(
         target = "selectableValues",

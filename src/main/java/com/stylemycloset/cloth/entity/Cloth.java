@@ -1,6 +1,5 @@
 package com.stylemycloset.cloth.entity;
 
-import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -51,14 +50,7 @@ public class Cloth extends SoftDeletableEntity {
 
   public static Cloth createCloth(String name, Closet closet, ClothingCategory category, java.util.UUID binaryContentId) {
     Cloth cloth = new Cloth(name, closet, category, binaryContentId);
-    
-    // 양방향 관계 자동 동기화
-    if (closet != null) {
-      closet.addCloth(cloth);
-    }
-    if (category != null) {
-      category.addCloth(cloth);
-    }
+ 
     
     return cloth;
   }
@@ -100,9 +92,6 @@ public class Cloth extends SoftDeletableEntity {
 
     if (closet != null && closet.getClothes() != null) {
       closet.getClothes().remove(this);
-    }
-    if (category != null && category.getClothes() != null) {
-      category.getClothes().remove(this);
     }
   }
 

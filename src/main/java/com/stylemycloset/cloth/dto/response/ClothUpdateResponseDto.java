@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Objects;
 
 public record ClothUpdateResponseDto(
-        String id,
-        String ownerId,
+        Long id,
+        Long ownerId,
         String name,
         String imageUrl,
         ClothingCategoryType category,
@@ -27,8 +27,8 @@ public record ClothUpdateResponseDto(
                 .map(AttributeDto::from)
                 .toList();
         return new ClothUpdateResponseDto(
-                cloth.getId().toString(),
-                cloth.getCloset().getUserId().toString(),
+                cloth.getId(),
+                cloth.getCloset().getUserId(),
                 cloth.getName(),
                 null,
                 cloth.getCategory().getName(),

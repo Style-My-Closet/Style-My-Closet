@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import com.stylemycloset.cloth.dto.CursorDto;
 import jakarta.persistence.EntityManager;
 import com.stylemycloset.cloth.dto.ClothCreateRequestDto;
+import org.springframework.mock.web.MockPart;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -105,10 +106,14 @@ class ClothingControllerIntegrationTest extends IntegrationTestSupport {
 
         String body = objectMapper.writeValueAsString(req);
 
-        // 생성
-        String createdId = mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/clothes").with(user(new ClosetUserDetails(1L, "USER", "tester"))).with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+        // 생성 (멀티파트 요청으로 변경)
+        MockPart requestPart = new MockPart("request", body.getBytes());
+        requestPart.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        
+        String createdId = mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart("/api/clothes")
+                        .part(requestPart)
+                        .with(user(new ClosetUserDetails(1L, "USER", "tester")))
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))

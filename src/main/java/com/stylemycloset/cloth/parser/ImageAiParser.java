@@ -2,147 +2,233 @@ package com.stylemycloset.cloth.parser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 
 
+@Slf4j
 public final class ImageAiParser {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private ImageAiParser() {}
 
-
-    public static JsonNode extractContentJson(String raw) {
-        if (raw == null || raw.isBlank()) return null;
-        try {
-            ObjectMapper om = new ObjectMapper();
-            // 1) 먼저 content JSON으로 바로 파싱 시도
-            try {
-                JsonNode maybeContent = om.readTree(raw.trim());
-                // 의도 스키마(카테고리 등의 키)가 보이면 그대로 사용
-                if (maybeContent.has("category") || maybeContent.has("primary_color") || maybeContent.has("fit_type")) {
-                    return maybeContent;
-                }
-                // 1-1) Responses 구조화 출력: output_parsed 우선 사용
-                JsonNode parsed = maybeContent.path("output_parsed");
-                if (parsed != null && !parsed.isMissingNode() && !parsed.isNull()) {
-
-                    if (parsed.isTextual()) {
-                        try { return om.readTree(parsed.asText()); } catch (Exception ignore2) {}
-                    } else if (parsed.isObject()) {
-                        return parsed;
-                    }
-                }
-                // 2) Responses 바디로 간주하고 경로 탐색
-                String content = maybeContent.path("output_text").asText(null);
-                if (content != null && !content.isBlank()) {
-                    return om.readTree(content);
-                }
-                JsonNode outArr = maybeContent.path("output");
-                if (outArr.isArray()) {
-                    for (JsonNode elem : outArr) {
-                        if ("message".equals(elem.path("type").asText())) {
-                            JsonNode cArr = elem.path("content");
-                            if (cArr.isArray()) {
-                                for (JsonNode c : cArr) {
-                                    if ("output_text".equals(c.path("type").asText())) {
-                                        String t = c.path("text").asText(null);
-                                        if (t != null && !t.isBlank()) {
-                                            return om.readTree(t);
-                                        }
-                                    }
-                                    // 일부 SDK는 parsed 키를 content 단위로 제공할 수 있음
-                                    JsonNode parsed2 = c.path("parsed");
-                                    if (parsed2 != null && !parsed2.isMissingNode() && !parsed2.isNull()) {
-                                        if (parsed2.isTextual()) {
-                                            try { return om.readTree(parsed2.asText()); } catch (Exception ignore3) {}
-                                        } else if (parsed2.isObject()) {
-                                            return parsed2;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                return maybeContent;
-            } catch (Exception ignore) { }
+    public static JsonNode extractContentJson(String rawResponse) {
+        if (isBlank(rawResponse)) {
             return null;
+        }
+
+        try {
+            JsonNode rootNode = OBJECT_MAPPER.readTree(rawResponse.trim());
+            return findContentFromResponse(rootNode);
         } catch (Exception e) {
+            log.warn("AI 응답 파싱 실패: {}", e.getMessage());
             return null;
         }
     }
 
-    public static Map<String, List<String>> mapAttributes(JsonNode root) {
+
+    public static Map<String, List<String>> mapAttributes(JsonNode contentNode) {
         Map<String, List<String>> attributes = new HashMap<>();
-        if (root == null || !root.isObject()) return attributes;
+        
+        if (contentNode == null || !contentNode.isObject()) {
+            return attributes;
+        }
 
-        String color = nonBlank(root.path("primary_color").asText(null));
-        if (color != null) attributes.put("색상", List.of(color));
 
-        String material = nonBlank(root.path("material").asText(null));
-        if (material == null) material = nonBlank(root.path("fabric_type").asText(null));
-        if (material != null) attributes.put("소재", List.of(material));
+        extractBasicAttributes(contentNode, attributes);
+        
 
-        String fit = nonBlank(root.path("fit_type").asText(null));
-        if (fit != null) attributes.put("핏", List.of(normalizeFit(fit)));
-
-        String sleeve = nonBlank(root.path("sleeve_type").asText(null));
-        if (sleeve != null) attributes.put("소매", List.of(normalizeSleeve(sleeve)));
-
-        String neckline = nonBlank(root.path("neckline_type").asText(null));
-        if (neckline != null) attributes.put("넥라인", List.of(normalizeNeckline(neckline)));
-
-        String pattern = nonBlank(root.path("pattern").asText(null));
-        if (pattern != null) attributes.put("패턴", List.of(pattern));
-
-        String shoeType = nonBlank(root.path("shoe_type").asText(null));
-        if (shoeType != null) attributes.put("신발유형", List.of(shoeType));
-
-        String closure = nonBlank(root.path("closure_type").asText(null));
-        if (closure != null) attributes.put("클로저", List.of(closure));
-
-        String bagType = nonBlank(root.path("bag_type").asText(null));
-        if (bagType != null) attributes.put("가방유형", List.of(bagType));
-
-        String capacity = root.path("capacity_liters").isNumber() ? String.valueOf(root.path("capacity_liters").asDouble()) : null;
-        if (nonBlank(capacity) != null) attributes.put("용량(L)", List.of(capacity));
-
-        String heel = root.path("heel_height_cm").isNumber() ? String.valueOf(root.path("heel_height_cm").asDouble()) : null;
-        if (nonBlank(heel) != null) attributes.put("굽높이(cm)", List.of(heel));
+        extractNumericAttributes(contentNode, attributes);
 
         return attributes;
     }
 
-    private static String nonBlank(String s) {
-        return (s != null && !s.trim().isEmpty() && !"null".equalsIgnoreCase(s.trim())) ? s.trim() : null;
+    private static JsonNode findContentFromResponse(JsonNode responseNode) {
+
+        if (hasClothingSchema(responseNode)) {
+            return responseNode;
+        }
+
+        JsonNode parsed = responseNode.path("output_parsed");
+        if (isValidContent(parsed)) {
+            return parseJsonField(parsed);
+        }
+
+        JsonNode outputText = responseNode.path("output_text");
+        if (outputText.isTextual()) {
+            return parseTextAsJson(outputText.asText());
+        }
+
+        JsonNode output = responseNode.path("output");
+        if (output.isArray()) {
+            JsonNode content = findContentInOutputArray(output);
+            if (content != null) {
+                return content;
+            }
+        }
+
+        return responseNode;
     }
 
+    private static boolean hasClothingSchema(JsonNode node) {
+        return node.has("category") || 
+               node.has("primary_color") || 
+               node.has("fit_type") ||
+               node.has("material");
+    }
+
+    private static boolean isValidContent(JsonNode node) {
+        return node != null && !node.isMissingNode() && !node.isNull();
+    }
+
+    private static JsonNode parseJsonField(JsonNode field) {
+        if (field.isTextual()) {
+            return parseTextAsJson(field.asText());
+        } else if (field.isObject()) {
+            return field;
+        }
+        return null;
+    }
+
+    private static JsonNode parseTextAsJson(String text) {
+        if (isBlank(text)) {
+            return null;
+        }
+        
+        try {
+            return OBJECT_MAPPER.readTree(text);
+        } catch (Exception e) {
+            log.debug("텍스트 JSON 파싱 실패: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private static JsonNode findContentInOutputArray(JsonNode outputArray) {
+        for (JsonNode element : outputArray) {
+            if (!"message".equals(element.path("type").asText())) {
+                continue;
+            }
+
+            JsonNode contentArray = element.path("content");
+            if (!contentArray.isArray()) {
+                continue;
+            }
+
+            for (JsonNode content : contentArray) {
+                JsonNode result = extractFromContentElement(content);
+                if (result != null) {
+                    return result;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static JsonNode extractFromContentElement(JsonNode contentElement) {
+        if ("output_text".equals(contentElement.path("type").asText())) {
+            String text = contentElement.path("text").asText();
+            return parseTextAsJson(text);
+        }
+
+        JsonNode parsed = contentElement.path("parsed");
+        if (isValidContent(parsed)) {
+            return parseJsonField(parsed);
+        }
+
+        return null;
+    }
+
+    private static void extractBasicAttributes(JsonNode node, Map<String, List<String>> attributes) {
+        addAttributeIfPresent(attributes, "색상", getTextValue(node, "primary_color"));
+        addAttributeIfPresent(attributes, "소재", getMaterialValue(node));
+        addAttributeIfPresent(attributes, "핏", normalizeFit(getTextValue(node, "fit_type")));
+        addAttributeIfPresent(attributes, "소매", normalizeSleeve(getTextValue(node, "sleeve_type")));
+        addAttributeIfPresent(attributes, "넥라인", normalizeNeckline(getTextValue(node, "neckline_type")));
+        addAttributeIfPresent(attributes, "패턴", getTextValue(node, "pattern"));
+        addAttributeIfPresent(attributes, "신발유형", getTextValue(node, "shoe_type"));
+        addAttributeIfPresent(attributes, "클로저", getTextValue(node, "closure_type"));
+        addAttributeIfPresent(attributes, "가방유형", getTextValue(node, "bag_type"));
+    }
+
+
+    private static void extractNumericAttributes(JsonNode node, Map<String, List<String>> attributes) {
+        addAttributeIfPresent(attributes, "용량(L)", getNumericValue(node, "capacity_liters"));
+        addAttributeIfPresent(attributes, "굽높이(cm)", getNumericValue(node, "heel_height_cm"));
+    }
+
+
+    private static String getMaterialValue(JsonNode node) {
+        String material = getTextValue(node, "material");
+        return material != null ? material : getTextValue(node, "fabric_type");
+    }
+
+
+    private static String getTextValue(JsonNode node, String fieldName) {
+        return cleanText(node.path(fieldName).asText(null));
+    }
+
+
+    private static String getNumericValue(JsonNode node, String fieldName) {
+        JsonNode field = node.path(fieldName);
+        if (field.isNumber()) {
+            return String.valueOf(field.asDouble());
+        }
+        return null;
+    }
+
+
+    private static void addAttributeIfPresent(Map<String, List<String>> attributes, String key, String value) {
+        if (value != null && !value.isEmpty()) {
+            attributes.put(key, List.of(value));
+        }
+    }
+
+
+    private static String cleanText(String text) {
+        if (text == null || text.trim().isEmpty() || "null".equalsIgnoreCase(text.trim())) {
+            return null;
+        }
+        return text.trim();
+    }
+
+
+    private static boolean isBlank(String text) {
+        return text == null || text.trim().isEmpty();
+    }
+
+
     private static String normalizeFit(String fit) {
-        String f = fit.toLowerCase(Locale.ROOT);
-        if (f.contains("oversize")) return "oversized";
-        if (f.contains("regular")) return "regular";
-        if (f.contains("slim")) return "slim";
-        if (f.contains("relax")) return "relaxed";
+        if (fit == null) return null;
+        
+        String normalized = fit.toLowerCase(Locale.ROOT);
+        if (normalized.contains("oversize")) return "oversized";
+        if (normalized.contains("regular")) return "regular";
+        if (normalized.contains("slim")) return "slim";
+        if (normalized.contains("relax")) return "relaxed";
         return fit;
     }
 
     private static String normalizeSleeve(String sleeve) {
-        String s = sleeve.toLowerCase(Locale.ROOT);
-        if (s.contains("short")) return "short";
-        if (s.contains("long")) return "long";
-        if (s.contains("sleeveless")) return "sleeveless";
-        if (s.contains("half")) return "half";
+        if (sleeve == null) return null;
+        
+        String normalized = sleeve.toLowerCase(Locale.ROOT);
+        if (normalized.contains("short")) return "short";
+        if (normalized.contains("long")) return "long";
+        if (normalized.contains("sleeveless")) return "sleeveless";
+        if (normalized.contains("half")) return "half";
         return sleeve;
     }
 
     private static String normalizeNeckline(String neckline) {
-        String n = neckline.toLowerCase(Locale.ROOT);
-        if (n.contains("crew") || n.contains("round")) return "round";
-        if (n.contains("v")) return "vneck";
-        if (n.contains("collar")) return "collar";
-        if (n.contains("hood")) return "hood";
+        if (neckline == null) return null;
+        
+        String normalized = neckline.toLowerCase(Locale.ROOT);
+        if (normalized.contains("crew") || normalized.contains("round")) return "round";
+        if (normalized.contains("v")) return "vneck";
+        if (normalized.contains("collar")) return "collar";
+        if (normalized.contains("hood")) return "hood";
         return neckline;
     }
 }
-
-
