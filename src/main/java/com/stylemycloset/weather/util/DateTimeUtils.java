@@ -34,5 +34,8 @@ public class DateTimeUtils {
         return List.of(baseDate, baseTime);
     }
 
-
+    public static LocalDateTime parseDateTime(String dateStr, String timeStr) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+        return LocalDateTime.parse(dateStr + timeStr, formatter);
+    }
 }

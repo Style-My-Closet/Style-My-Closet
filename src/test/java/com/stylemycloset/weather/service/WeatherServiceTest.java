@@ -18,7 +18,7 @@ import com.stylemycloset.weather.entity.Temperature;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.entity.Weather.AlertType;
 import com.stylemycloset.weather.entity.WindSpeed;
-import com.stylemycloset.weather.mapper.LocationMapper;
+import com.stylemycloset.location.mapper.LocationMapper;
 import com.stylemycloset.weather.mapper.WeatherInfosMapper;
 import com.stylemycloset.weather.mapper.WeatherMapper;
 import com.stylemycloset.weather.repository.WeatherRepository;
