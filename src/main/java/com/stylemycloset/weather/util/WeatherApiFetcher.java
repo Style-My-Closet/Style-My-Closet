@@ -22,6 +22,7 @@ public class WeatherApiFetcher {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+    private final WeatherItemsFilterer filterer;
 
     @Value("${external.market-index.service-key}")
     private String serviceKey;
@@ -50,9 +51,18 @@ public class WeatherApiFetcher {
                 if (itemsNode.isMissingNode() || itemsNode.isNull()) continue;
 
                 if (itemsNode.isArray()) {
-                    itemsNode.forEach(allItems::add);
+                    for (JsonNode item : itemsNode) {
+                        String key = filterer.createUniqueKey(item);
+                        if (filterer.seenKeys.add(key) && filterer.dataCleaning(item)) {
+                            allItems.add(item);
+                        }
+                    }
                 } else {
-                    allItems.add(itemsNode);
+                    JsonNode item = itemsNode;
+                    String key = filterer.createUniqueKey(item);
+                    if (filterer.seenKeys.add(key) && filterer.dataCleaning(item)) {
+                        allItems.add(item);
+                    }
                 }
 
             } catch (Exception e) {

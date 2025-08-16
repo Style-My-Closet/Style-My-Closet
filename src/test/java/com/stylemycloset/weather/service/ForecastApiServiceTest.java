@@ -6,9 +6,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.location.Location;
@@ -43,7 +41,7 @@ class ForecastApiServiceTest {
     private LocationRepository locationRepository;
 
     @Mock
-    private WeatherItemsFilterer deduplicator;
+    private WeatherItemsFilterer filterer;
 
     private TmpProcessor tmpProcessor;
     private HumidityProcessor humidProcessor;
@@ -70,18 +68,13 @@ class ForecastApiServiceTest {
         tmpProcessor = Mockito.spy(new TmpProcessor(weatherRepository));
         humidProcessor = Mockito.spy(new HumidityProcessor(weatherRepository));
 
-        apiFetcher = new FakeWeatherApiFetcher(new ObjectMapper());
+        apiFetcher = new FakeWeatherApiFetcher(new ObjectMapper(), filterer);
         List<WeatherCategoryProcessor> processors = List.of(tmpProcessor, humidProcessor);
 
         forecastApiService = new ForecastApiService(
             apiFetcher,
-            deduplicator,
-            locationRepository,
             processors
         );
-
-        // deduplicator 설정 (mock)
-        when(deduplicator.filtering(anyList())).thenAnswer(inv -> inv.getArgument(0));
 
         // 필요하면 processor 내 특정 메서드만 mock 처리 가능
         doReturn(true).when(tmpProcessor).supports("TMP");
@@ -110,7 +103,6 @@ class ForecastApiServiceTest {
         weatherRepository.saveAll(weathers);
         // then
         verify(weatherRepository).saveAll(anyList());
-        verify(locationRepository).save(any(Location.class));
     }
 }
 

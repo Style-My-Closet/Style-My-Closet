@@ -24,10 +24,7 @@ import org.springframework.stereotype.Service;
 public class ForecastApiService {
 
     private final WeatherApiFetcher apiFetcher;
-    private final WeatherItemsFilterer filterer;
-    private final LocationRepository locationRepository;
     private final List<WeatherCategoryProcessor> processors;
-
 
     public List<Weather> fetchData(Location location) {
 
@@ -36,8 +33,7 @@ public class ForecastApiService {
         String baseDate = forecastTime.get(0);
         String baseTime = forecastTime.get(1);
 
-        List<JsonNode> rawItems = apiFetcher.fetchAllPages(baseDate, baseTime, location);
-        List<JsonNode> deduplicatedItems = filterer.filtering(rawItems);
+        List<JsonNode> deduplicatedItems = apiFetcher.fetchAllPages(baseDate, baseTime, location);
         Map<String, WeatherBuilderHelper> builders = new HashMap<>();
 
         for (JsonNode item : deduplicatedItems) {
