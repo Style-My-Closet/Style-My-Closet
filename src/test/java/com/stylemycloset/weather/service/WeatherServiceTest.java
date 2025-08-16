@@ -24,6 +24,7 @@ import com.stylemycloset.weather.mapper.WeatherMapper;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
@@ -97,8 +98,8 @@ public class WeatherServiceTest {
 
         when(weatherMapper.toDto(weather)).thenReturn(new WeatherDto(
             weather.getId(),
-            weather.getForecastedAt(),
-            weather.getForecastAt(),
+            weather.getForecastedAt().atZone(ZoneId.of("UTC")).toInstant(),
+            weather.getForecastAt().atZone(ZoneId.of("UTC")).toInstant(),
             weather.getLocation(),
             weather.getSkyStatus(),
             WeatherInfosMapper.toDto(weather.getPrecipitation()) ,
