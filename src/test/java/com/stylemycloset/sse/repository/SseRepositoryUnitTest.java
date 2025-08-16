@@ -108,13 +108,18 @@ public class SseRepositoryUnitTest {
     }
 
     // when
-    SseInfo newEvent = new SseInfo(3L, "test", "newTest", 3L);
+    SseInfo newEvent = new SseInfo(30L, "test", "newTest", 3L);
     sseRepository.addEvent(userId, newEvent);
 
     // then
     Deque<SseInfo> events = getEvents(userId);
     assertThat(events).hasSize(MAX_EVENT_COUNT);
     assertThat(events.getLast()).isSameAs(newEvent);
+
+    int expectedId = 1;
+    for(SseInfo event : events) {
+      assertThat(event.id()).isEqualTo(expectedId++);
+    }
   }
 
   @DisplayName("같은 userId에 대해 동시 다발 addEvent()를 호출해도 30개만 정확히 남는다.")
