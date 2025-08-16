@@ -2,16 +2,15 @@ package com.stylemycloset.weather.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.stylemycloset.location.Location;
-import com.stylemycloset.location.LocationRepository;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.processor.WeatherCategoryProcessor;
 import com.stylemycloset.weather.util.DateTimeUtils;
 import com.stylemycloset.weather.util.WeatherApiFetcher;
 import com.stylemycloset.weather.util.WeatherBuilderHelper;
-import com.stylemycloset.weather.util.WeatherItemsFilterer;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,13 +37,19 @@ public class ForecastApiService {
         Map<String, WeatherBuilderHelper> builders = new HashMap<>();
 
         Map<String, List<JsonNode>> itemsByDate = deduplicatedItems.stream()
-            .collect(Collectors.groupingBy(item -> item.path("fcstDate").asText()));
+            .collect(Collectors.groupingBy(
+                item -> item.path("fcstDate").asText(),
+                TreeMap::new,      // 문자열 key 기준 오름차순 정렬
+                Collectors.toList()
+            ));
 
         for (Map.Entry<String, List<JsonNode>> entry : itemsByDate.entrySet()) {
             String fcstDate = entry.getKey();         // 날짜
             List<JsonNode> itemsForDate = entry.getValue(); // 해당 날짜의 JsonNode 리스트
 
-            String key = fcstDate;
+
+            String fcstTime = itemsForDate.getFirst().path("fcstTime").asText();
+            String key = fcstDate+":"+fcstTime;
 
             WeatherBuilderHelper builder = builders.computeIfAbsent(key,
                 k -> new WeatherBuilderHelper(baseDate, baseTime, fcstDate, fcstTime, location,processors));

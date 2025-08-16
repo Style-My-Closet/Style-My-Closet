@@ -35,10 +35,6 @@ public class TmpProcessor implements WeatherCategoryProcessor {
         LocalDateTime startOfYesterday = today.minusDays(1).atStartOfDay();
         LocalDateTime endOfYesterday = today.atStartOfDay().minusNanos(1);
 
-
-        // 기존 값 유지, 해당 위치에만 값을 채운 Temperature 생성
-        double current =0.0;
-
         List<Weather> weathers = repository.findWeathersByForecastedAtYesterday(startOfYesterday, endOfYesterday);
 
 
@@ -51,22 +47,29 @@ public class TmpProcessor implements WeatherCategoryProcessor {
             yesterday = weathers.getFirst().getTemperature().getCurrent();
         }
 
-        double min = 0.0;
-        double max = 0.0;
 
         switch (category) {
             case "TMP" -> {
-                current = parsedValue;
+                double current = parsedValue;
+                ctx.temperature = Temperature.builder()
+                    .current(current)
+                    .comparedToDayBefore(current- yesterday)
+                    .build();
             }
             case "TMN" -> {
-                min = parsedValue;
+                double min = parsedValue;
+                ctx.temperature = Temperature.builder()
+                    .min(min)
+                    .build();
             }
             case "TMX" -> {
-                max = parsedValue;
+                double max = parsedValue;
+                ctx.temperature = Temperature.builder()
+                    .max(max)
+                    .build();
             }
         }
 
-        ctx.temperature = new Temperature(current, current-yesterday, min, max);
     }
 
     private double parseDoubleSafe(String value) {
