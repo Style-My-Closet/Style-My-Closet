@@ -23,11 +23,11 @@ public class WeatherBuilderHelper {
     private final WeatherBuilderHelperContext context;
     private final List<WeatherCategoryProcessor> processors;
 
-    public WeatherBuilderHelper(String baseDate, String baseTime, String fcstDate, String fcstTime,
+    public WeatherBuilderHelper(String baseDate, String  baseTime, String fcstDate, String fcstTime,
         Location location, List<WeatherCategoryProcessor> processors) {
         this.processors = processors;
         this.context = new WeatherBuilderHelperContext();
-        this.context.forecastedAt = parseDateTime(baseDate, baseTime);
+        this.context.forecastedAt = parseDateTime(fcstDate, fcstTime);
         this.context.forecastAt = parseDateTime(fcstDate, fcstTime);
         this.context.location = location;
     }
@@ -44,6 +44,8 @@ public class WeatherBuilderHelper {
 
     public Weather build() {
         return Weather.builder()
+            .forecastAt(context.forecastAt)
+            .forecastedAt(context.forecastedAt)
             .location(context.location)
             .skyStatus(context.skyStatus)
             .precipitation(context.precipitation)

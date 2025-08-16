@@ -44,16 +44,13 @@ public class ForecastApiService {
             String fcstDate = entry.getKey();         // 날짜
             List<JsonNode> itemsForDate = entry.getValue(); // 해당 날짜의 JsonNode 리스트
 
+            String key = fcstDate;
+
+            WeatherBuilderHelper builder = builders.computeIfAbsent(key,
+                k -> new WeatherBuilderHelper(baseDate, baseTime, fcstDate, fcstTime, location,processors));
             for (JsonNode item : itemsForDate) {
                 if (!item.path("baseDate").asText().equals(baseDate)) continue;
-
-                String fcstTime = item.path("fcstTime").asText();
-                String key = fcstDate + " : " + item;
-
-                WeatherBuilderHelper builder = builders.computeIfAbsent(key,
-                    k -> new WeatherBuilderHelper(baseDate, baseTime, fcstDate, fcstTime, location,processors));
                 builder.setCategoryValue(item.path("category").asText(), item.path("fcstValue").asText());
-
 
             }
 
