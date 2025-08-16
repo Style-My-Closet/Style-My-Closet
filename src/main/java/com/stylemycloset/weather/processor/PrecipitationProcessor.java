@@ -27,7 +27,7 @@ public class PrecipitationProcessor implements WeatherCategoryProcessor {
 
         switch (category) {
             case "PCP" -> {
-                amount = parseDoubleSafe(value);
+                amount = parseToAmount(value);
             }
             case "POP" -> {
                 probability = parseDoubleSafe(value);
@@ -61,6 +61,16 @@ public class PrecipitationProcessor implements WeatherCategoryProcessor {
             case "2" -> AlertType.SNOW; // 비/눈
             case "3" -> AlertType.SHOWER;     // 눈
             default -> AlertType.NONE;
+        };
+    }
+
+    private double parseToAmount(String value) {
+        return switch (value) {
+            case "1mm 미만" -> 0.5;     // 없음
+            case "1.0mm~29.9mm" -> 25.5;     // 비
+            case "30.0~50.0mm" -> 40.0; // 비/눈
+            case "50.0 mm 이상" -> 52.0;     // 눈
+            default -> 0;
         };
     }
 }
