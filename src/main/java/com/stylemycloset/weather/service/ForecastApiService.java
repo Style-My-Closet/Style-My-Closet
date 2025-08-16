@@ -40,19 +40,26 @@ public class ForecastApiService {
         Map<String, List<JsonNode>> itemsByDate = deduplicatedItems.stream()
             .collect(Collectors.groupingBy(item -> item.path("fcstDate").asText()));
 
-        for (JsonNode item : deduplicatedItems) {
-            if (!item.path("baseDate").asText().equals(baseDate)) continue;
+        for (Map.Entry<String, List<JsonNode>> entry : itemsByDate.entrySet()) {
+            String fcstDate = entry.getKey();         // 날짜
+            List<JsonNode> itemsForDate = entry.getValue(); // 해당 날짜의 JsonNode 리스트
 
-            String fcstDate = item.path("fcstDate").asText();
-            String fcstTime = item.path("fcstTime").asText();
-            String key = fcstDate + "|" + fcstTime + "|" + item.path("nx").asText() + "," + item.path("ny").asText();
+            for (JsonNode item : itemsForDate) {
+                if (!item.path("baseDate").asText().equals(baseDate)) continue;
 
-            WeatherBuilderHelper builder = builders.computeIfAbsent(key,
-                k -> new WeatherBuilderHelper(baseDate, baseTime, fcstDate, fcstTime, location,processors));
-            builder.setCategoryValue(item.path("category").asText(), item.path("fcstValue").asText());
+                String fcstTime = item.path("fcstTime").asText();
+                String key = fcstDate + " : " + item;
 
+                WeatherBuilderHelper builder = builders.computeIfAbsent(key,
+                    k -> new WeatherBuilderHelper(baseDate, baseTime, fcstDate, fcstTime, location,processors));
+                builder.setCategoryValue(item.path("category").asText(), item.path("fcstValue").asText());
+
+
+            }
 
         }
+
+
 
         List<Weather> latestWeather = new ArrayList<>();
         for (WeatherBuilderHelper builder : builders.values()) {
