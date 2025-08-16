@@ -53,14 +53,14 @@ public class WeatherApiFetcher {
                 if (itemsNode.isArray()) {
                     for (JsonNode item : itemsNode) {
                         String key = filterer.createUniqueKey(item);
-                        if (filterer.seenKeys.add(key) && filterer.dataCleaning(item)) {
+                        if (filterer.seenKeys.add(key) && filterer.dataCleaning(item, baseDate,baseTime)) {
                             allItems.add(item);
                         }
                     }
                 } else {
                     JsonNode item = itemsNode;
                     String key = filterer.createUniqueKey(item);
-                    if (filterer.seenKeys.add(key) && filterer.dataCleaning(item)) {
+                    if (filterer.seenKeys.add(key) && filterer.dataCleaning(item,baseDate,baseTime)) {
                         allItems.add(item);
                     }
                 }
