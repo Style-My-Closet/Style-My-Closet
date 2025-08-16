@@ -48,14 +48,7 @@ public class WeatherController {
         @RequestParam double longitude,
         @RequestParam double latitude
     )
-        throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
-        JobParameters params = new JobParametersBuilder()
-            .addString("lat", String.valueOf(latitude))
-            .addString("lon", String.valueOf(longitude))
-            .addLong("time", System.currentTimeMillis()) // Job 중복 실행 방지
-            .toJobParameters();
-
-        jobLauncher.run(weatherJob, params);
+        {
 
         WeatherAPILocation location = weatherService.getLocation(latitude,longitude);
         return ResponseEntity.ok(location);

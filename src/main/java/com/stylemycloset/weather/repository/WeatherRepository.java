@@ -17,6 +17,7 @@ public interface WeatherRepository extends JpaRepository<Weather, Long> {
       JOIN FETCH w.location l
       WHERE l.latitude = :lat AND l.longitude = :lon
       AND w.forecastAt >= :now
+      ORDER BY w.forecastAt ASC
     """)
     List<Weather> findTheNext4DaysByLocation(
         @Param("lat") double latitude,

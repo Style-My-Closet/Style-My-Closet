@@ -29,20 +29,25 @@ public class WeatherFetchTasklet implements Tasklet {
     private final KakaoApiService kakaoApiService;
     private final LocationRepository locationRepository;
 
+    // 기본 서울 좌표
+    private static final double DEFAULT_LATITUDE = 37.5665;
+    private static final double DEFAULT_LONGITUDE = 126.9780;
+
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-        JobParameters params = chunkContext.getStepContext()
-            .getStepExecution()
-            .getJobParameters();
+        // 최신 Location 가져오기
+        Optional<Location> latestLocationOpt = locationRepository.findTopByOrderByCreatedAtDesc();
 
-        double lat = Double.parseDouble(Objects.requireNonNull(params.getString("lat")));
-        double lon = Double.parseDouble(Objects.requireNonNull(params.getString("lon")));
+        // 위도/경도 변수에 값 할당
+        double lat = latestLocationOpt.map(Location::getLatitude).orElse(DEFAULT_LATITUDE);
+        double lon = latestLocationOpt.map(Location::getLongitude).orElse(DEFAULT_LONGITUDE);
 
         Location location = locationRepository.findByLatitudeAndLongitude(lat,lon).orElseGet(
             ()->kakaoApiService.createLocation(lon,lat)  );
 
         Optional.ofNullable(location)
             .orElseThrow(() -> new StyleMyClosetException(ErrorCode.ERROR_CODE,Map.of("location 없음","null")));
+
         List<Weather> weathers = forecastApiService.fetchData
             (location);
 
