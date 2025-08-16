@@ -8,7 +8,7 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
-public class WeatherItemsFiltering {
+public class WeatherItemsFilterer {
 
     private final Set<String> seenKeys = new HashSet<>();
     private final Set<String> AVAILABLE_CATEGORIES = Set.of("TMP", "TMN", "TMX", "POP", "PTY", "PCP","REH","WSD");
@@ -26,7 +26,21 @@ public class WeatherItemsFiltering {
     }
 
     private Boolean dataCleaning(JsonNode item) {
-        return AVAILABLE_CATEGORIES.contains(item.path("category").asText());
+        String category = item.path("category").asText();
+        String fcstTime = item.path("fcstTime").asText();
+
+        // 1) 카테고리가 지원 목록에 있어야 함
+        if (!AVAILABLE_CATEGORIES.contains(category)) {
+            return false;
+        }
+
+        // 2) TMN, TMX는 무조건 통과
+        if (category.equals("TMN") || category.equals("TMX")) {
+            return true;
+        }
+
+        // 3) 나머지는 fcstTime == 2300 일 때만 통과
+        return "2300".equals(fcstTime);
     }
 
     private String createUniqueKey(JsonNode item) {

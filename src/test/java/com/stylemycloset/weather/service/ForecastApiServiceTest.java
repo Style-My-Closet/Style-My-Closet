@@ -21,7 +21,7 @@ import com.stylemycloset.weather.processor.TmpProcessor;
 import com.stylemycloset.weather.processor.WeatherCategoryProcessor;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import com.stylemycloset.weather.util.WeatherBuilderHelperContext;
-import com.stylemycloset.weather.util.WeatherItemsFiltering;
+import com.stylemycloset.weather.util.WeatherItemsFilterer;
 import com.stylemycloset.weather.utils.FakeWeatherApiFetcher;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +43,7 @@ class ForecastApiServiceTest {
     private LocationRepository locationRepository;
 
     @Mock
-    private WeatherItemsFiltering deduplicator;
+    private WeatherItemsFilterer deduplicator;
 
     private TmpProcessor tmpProcessor;
     private HumidityProcessor humidProcessor;

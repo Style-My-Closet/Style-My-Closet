@@ -8,13 +8,12 @@ import com.stylemycloset.weather.processor.WeatherCategoryProcessor;
 import com.stylemycloset.weather.util.DateTimeUtils;
 import com.stylemycloset.weather.util.WeatherApiFetcher;
 import com.stylemycloset.weather.util.WeatherBuilderHelper;
-import com.stylemycloset.weather.util.WeatherItemsFiltering;
+import com.stylemycloset.weather.util.WeatherItemsFilterer;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +24,7 @@ import org.springframework.stereotype.Service;
 public class ForecastApiService {
 
     private final WeatherApiFetcher apiFetcher;
-    private final WeatherItemsFiltering deduplicator;
+    private final WeatherItemsFilterer filterer;
     private final LocationRepository locationRepository;
     private final List<WeatherCategoryProcessor> processors;
 
@@ -38,7 +37,7 @@ public class ForecastApiService {
         String baseTime = forecastTime.get(1);
 
         List<JsonNode> rawItems = apiFetcher.fetchAllPages(baseDate, baseTime, location);
-        List<JsonNode> deduplicatedItems = deduplicator.filtering(rawItems);
+        List<JsonNode> deduplicatedItems = filterer.filtering(rawItems);
         Map<String, WeatherBuilderHelper> builders = new HashMap<>();
 
         for (JsonNode item : deduplicatedItems) {
