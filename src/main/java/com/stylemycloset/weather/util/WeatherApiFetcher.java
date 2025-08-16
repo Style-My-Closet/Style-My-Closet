@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 @Component
 @RequiredArgsConstructor
 @Profile("!test")
+@Slf4j
 public class WeatherApiFetcher {
 
     private final RestTemplate restTemplate;
@@ -53,14 +55,21 @@ public class WeatherApiFetcher {
                 if (itemsNode.isArray()) {
                     for (JsonNode item : itemsNode) {
                         String key = filterer.createUniqueKey(item);
-                        if (filterer.seenKeys.add(key) && filterer.dataCleaning(item, baseDate,baseTime)) {
-                            allItems.add(item);
+                        if (filterer.seenKeys.add(key)
+                            && filterer.dataCleaning(item, baseDate)) {
+                            try{
+                                allItems.add(item);
+                            }catch(Exception e){
+                                log.error("추가 안되요");
+                                e.printStackTrace();
+                            }
+
                         }
                     }
                 } else {
                     JsonNode item = itemsNode;
                     String key = filterer.createUniqueKey(item);
-                    if (filterer.seenKeys.add(key) && filterer.dataCleaning(item,baseDate,baseTime)) {
+                    if (filterer.seenKeys.add(key) && filterer.dataCleaning(item,baseDate)) {
                         allItems.add(item);
                     }
                 }

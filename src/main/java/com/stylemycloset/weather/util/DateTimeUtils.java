@@ -34,24 +34,5 @@ public class DateTimeUtils {
         return List.of(baseDate, baseTime);
     }
 
-    public static String allowedBaseTime(String fcstTime) {
-        int input = Integer.parseInt(fcstTime)/100;
-        int closet;
 
-        int idx = Arrays.binarySearch(ALLOWED_BASE_TIMES, input);
-        if (idx >= 0) closet= ALLOWED_BASE_TIMES[idx]; // 정확히 일치하면 바로 반환
-
-        // binarySearch가 음수 반환 시, -(insertion point) - 1
-        idx = -idx - 1;
-
-        if (idx == 0) closet = ALLOWED_BASE_TIMES[0];
-        if (idx == ALLOWED_BASE_TIMES.length) closet= ALLOWED_BASE_TIMES[ALLOWED_BASE_TIMES.length - 1];
-
-        int prev = ALLOWED_BASE_TIMES[idx - 1];
-        int next = ALLOWED_BASE_TIMES[idx];
-
-        closet= (Math.abs(input - prev) <= Math.abs(next - input)) ? prev : next;
-
-        return String.format("%02d00", closet);
-    }
 }

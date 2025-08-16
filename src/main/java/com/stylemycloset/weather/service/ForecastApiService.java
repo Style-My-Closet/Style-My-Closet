@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,9 @@ public class ForecastApiService {
 
         List<JsonNode> deduplicatedItems = apiFetcher.fetchAllPages(baseDate, baseTime, location);
         Map<String, WeatherBuilderHelper> builders = new HashMap<>();
+
+        Map<String, List<JsonNode>> itemsByDate = deduplicatedItems.stream()
+            .collect(Collectors.groupingBy(item -> item.path("fcstDate").asText()));
 
         for (JsonNode item : deduplicatedItems) {
             if (!item.path("baseDate").asText().equals(baseDate)) continue;
