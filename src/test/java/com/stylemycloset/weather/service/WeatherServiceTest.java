@@ -3,6 +3,8 @@ package com.stylemycloset.weather.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -83,7 +85,7 @@ public class WeatherServiceTest {
 
         Weather weather = Weather.builder()
             .id(1L)
-            .forecastedAt(LocalDateTime.now().minusHours(3))
+            .forecastedAt(LocalDateTime.now())
             .forecastAt(LocalDateTime.now())
             .location(location)
             .skyStatus(Weather.SkyStatus.CLEAR)
@@ -93,7 +95,9 @@ public class WeatherServiceTest {
             .windSpeed(windSpeed)
             .build();
 
-        when(weatherRepository.findByLocation(37.5665, 126.9780))
+        when(weatherRepository.findTheNext4DaysByLocation(eq(37.5665d),
+            eq(126.978d),
+            any(LocalDateTime.class)))
             .thenReturn(List.of(weather));
 
         when(weatherMapper.toDto(weather)).thenReturn(new WeatherDto(

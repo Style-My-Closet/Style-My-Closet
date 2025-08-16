@@ -43,6 +43,9 @@ management:
     web:
       exposure:
         include: health, metrics
+  health:
+    mail:
+      enabled: false
 
 style-my-closet:
   storage:
