@@ -1,12 +1,12 @@
 package com.stylemycloset.weather.controller;
 
-import com.stylemycloset.security.ClosetUserDetails;
 import com.stylemycloset.weather.dto.WeatherAPILocation;
 import com.stylemycloset.weather.dto.WeatherDto;
 import com.stylemycloset.weather.service.WeatherService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,12 +21,13 @@ public class WeatherController {
     private final WeatherService weatherService;
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<WeatherDto>> getWeathers(
         @RequestParam double latitude,
         @RequestParam double longitude,
-        @AuthenticationPrincipal ClosetUserDetails principal
+        @AuthenticationPrincipal(expression = "userId") Long userId
     ) {
-        weatherService.checkWeather(latitude, longitude, principal.getUserId());
+        weatherService.checkWeather(latitude, longitude, userId);
         List<WeatherDto> weathers = weatherService.getWeatherByCoordinates(latitude, longitude);
         return ResponseEntity.ok(weathers);
     }
