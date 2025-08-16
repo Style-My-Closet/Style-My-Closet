@@ -31,6 +31,10 @@ public class TmpProcessor implements WeatherCategoryProcessor {
 
         double parsedValue = parseDoubleSafe(value);
         Temperature oldTemp = ctx.temperature;
+        double current = oldTemp.getCurrent();
+        double min = oldTemp.getMin();
+        double max = oldTemp.getMax();
+
         LocalDate today = LocalDate.now();
         LocalDateTime startOfYesterday = today.minusDays(1).atStartOfDay();
         LocalDateTime endOfYesterday = today.atStartOfDay().minusNanos(1);
@@ -50,26 +54,17 @@ public class TmpProcessor implements WeatherCategoryProcessor {
 
         switch (category) {
             case "TMP" -> {
-                double current = parsedValue;
-                ctx.temperature = Temperature.builder()
-                    .current(current)
-                    .comparedToDayBefore(current- yesterday)
-                    .build();
+                current = parsedValue;
             }
             case "TMN" -> {
-                double min = parsedValue;
-                ctx.temperature = Temperature.builder()
-                    .min(min)
-                    .build();
+                min = parsedValue;
             }
             case "TMX" -> {
-                double max = parsedValue;
-                ctx.temperature = Temperature.builder()
-                    .max(max)
-                    .build();
+                max = parsedValue;
             }
         }
 
+        ctx.temperature = new Temperature(current,current-yesterday,min,max);
     }
 
     private double parseDoubleSafe(String value) {

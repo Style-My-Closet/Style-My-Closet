@@ -40,7 +40,7 @@ public class PrecipitationProcessor implements WeatherCategoryProcessor {
             }
         }
 
-
+        ctx.precipitation = new Precipitation(alertType, amount, probability);
     }
 
     private double parseDoubleSafe(String value) {

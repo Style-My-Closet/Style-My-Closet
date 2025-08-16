@@ -37,7 +37,7 @@ public class WeatherServiceImpl implements WeatherService {
 
     public List<WeatherDto> getWeatherByCoordinates(double latitude, double longitude) {
 
-        List<Weather> weathers = weatherRepository.findTheNext5DaysByLocation(latitude, longitude, LocalDateTime.now());
+        List<Weather> weathers = weatherRepository.findTheNext4DaysByLocation(latitude, longitude, LocalDateTime.now());
         if(weathers.isEmpty()){
             Location location = locationRepository.findByLatitudeAndLongitude(latitude,longitude).orElseGet(
                 ()->kakaoApiService.createLocation(longitude,latitude)  );

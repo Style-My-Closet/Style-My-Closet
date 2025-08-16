@@ -1,0 +1,1 @@
+ALTER TABLE locations ADD CONSTRAINT uq_location_lat_lon UNIQUE(latitude, longitude)

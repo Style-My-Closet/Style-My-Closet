@@ -12,16 +12,16 @@ import org.springframework.data.repository.query.Param;
 public interface WeatherRepository extends JpaRepository<Weather, Long> {
 
     @Query("""
-    SELECT w FROM Weather w
-    WHERE w.location.latitude = :latitude
-      AND w.location.longitude = :longitude
-      AND w.forecastAt >= :startDate
-    ORDER BY w.forecastAt DESC
-""")
-    List<Weather> findTheNext5DaysByLocation(
-        @Param("latitude") double latitude,
-        @Param("longitude") double longitude,
-        @Param("startDate") LocalDateTime startDate
+      SELECT w
+      FROM Weather w
+      JOIN FETCH w.location l
+      WHERE l.latitude = :lat AND l.longitude = :lon
+      AND w.forecastAt >= :now
+    """)
+    List<Weather> findTheNext4DaysByLocation(
+        @Param("lat") double latitude,
+        @Param("lon") double longitude,
+        @Param("now") LocalDateTime now
     );
 
 
