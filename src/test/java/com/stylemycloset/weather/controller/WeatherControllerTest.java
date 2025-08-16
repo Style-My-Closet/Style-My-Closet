@@ -23,6 +23,7 @@ import com.stylemycloset.weather.service.ForecastApiService;
 import com.stylemycloset.weather.service.KakaoApiService;
 import com.stylemycloset.weather.service.WeatherService;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -59,7 +60,7 @@ class WeatherControllerTest {
     @Mock
     private Job weatherJob;
 
-    private WeatherMapper weatherMapper = new WeatherMapper();
+    private final WeatherMapper weatherMapper = new WeatherMapper();
 
     @InjectMocks
     private WeatherController weatherController;
@@ -117,8 +118,8 @@ class WeatherControllerTest {
 
         WeatherDto dummyDto = new WeatherDto(
             1L,
-            LocalDateTime.now().minusHours(3),
-            LocalDateTime.now(),
+            LocalDateTime.now().minusHours(3).atZone(ZoneId.of("UTC")).toInstant(),
+            LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant(),
             location,
             SkyStatus.CLOUDY,
             WeatherInfosMapper.toDto(precipitation) ,
