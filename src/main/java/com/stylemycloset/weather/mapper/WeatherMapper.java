@@ -19,8 +19,8 @@ public class WeatherMapper {
 
         return new WeatherDto(
             weather.getId(),
-            weather.getForecastedAt().atZone(ZoneId.of("UTC")).toInstant(),
-            weather.getForecastAt().atZone(ZoneId.of("UTC")).toInstant(),
+            weather.getForecastedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant(),
+            weather.getForecastAt().atZone(ZoneId.of("Asia/Seoul")).toInstant(),
             weather.getLocation(),
             weather.getSkyStatus(),
             WeatherInfosMapper.toDto(weather.getPrecipitation()) ,
