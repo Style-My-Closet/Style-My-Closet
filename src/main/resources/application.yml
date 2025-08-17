@@ -55,10 +55,12 @@ style-my-closet:
       region: ${AWS_S3_REGION:region}
       bucket: ${AWS_S3_BUCKET:bucket}
       presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION_SECOND:600}
+
+closet:
   admin:
-    username: ${CLOSET_ADMIN_USERNAME}
-    email: ${CLOSET_ADMIN_EMAIL}
-    password: ${CLOSET_ADMIN_PASSWORD}
+    username: ${CLOSET_ADMIN_USERNAME:admin}
+    email: ${CLOSET_ADMIN_EMAIL:admin@closet.com}
+    password: ${CLOSET_ADMIN_PASSWORD:admin123!}
 
 external:
   market-index:
