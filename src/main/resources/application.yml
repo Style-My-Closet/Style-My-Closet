@@ -19,6 +19,7 @@ spring:
         use_sql_comments: true
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc.time_zone: Asia/Seoul
     open-in-view: false
     generate-ddl: false
   sql:
