@@ -1,4 +1,4 @@
-package com.stylemycloset.user.service; // 🚨 본인의 프로젝트에 맞는 패키지 경로로 수정하세요.
+package com.stylemycloset.user.service;
 
 import com.stylemycloset.security.dto.data.OAuth;
 import com.stylemycloset.user.entity.User;
