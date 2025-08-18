@@ -20,6 +20,7 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -64,7 +65,6 @@ public class User extends SoftDeletableEntity {
   @Column(name = "temperature_sensitivity")
   private Integer temperatureSensitivity;
 
-  @Transient
   @Convert(converter = StringListJsonConverter.class)
   private List<String> linkedOAuthProviders;
 
@@ -80,12 +80,12 @@ public class User extends SoftDeletableEntity {
   @JoinColumn(name = "profile_id")
   private BinaryContent profileImage; // 나중에 추가해주시면 감사하겠습니다.
 
-  public User(String name, String email, String password) {
+  public User(String name, String email, String password, String provider) {
     this.name = name;
     this.email = email;
     this.password = password;
     this.role = Role.USER;
-    this.linkedOAuthProviders = List.of("google");
+    this.linkedOAuthProviders = new ArrayList<>(List.of(provider));
     this.locked = false;
   }
 
@@ -113,6 +113,9 @@ public class User extends SoftDeletableEntity {
     if (request.birthDate() != null) {
       this.birthDate = request.birthDate();
     }
+    if (request.location() != null) {
+      this.location = request.location();
+    }
     if (request.temperatureSensitivity() != null) {
       this.temperatureSensitivity = request.temperatureSensitivity();
     }
@@ -125,6 +128,10 @@ public class User extends SoftDeletableEntity {
   public void resetTempPassword(String tempPassword, Instant resetPasswordTime) {
     this.tempPassword = tempPassword;
     this.resetPasswordTime = resetPasswordTime;
+  }
+
+  public void addOAuthProvider(String providerId) {
+    this.linkedOAuthProviders.add(providerId);
   }
 
 }

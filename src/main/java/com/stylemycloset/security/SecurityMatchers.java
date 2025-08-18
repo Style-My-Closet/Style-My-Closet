@@ -28,8 +28,9 @@ public class SecurityMatchers {
       "/api/auth/reset-password", HttpMethod.POST.name()
   );
   public static final RequestMatcher DM = new AntPathRequestMatcher("/ws/**");
+  public static final RequestMatcher OAUTH2 = new AntPathRequestMatcher("/oauth2/**");
 
   public static final RequestMatcher[] PUBLIC_MATCHERS = new RequestMatcher[]{
-      NON_API, GET_CSRF_TOKEN, SIGN_UP, LOGIN, LOGOUT, ME, REFRESH, RESET_PASSWORD, DM
+      NON_API, GET_CSRF_TOKEN, SIGN_UP, LOGIN, LOGOUT, ME, REFRESH, RESET_PASSWORD, DM, OAUTH2
   };
 }
