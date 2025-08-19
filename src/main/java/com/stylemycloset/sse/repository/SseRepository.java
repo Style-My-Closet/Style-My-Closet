@@ -14,21 +14,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @Repository
 public class SseRepository {
 
-  private final Map<Long, Deque<SseEmitter>> userEmitters;
-  private final Map<Long, Deque<SseInfo>> userEvents;
-
-  public SseRepository() {
-    this.userEmitters = new ConcurrentHashMap<>();
-    this.userEvents = new ConcurrentHashMap<>();
-  }
-
-  public SseRepository(
-      Map<Long, Deque<SseEmitter>> userEmitters,
-      Map<Long, Deque<SseInfo>> userEvents
-  ) {
-    this.userEmitters = userEmitters;
-    this.userEvents = userEvents;
-  }
+  private final ConcurrentHashMap<Long, Deque<SseEmitter>> userEmitters = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Long, Deque<SseInfo>> userEvents = new ConcurrentHashMap<>();
 
   private static final int MAX_EMITTER_COUNT = 3;
   private static final int MAX_EVENT_COUNT = 30;

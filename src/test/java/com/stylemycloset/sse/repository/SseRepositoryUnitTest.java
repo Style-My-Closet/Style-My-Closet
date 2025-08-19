@@ -6,11 +6,9 @@ import com.stylemycloset.sse.dto.SseInfo;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -141,71 +139,20 @@ public class SseRepositoryUnitTest {
     // when
     for(int i = 0; i < 1000; i++) {
       final long eventId = i;
-      futures.add(pool.submit(() -> {
-        try {
-          sseRepository.addEvent(userId, new SseInfo(eventId, "test", "test", 0));
-        } finally {
-          doneLatch.countDown();
-        }
-      }));
+      futures.add(pool.submit(() ->
+        sseRepository.addEvent(userId, new SseInfo(eventId, "test", "test", 0))));
     }
 
-    doneLatch.await();
     pool.shutdown();
 
-    boolean catchException = false;
     for(Future<?> future : futures) {
-      try{
-        future.get();
-      } catch(ExecutionException e){
-        catchException = true;
-      }
+      future.get();
     }
 
     // then
     Deque<SseInfo> res = getEvents(userId);
     assertThat(res).hasSize(MAX_EVENT_COUNT);
-    assertThat(catchException).isFalse();
     assertThat(res).extracting(SseInfo::id).doesNotHaveDuplicates();
-  }
-
-  @DisplayName("userEvents가 HashMap일 때 addEvent()를 병렬적으로 호출하면 에외가 발생한다")
-  @Test
-  void addEvent_withHashMap_causesException() throws Exception {
-    // given
-    int loops = 1000;
-
-    SseRepository repository = new SseRepository(new HashMap<>(), new HashMap<>());
-    ExecutorService pool = Executors.newFixedThreadPool(10);
-    CountDownLatch doneLatch = new CountDownLatch(loops);
-    List<Future<?>> futures = new ArrayList<>();
-
-    for(int i = 0; i < 1000; i++) {
-      final long eventId = i;
-      futures.add(pool.submit(() -> {
-        try {
-          repository.addEvent(userId, new SseInfo(eventId, "test", "test", 0));
-        } finally {
-          doneLatch.countDown();
-        }
-      }));
-    }
-
-    doneLatch.await();
-    pool.shutdown();
-
-    boolean catchException = false;
-    for(Future<?> future : futures) {
-      try{
-        future.get();
-      } catch(ExecutionException e){
-        catchException = true;
-      }
-    }
-
-    Deque<SseInfo> res = getEvents(userId);
-    assertThat(catchException).isTrue();
-    assertThat(res.size()).isNotEqualTo(MAX_EVENT_COUNT);
   }
 
   @DisplayName("같은 userId에 대해 여러 스레드가 동시에 addEmitter()를 호출해도 예외가 발생하지 않고 데이터가 저장된다.")
@@ -214,76 +161,24 @@ public class SseRepositoryUnitTest {
     int loops = 1000;
 
     ExecutorService pool = Executors.newFixedThreadPool(10);
-    CountDownLatch doneLatch = new CountDownLatch(loops);
     List<Future<?>> futures = new ArrayList<>();
 
     // when
     for(int i = 0; i < 1000; i++) {
       futures.add(pool.submit(() -> {
-        try {
           SseEmitter emitter = new SseEmitter();
           sseRepository.addEmitter(userId, emitter);
-        } finally {
-          doneLatch.countDown();
-        }
       }));
     }
 
-    doneLatch.await();
     pool.shutdown();
 
-    boolean catchException = false;
     for(Future<?> future : futures) {
-      try{
-        future.get();
-      } catch(ExecutionException e){
-        catchException = true;
-      }
+      future.get();
     }
 
-
     Deque<SseEmitter> res = getEmitters(userId);
-    assertThat(catchException).isFalse();
     assertThat(res).hasSize(MAX_EMITTER_COUNT);
-  }
-
-  @DisplayName("userEvents가 HashMap일 때 addEmitter()를 병렬적으로 호출하면 에외가 발생한다")
-  @Test
-  void addEmitter_withHashMap_causesException() throws Exception {
-    // given
-    int loops = 1000;
-
-    SseRepository repository = new SseRepository(new HashMap<>(), new HashMap<>());
-    ExecutorService pool = Executors.newFixedThreadPool(10);
-    CountDownLatch doneLatch = new CountDownLatch(loops);
-    List<Future<?>> futures = new ArrayList<>();
-
-    for(int i = 0; i < 1000; i++) {
-      futures.add(pool.submit(() -> {
-        try {
-          SseEmitter emitter = new SseEmitter();
-          repository.addEmitter(userId, emitter);
-        } finally {
-          doneLatch.countDown();
-        }
-      }));
-    }
-
-    doneLatch.await();
-    pool.shutdown();
-
-    boolean catchException = false;
-    for(Future<?> future : futures) {
-      try{
-        future.get();
-      } catch(ExecutionException e){
-        catchException = true;
-      }
-    }
-
-    Deque<SseEmitter> res = getEmitters(userId);
-    assertThat(catchException).isTrue();
-    assertThat(res).isNotEqualTo(MAX_EMITTER_COUNT);
   }
 
 }
