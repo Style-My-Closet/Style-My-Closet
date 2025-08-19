@@ -65,7 +65,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     response.addCookie(refreshTokenCookie);
 
     String targetUrl = UriComponentsBuilder.fromUriString(
-            "http://localhost:8080/")
+            "/")
         .build().toUriString();
     response.sendRedirect(targetUrl);
 
