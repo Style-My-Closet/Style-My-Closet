@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
     }
     String encodedPassword = passwordEncoder.encode(request.password());
 
-    User user = new User(request.name(), request.email(), encodedPassword, null);
+    User user = new User(request.name(), request.email(), encodedPassword);
     User savedUser = userRepository.save(user);
     return userMapper.UsertoUserDto(savedUser);
   }

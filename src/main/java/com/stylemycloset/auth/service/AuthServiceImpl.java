@@ -35,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
     }
     UserCreateRequest request = new UserCreateRequest(username, email,
         passwordEncoder.encode(password));
-    User admin = new User(request.name(), request.email(), request.password(), null);
+    User admin = new User(request.name(), request.email(), request.password());
     admin.updateRole(Role.ADMIN);
 
     User saved = userRepository.save(admin);

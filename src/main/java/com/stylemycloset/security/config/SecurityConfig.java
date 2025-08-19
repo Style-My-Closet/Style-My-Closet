@@ -6,6 +6,7 @@ import com.stylemycloset.security.CustomAuthenticationProvider;
 import com.stylemycloset.security.CustomLoginFailureHandler;
 import com.stylemycloset.security.CustomLoginSuccessHandler;
 import com.stylemycloset.security.JsonUsernamePasswordAuthenticationFilter;
+import com.stylemycloset.security.OAuth2LoginFailureHandler;
 import com.stylemycloset.security.OAuth2LoginSuccessHandler;
 import com.stylemycloset.security.SecurityMatchers;
 import com.stylemycloset.security.jwt.JwtAuthenticationFilter;
@@ -60,6 +61,7 @@ public class SecurityConfig {
                 .userService(customOAuth2UserService)
             )
             .successHandler(oAuth2LoginSuccessHandler)
+            .failureHandler(new OAuth2LoginFailureHandler())
         )
         .sessionManagement(session ->
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

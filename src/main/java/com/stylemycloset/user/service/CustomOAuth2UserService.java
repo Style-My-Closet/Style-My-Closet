@@ -75,7 +75,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
       return user;
     } else {
       String tempPassword = passwordEncoder.encode(UUID.randomUUID().toString());
-      User newUser = new User(attributes.getName(), attributes.getEmail(), tempPassword, provider);
+      User newUser = new User(attributes.getName(), attributes.getEmail(), tempPassword);
+      newUser.addOAuthProvider(provider);
       return userRepository.save(newUser);
     }
   }

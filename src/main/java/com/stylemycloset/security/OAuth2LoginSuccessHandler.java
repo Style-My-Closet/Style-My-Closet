@@ -12,9 +12,11 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -32,7 +34,22 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
   public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
       Authentication authentication) throws IOException, ServletException {
     OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-    String email = (String) oAuth2User.getAttributes().get("email");
+    Map<String, Object> attributes = oAuth2User.getAttributes();
+
+    String email;
+
+    OAuth2AuthenticationToken authenticationToken = (OAuth2AuthenticationToken) authentication;
+
+    String registrationId = authenticationToken.getAuthorizedClientRegistrationId();
+
+    if ("kakao".equals(registrationId)) {
+      Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+      Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+      String nickname = (String) profile.get("nickname");
+      email = nickname + "@kakao.com";
+    } else {
+      email = (String) attributes.get("email");
+    }
 
     User user = userRepository.findByEmail(email)
         .orElseThrow(UserNotFoundException::new);
@@ -46,7 +63,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     refreshTokenCookie.setHttpOnly(true);
     refreshTokenCookie.setPath("/");
     response.addCookie(refreshTokenCookie);
-    
+
     String targetUrl = UriComponentsBuilder.fromUriString(
             "http://localhost:8080/")
         .build().toUriString();

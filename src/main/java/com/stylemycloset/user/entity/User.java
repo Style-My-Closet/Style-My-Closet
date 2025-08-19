@@ -80,12 +80,12 @@ public class User extends SoftDeletableEntity {
   @JoinColumn(name = "profile_id")
   private BinaryContent profileImage; // 나중에 추가해주시면 감사하겠습니다.
 
-  public User(String name, String email, String password, String provider) {
+  public User(String name, String email, String password) {
     this.name = name;
     this.email = email;
     this.password = password;
     this.role = Role.USER;
-    this.linkedOAuthProviders = new ArrayList<>(List.of(provider));
+    this.linkedOAuthProviders = new ArrayList<>(List.of());
     this.locked = false;
   }
 

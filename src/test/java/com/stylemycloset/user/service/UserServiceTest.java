@@ -211,7 +211,7 @@ public class UserServiceTest {
       List<User> testUsers = new ArrayList<>();
       for (int i = 0; i < 6; i++) {
         User user = new User("tester" + i, "test" + i + "@naver.com",
-            "test123!", null);
+            "test123!");
         user.setId((long) i + 1);
         testUsers.add(user);
       }
@@ -249,7 +249,7 @@ public class UserServiceTest {
       List<User> testUsers = new ArrayList<>();
       for (int i = 0; i < 3; i++) {
         User user = new User("tester" + i, "test" + i + "@naver.com",
-            "test123!", null);
+            "test123!");
         user.setId((long) i + 1);
         testUsers.add(user);
       }
@@ -304,7 +304,7 @@ public class UserServiceTest {
 
   //헬퍼 메소드
   private User createTestUser(UserCreateRequest request) {
-    return new User(request.name(), request.email(), request.password(), null);
+    return new User(request.name(), request.email(), request.password());
   }
 
   private UserDto createTestUserDto(User user) {

@@ -243,6 +243,6 @@ public class UserControllerTest extends IntegrationTestSupport {
   }
 
   private User createUser(String name, String email, String password) {
-    return new User(name, email, password, null);
+    return new User(name, email, password);
   }
 }

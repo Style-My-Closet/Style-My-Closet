@@ -1,8 +1,10 @@
 package com.stylemycloset.security.dto.data;
 
+import com.stylemycloset.common.exception.StyleMyClosetException;
 import lombok.Builder;
 import lombok.Getter;
 import java.util.Map;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 
 @Getter
 public class OAuth {
@@ -41,8 +43,20 @@ public class OAuth {
 
   private static OAuth ofKakao(String userNameAttributeName,
       Map<String, Object> attributes) {
-    Map<String, Object> profile = (Map<String, Object>) attributes.get("profile");
+    Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+    if (kakaoAccount == null) {
+      throw new OAuth2AuthenticationException("kakao_account가 없습니다.");
+    }
+
+    Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+    if (profile == null) {
+      throw new OAuth2AuthenticationException("profile이 없습니다.");
+    }
+
     String nickname = (String) profile.get("nickname");
+    if (nickname == null) {
+      throw new OAuth2AuthenticationException("nickname이 없습니다.");
+    }
 
     //카카오에서는 이메일 제공을 안해서 저렇게 닉네임 + kakao로 이메일 해놨습니다.
     String email = nickname + "@kakao.com";
