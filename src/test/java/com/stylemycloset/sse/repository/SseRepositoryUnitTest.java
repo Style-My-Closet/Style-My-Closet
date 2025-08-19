@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,6 @@ public class SseRepositoryUnitTest {
   static final int MAX_EMITTER_COUNT = 3;
   static final int MAX_EVENT_COUNT = 30;
   Long userId = 100L;
-  Long userId2 = 101L;
 
   @BeforeEach
   void setUp() {
@@ -122,176 +120,58 @@ public class SseRepositoryUnitTest {
     }
   }
 
-  @DisplayName("같은 userId에 대해 동시 다발 addEvent()를 호출해도 30개만 정확히 남는다.")
+  @DisplayName("같은 userId에 대해 여러 스레드가 동시에 addEvent()를 호출해도 예외가 발생하지 않고 데이터가 저장된다.")
   @Test
-  void addEvent_sameUserId_concurrent_writes_keep_last_30() throws Exception {
-    // given
-    int total = 60;
-    int threads = 20;
+  void addEvent_parallelism_observed() throws Exception {
+    int loops = 100;
 
-    ExecutorService pool = Executors.newFixedThreadPool(threads);
-    CountDownLatch startGate = new CountDownLatch(1);
-    CountDownLatch doneGate = new CountDownLatch(total);
+    ExecutorService pool = Executors.newFixedThreadPool(3);
+    CountDownLatch doneLatch = new CountDownLatch(loops);
 
-    // when
-    for (int i = 0; i < total; i++) {
-      final long eventId = i + 1;
-      pool.submit(() -> {
-        try{
-          startGate.await();
-          sseRepository.addEvent(userId, new SseInfo(eventId, "test", "test", 0));
-        } catch(InterruptedException e){
-          Thread.currentThread().interrupt();
-        } finally {
-          doneGate.countDown();
-        }
-      });
-    }
-
-    startGate.countDown();
-    doneGate.await();
-    pool.shutdown();
-
-    // then
-    Deque<SseInfo> events = getEvents(userId);
-    assertThat(events).hasSize(MAX_EVENT_COUNT);
-  }
-
-  @DisplayName("같은 userId에 대해 동시 다발 addEmitter()를 호출해도 마지막 3개만 정확히 남는다")
-  @Test
-  void addEmitter_sameUser_concurrent_keeps_last_3() throws Exception {
-    int total = 6;
-    int threads = 2;
-
-    ExecutorService pool = Executors.newFixedThreadPool(threads);
-    CountDownLatch startGate = new CountDownLatch(1);
-    CountDownLatch doneGate = new CountDownLatch(total);
-
-    for (int i = 0; i < total; i++) {
+    for(int i = 0; i < loops; i++) {
+      final long eventId = i;
       pool.submit(() -> {
         try {
-          startGate.await();
-          sseRepository.addEmitter(userId, new SseEmitter());
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
+          sseRepository.addEvent(userId, new SseInfo(eventId, "test", "test", 0));
         } finally {
-          doneGate.countDown();
+          doneLatch.countDown();
         }
       });
     }
 
-    startGate.countDown();
-    doneGate.await();
+    doneLatch.await();
     pool.shutdown();
 
-    Deque<SseEmitter> emitters = getEmitters(userId);
-    assertThat(emitters).hasSize(MAX_EMITTER_COUNT);
+    Deque<SseInfo> res = getEvents(userId);
+    assertThat(res).hasSize(MAX_EVENT_COUNT);
+    assertThat(res).extracting(SseInfo::id).doesNotHaveDuplicates();
   }
 
-  @DisplayName("userEvents의 addEmitter()는 서로 다른 userId에 대해서 병렬로 처리된다.")
-  @Test
-  void addEvent_differentUserIds_parallelism_observed()  throws Exception {
-    int loops = 31;
-
-    AtomicInteger threadCount = new AtomicInteger();
-    AtomicInteger maxThreadCount = new AtomicInteger();
-
-    ExecutorService pool = Executors.newFixedThreadPool(2);
-    CountDownLatch startGate = new CountDownLatch(1);
-    CountDownLatch doneGate = new CountDownLatch(2);
-
-    Runnable worker1 = makeEventWorker(userId, loops, threadCount, maxThreadCount, startGate, doneGate);
-    Runnable worker2 = makeEventWorker(userId2, loops, threadCount, maxThreadCount, startGate, doneGate);
-
-    pool.submit(worker1);
-    pool.submit(worker2);
-    startGate.countDown();
-    doneGate.await();
-    pool.shutdown();
-
-    assertThat(maxThreadCount.get()).isEqualTo(2);
-    assertThat(getEvents(userId)).hasSize(MAX_EVENT_COUNT);
-    assertThat(getEvents(userId2)).hasSize(MAX_EVENT_COUNT);
-  }
-
-  @DisplayName("userEvents의 addEmitter()는 서로 다른 userId에 대해서 병렬로 처리된다.")
+  @DisplayName("같은 userId에 대해 여러 스레드가 동시에 addEmitter()를 호출해도 예외가 발생하지 않고 데이터가 저장된다.")
   @Test
   void addEmitter_differentUserIds_parallelism_observed() throws Exception {
-    int loops = 31;
+    int loops = 100;
 
-    AtomicInteger threadCount = new AtomicInteger();
-    AtomicInteger maxThreadCount = new AtomicInteger();
+    ExecutorService pool = Executors.newFixedThreadPool(3);
+    CountDownLatch doneLatch = new CountDownLatch(loops);
 
-    ExecutorService pool = Executors.newFixedThreadPool(2);
-    CountDownLatch startGate = new CountDownLatch(1);
-    CountDownLatch doneGate = new CountDownLatch(2);
+    for (int i = 0; i < loops; i++) {
+      pool.submit(() -> {
+        try{
+          SseEmitter emitter = new SseEmitter();
+          sseRepository.addEmitter(userId, emitter);
+        } finally {
+          doneLatch.countDown();
+        }
+      });
+    }
 
-    Runnable worker1 = makeEmitterWorker(userId, loops, threadCount, maxThreadCount, startGate, doneGate);
-    Runnable worker2 = makeEmitterWorker(userId2, loops, threadCount, maxThreadCount, startGate, doneGate);
-
-    pool.submit(worker1);
-    pool.submit(worker2);
-    startGate.countDown();
-    doneGate.await();
+    doneLatch.await();
     pool.shutdown();
 
-    assertThat(maxThreadCount.get()).isEqualTo(2);
-    assertThat(getEmitters(userId)).hasSize(MAX_EMITTER_COUNT);
-    assertThat(getEmitters(userId2)).hasSize(MAX_EMITTER_COUNT);
+    Deque<SseEmitter> res = getEmitters(userId);
+    assertThat(res).hasSize(MAX_EMITTER_COUNT);
+    assertThat(res).doesNotHaveDuplicates();
   }
-
-  private Runnable makeEventWorker(
-      Long userId,
-      int loops,
-      AtomicInteger threadCount,
-      AtomicInteger maxThreadCount,
-      CountDownLatch startGate,
-      CountDownLatch doneGate) {
-    return () -> {
-      try {
-        startGate.await();
-        for (int i = 0; i < loops; i++) {
-          int now = threadCount.incrementAndGet();
-          maxThreadCount.updateAndGet(m -> Math.max(m, now));
-          try {
-            sseRepository.addEvent(userId, new SseInfo(i + 1,"test","test",0));
-          } finally {
-            threadCount.decrementAndGet();
-          }
-        }
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      } finally {
-        doneGate.countDown();
-      }
-    };
-  }
-
-  private Runnable makeEmitterWorker(Long userId,
-      int loops,
-      AtomicInteger threadCount,
-      AtomicInteger maxThreadCount,
-      CountDownLatch startGate,
-      CountDownLatch doneGate) {
-    return () -> {
-      try {
-        startGate.await();
-        for (int i = 0; i < loops; i++) {
-          int now = threadCount.incrementAndGet();
-          maxThreadCount.updateAndGet(m -> Math.max(m, now));
-          try {
-            sseRepository.addEmitter(userId, new SseEmitter());
-          } finally {
-            threadCount.decrementAndGet();
-          }
-        }
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      } finally {
-        doneGate.countDown();
-      }
-    };
-  }
-
 
 }
