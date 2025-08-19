@@ -8,12 +8,9 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +19,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 public class SseRepositoryUnitTest {
 
-  private static final Logger log = LogManager.getLogger(SseRepositoryUnitTest.class);
   SseRepository sseRepository;
 
   static final int MAX_EMITTER_COUNT = 3;
@@ -133,7 +129,6 @@ public class SseRepositoryUnitTest {
     int loops = 1000;
 
     ExecutorService pool = Executors.newFixedThreadPool(10);
-    CountDownLatch doneLatch = new CountDownLatch(loops);
     List<Future<?>> futures = new ArrayList<>();
 
     // when
@@ -158,7 +153,6 @@ public class SseRepositoryUnitTest {
   @DisplayName("같은 userId에 대해 여러 스레드가 동시에 addEmitter()를 호출해도 예외가 발생하지 않고 데이터가 저장된다.")
   @Test
   void addEmitter_differentUserIds_parallelism_observed() throws Exception {
-    int loops = 1000;
 
     ExecutorService pool = Executors.newFixedThreadPool(10);
     List<Future<?>> futures = new ArrayList<>();
