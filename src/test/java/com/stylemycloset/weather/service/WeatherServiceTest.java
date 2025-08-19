@@ -95,7 +95,7 @@ public class WeatherServiceTest {
             .windSpeed(windSpeed)
             .build();
 
-        when(weatherRepository.findTheNext4DaysByLocation(eq(37.5665d),
+        when(weatherRepository.findTheNext5DaysByLocation(eq(37.5665d),
             eq(126.978d),
             any(LocalDateTime.class)))
             .thenReturn(List.of(weather));

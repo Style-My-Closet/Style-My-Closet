@@ -16,6 +16,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,7 +39,12 @@ public class WeatherServiceImpl implements WeatherService {
 
     public List<WeatherDto> getWeatherByCoordinates(double latitude, double longitude) {
 
-        List<Weather> weathers = weatherRepository.findTheNext4DaysByLocation(latitude, longitude, LocalDateTime.now());
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul")); // 한국 기준 오늘 날짜
+        ZonedDateTime kstMidnight = today.atStartOfDay(ZoneId.of("Asia/Seoul")); // 한국 자정
+        ZonedDateTime utcZoned = kstMidnight.withZoneSameInstant(ZoneOffset.UTC); // UTC 변환
+        LocalDateTime utcTime = utcZoned.toLocalDateTime(); // DB에 넣을 값
+
+        List<Weather> weathers = weatherRepository.findTheNext5DaysByLocation(latitude, longitude, utcTime);
         if(weathers.isEmpty()){
             Location location = locationRepository.findByLatitudeAndLongitude(latitude,longitude).orElseGet(
                 ()->kakaoApiService.createLocation(longitude,latitude)  );
@@ -57,10 +64,12 @@ public class WeatherServiceImpl implements WeatherService {
 
     public void checkWeather(double latitude, double longitude, Long userId) {
 
-        Optional<Weather> weather=  getTodayWeatherByLocation(latitude, longitude);
+        Optional<Weather> weather= getTodayWeatherByLocation(latitude, longitude);
         Weather data = weather.orElseThrow(
             ()->new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("weather", "weather")  )
         );
+
+
         if (data.getIsAlertTriggered()) {
             StringBuilder messageBuilder = new StringBuilder("특수한 날씨입니다: ");
 

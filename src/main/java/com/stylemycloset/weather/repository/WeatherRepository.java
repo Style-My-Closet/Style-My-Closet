@@ -19,7 +19,7 @@ public interface WeatherRepository extends JpaRepository<Weather, Long> {
       AND w.forecastAt >= :now
       ORDER BY w.forecastAt ASC
     """)
-    List<Weather> findTheNext4DaysByLocation(
+    List<Weather> findTheNext5DaysByLocation(
         @Param("lat") double latitude,
         @Param("lon") double longitude,
         @Param("now") LocalDateTime now
@@ -27,9 +27,12 @@ public interface WeatherRepository extends JpaRepository<Weather, Long> {
 
 
     @Query("SELECT w FROM Weather w "
-        + "WHERE w.forecastedAt >= :start "
-        + "AND w.forecastedAt <= :end")
-    List<Weather> findWeathersByForecastedAtYesterday(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+        + "JOIN FETCH w.location l "
+        + "WHERE l.id = :locationId "
+        + "AND w.forecastedAt >= :start "
+        + "AND w.forecastedAt <= :end "
+        + "ORDER BY w.forecastAt ASC ")
+    List<Weather> findWeathersByForecastedAtYesterday(@Param("locationId") Long locationId,@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query(""" 
         SELECT w FROM Weather w

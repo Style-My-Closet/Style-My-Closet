@@ -15,8 +15,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class HumidityProcessor implements WeatherCategoryProcessor {
 
-    private final WeatherRepository repository;
-
     @Override
     public boolean supports(String category) {
         return "REH".equals(category); // Relative Humidity
@@ -27,21 +25,8 @@ public class HumidityProcessor implements WeatherCategoryProcessor {
 
 
         double current = parseDoubleSafe(value);
-        LocalDate today = LocalDate.now();
-        LocalDateTime startOfYesterday = today.minusDays(1).atStartOfDay();
-        LocalDateTime endOfYesterday = today.atStartOfDay().minusNanos(1);
 
-        List<Weather> weathers = repository.findWeathersByForecastedAtYesterday(startOfYesterday, endOfYesterday);
-
-        double yesterday;
-        if (weathers.isEmpty()) {
-            yesterday = 0;
-        } else {
-            // 예시: weathers에서 어떤 값을 계산
-            // (실제 계산 로직에 맞게 수정하세요)
-            yesterday = weathers.getFirst().getHumidity().getCurrent();
-        }
-        ctx.humidity = new Humidity(current, current-yesterday);
+        ctx.humidity = new Humidity(current, 0.0);
 
     }
 
