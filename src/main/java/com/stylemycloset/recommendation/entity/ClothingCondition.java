@@ -1,14 +1,17 @@
 package com.stylemycloset.recommendation.entity;
 
+import com.stylemycloset.cloth.entity.ClothingAttributeValue;
 import com.stylemycloset.user.entity.Gender;
 import com.stylemycloset.weather.entity.Weather.AlertType;
 import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -41,11 +44,17 @@ public class ClothingCondition {
     private Color color;
 
     @Enumerated(EnumType.ORDINAL)
-    private SleeveLength SleeveLength;
+    private SleeveLength sleeveLength;
 
     @Enumerated(EnumType.ORDINAL)
     private PantsLength pantsLength;
 
     // 추천 여부 (1=추천, 0=비추천)
     private Boolean label;
+
+    @JdbcTypeCode(SqlTypes.VECTOR)
+    @Column(columnDefinition = "vector(27)")
+    private float[] embedding;
+
+
 }

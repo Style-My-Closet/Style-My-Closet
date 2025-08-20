@@ -26,62 +26,43 @@ public class VectorCosineSimilarityMeter {
     private final UserRepository userRepository;
     private final ConditionVectorizer conditionVectorizer;
 
-    // 코사인 유사도 계산
-    private double cosineSimilarity(float[] v1, float[] v2) {
-        double dot = 0.0, norm1 = 0.0, norm2 = 0.0;
-        for (int i = 0; i < v1.length; i++) {
-            dot += v1[i] * v2[i];
-            norm1 += Math.pow(v1[i], 2);
-            norm2 += Math.pow(v2[i], 2);
-        }
-        return dot / (Math.sqrt(norm1) * Math.sqrt(norm2));
-    }
 
-    // 추천 실행
     public boolean recommend(RecommendationDto dto) {
-        List<ClothingCondition> features = repository.findAll();
+        Weather weather = weatherRepository.findById(dto.weatherId())
+            .orElseThrow(() -> new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("weather", "null")));
+        User user = userRepository.findById(dto.userID())
+            .orElseThrow(() -> new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("user", "null")));
 
-        if (features.isEmpty()) {
-            return false; // 데이터 없으면 기본 false
-        }
-
-
-        Weather weather =weatherRepository.findById(dto.weatherId()).orElseThrow(
-            ()->new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("weather","null"))
-        );
-        User user = userRepository.findById(dto.userID()).orElseThrow(
-            ()->new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("user","null"))
+        float[] inputVector = conditionVectorizer.toConditionVector(
+            ClothingConditionMapper.fromRecommendationDto(dto, weather, user)
         );
 
 
-        float[] inputVector =  conditionVectorizer.toConditionVector(ClothingConditionMapper.fromRecommendationDto
-            (dto, weather, user));
+        ClothingCondition mostSimilar = repository.findMostSimilar(inputVector);
 
-        ClothingCondition mostSimilar = null;
-        double highestSimilarity = -1;
-
-        for (ClothingCondition f : features) {
-            float[] dbVector = conditionVectorizer.toConditionVector(f);
-            double similarity = cosineSimilarity(inputVector, dbVector);
-            if (similarity > highestSimilarity) {
-                highestSimilarity = similarity;
-                mostSimilar = f;
-            }
-        }
-
-        return mostSimilar != null && mostSimilar.getLabel();
+        return mostSimilar != null && Boolean.TRUE.equals(mostSimilar.getLabel());
     }
 
     // 사용자 피드백 데이터 저장
     public void recordFeedback(Weather weather, User user, List<ClothingAttributeValue> values, Boolean label) {
-        ClothingCondition feature = ClothingCondition.builder()
+
+        ClothingCondition.ClothingConditionBuilder builder = ClothingCondition.builder()
             .temperature(weather.getTemperature().getCurrent())
             .humidity(weather.getHumidity().getCurrent())
             .weatherType(weather.getAlertType())
             .gender(user.getGender())
             .temperatureSensitivity(user.getTemperatureSensitivity())
-            .label(label)
-            .build();
+            .label(label);
+
+        ClothingCondition.ClothingConditionBuilder builder2 =
+            ClothingConditionBuilderHelper.addClothingAttributes(builder,values);
+
+        ClothingCondition feature = builder2.build();
+
+        float[] embedding = conditionVectorizer.toConditionVector(feature);
+
+        feature = builder.embedding(embedding).build();
+
         repository.save(feature);
     }
 }

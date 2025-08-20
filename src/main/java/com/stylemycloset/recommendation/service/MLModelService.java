@@ -3,68 +3,74 @@ package com.stylemycloset.recommendation.service;
 import com.stylemycloset.recommendation.entity.ClothingCondition;
 import com.stylemycloset.recommendation.entity.TrainingData;
 import com.stylemycloset.recommendation.repository.ClothingConditionRepository;
-import com.stylemycloset.recommendation.util.ConditionVectorizer;
-import java.util.*;
-import lombok.RequiredArgsConstructor;
-import ml.dmlc.xgboost4j.java.Booster;
-import ml.dmlc.xgboost4j.java.DMatrix;
-import ml.dmlc.xgboost4j.java.XGBoost;
-import ml.dmlc.xgboost4j.java.XGBoostError;
+import ml.dmlc.xgboost4j.java.*;
 import org.springframework.stereotype.Service;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
 public class MLModelService {
-    private Booster booster;  // XGBoost 모델 (예시)
-    private final ConditionVectorizer conditionVectorizer;
+
+    private Booster booster;  // XGBoost 모델
     private final ClothingConditionRepository repository;
 
-    // DB에서 학습 데이터 읽어옴
+    public MLModelService(ClothingConditionRepository repository) {
+        this.repository = repository;
+    }
+
+    // DB에서 학습 데이터 읽어오기 (embedding 컬럼 활용)
     private TrainingData loadTrainingData() {
         List<ClothingCondition> conditions = repository.findAll();
         if (conditions.isEmpty()) return null;
 
-        int n = conditions.size();
-        int conditionLength = conditionVectorizer.toConditionVector(conditions.get(0)).length;
+        int nSamples = conditions.size();
+        int nFeatures = conditions.get(0).getEmbedding().length;
 
-        float[][] x = new float[n][conditionLength];
-        int[] y = new int[n];
+        float[][] x = new float[nSamples][nFeatures];
+        int[] y = new int[nSamples];
 
-        for (int i = 0; i < n; i++) {
-            x[i] = conditionVectorizer.toConditionVector(conditions.get(i));
+        for (int i = 0; i < nSamples; i++) {
+            x[i] = conditions.get(i).getEmbedding(); // embedding 바로 사용
             y[i] = conditions.get(i).getLabel() ? 1 : 0;
         }
 
         return new TrainingData(x, y);
     }
 
-    public float predictSingle(ClothingCondition cf) throws XGBoostError {
-        float[] features = conditionVectorizer.toConditionVector(cf);
-        DMatrix dMatrix = new DMatrix(features, 1, features.length, Float.NaN);
+    // 단일 예측
+    public float predictSingle(float[] embedding) throws XGBoostError {
+        DMatrix dMatrix = new DMatrix(embedding, 1, embedding.length, Float.NaN);
         float[][] predictions = booster.predict(dMatrix);
         return predictions[0][0];
     }
 
+    // ClothingCondition 기반 예측
+    public float predictSingle(ClothingCondition cf) throws XGBoostError {
+        if (cf.getEmbedding() == null) {
+            throw new IllegalArgumentException("ClothingCondition embedding is null");
+        }
+        return predictSingle(cf.getEmbedding());
+    }
+
+    // 모델 학습
     public void trainModel() throws XGBoostError {
         TrainingData data = loadTrainingData();
+        if (data == null) return;
 
-        // 2차원 float 배열 → 1차원 float 배열 변환
-        float[][] features2D = data.features;
-        int nSamples = features2D.length;
-        int nFeatures = features2D[0].length;
+        int nSamples = data.features.length;
+        int nFeatures = data.features[0].length;
 
+        // 2차원 float 배열 → 1차원 배열 변환
         float[] features1D = new float[nSamples * nFeatures];
         for (int i = 0; i < nSamples; i++) {
-            for (int j = 0; j < nFeatures; j++) {
-                features1D[i * nFeatures + j] = features2D[i][j];
-            }
+            System.arraycopy(data.features[i], 0, features1D, i * nFeatures, nFeatures);
         }
 
-        // int[] 라벨 → float[] 라벨 변환
-        int[] labelsInt = data.labels;
-        float[] labelsFloat = new float[labelsInt.length];
-        for (int i = 0; i < labelsInt.length; i++) {
-            labelsFloat[i] = labelsInt[i];
+        // int[] 라벨 → float[] 라벨
+        float[] labelsFloat = new float[data.labels.length];
+        for (int i = 0; i < data.labels.length; i++) {
+            labelsFloat[i] = data.labels[i];
         }
 
         // DMatrix 생성
@@ -82,5 +88,7 @@ public class MLModelService {
 
         booster = XGBoost.train(trainMat, params, 10, watches, null, null);
     }
+
+    // 학습 데이터 DTO
 
 }

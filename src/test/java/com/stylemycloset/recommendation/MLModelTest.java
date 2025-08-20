@@ -25,7 +25,7 @@ class MLModelTest {
     @Mock
     private ClothingConditionRepository clothingConditionRepository;
 
-    private ConditionVectorizer conditionVectorizer = new ConditionVectorizer();
+
 
     @InjectMocks
     private MLModelService service; // 가상의 서비스
@@ -34,7 +34,7 @@ class MLModelTest {
 
     @BeforeEach
     void setUp() {
-        service = new MLModelService( conditionVectorizer, clothingConditionRepository );
+        service = new MLModelService( clothingConditionRepository );
         dummyData = MeaningfulDummyGenerator.generateMeaningfulDummyList();
     }
 
