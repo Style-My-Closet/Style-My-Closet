@@ -11,6 +11,10 @@ import org.springframework.stereotype.Component;
 public class UserMapper {
 
   public UserDto UsertoUserDto(User user) {
+    if (user == null) {
+      return null;
+    }
+
     return new UserDto(user.getId(),
         user.getCreatedAt(),
         user.getEmail(),
@@ -21,6 +25,9 @@ public class UserMapper {
   }
 
   public ProfileDto UsertoProfileDto(User user, String profileImageUrl) {
+    if (user == null) {
+      return null;
+    }
 
     return new ProfileDto(user.getId(),
         user.getName(),
