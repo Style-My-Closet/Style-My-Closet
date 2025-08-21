@@ -1,6 +1,6 @@
 package com.stylemycloset.ootd.entity;
 
-import com.stylemycloset.cloth.entity.Cloth;
+import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.weather.entity.Weather;
@@ -64,7 +64,7 @@ public class Feed extends SoftDeletableEntity {
     return new Feed(author, weather, content);
   }
 
-  public FeedClothes addClothes(Cloth clothes) {
+  public FeedClothes addClothes(Clothes clothes) {
     FeedClothes feedClothes = FeedClothes.createFeedClothes(this, clothes);
     this.feedClothes.add(feedClothes);
     return feedClothes;

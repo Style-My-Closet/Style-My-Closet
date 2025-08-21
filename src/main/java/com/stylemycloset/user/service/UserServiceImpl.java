@@ -1,9 +1,6 @@
 package com.stylemycloset.user.service;
 
 
-import com.stylemycloset.cloth.entity.Closet;
-import com.stylemycloset.cloth.repository.ClosetRepository;
-
 import com.stylemycloset.notification.event.domain.RoleChangedEvent;
 import com.stylemycloset.security.jwt.JwtService;
 
@@ -44,9 +41,6 @@ public class UserServiceImpl implements UserService {
   private final PasswordEncoder passwordEncoder;
   private final ApplicationEventPublisher publisher;
   private final UserMapper userMapper;
-
-  private final ClosetRepository closetRepository;
-
   private final JwtService jwtService;
   private final MailService mailSender;
 
@@ -61,9 +55,6 @@ public class UserServiceImpl implements UserService {
 
     User user = new User(request.name(), request.email(), encodedPassword);
     User savedUser = userRepository.save(user);
-    // 사용자 생성 시 기본 옷장 자동 생성
-    Closet closet = new Closet(savedUser);
-    closetRepository.save(closet);
     return userMapper.UsertoUserDto(savedUser);
   }
 
@@ -154,7 +145,7 @@ public class UserServiceImpl implements UserService {
             nextCursor = value.toString();
           }
         }
-        case "name" -> nextCursor = lastUser.getName();
+        case "definitionName" -> nextCursor = lastUser.getName();
         case "email" -> nextCursor = lastUser.getEmail();
         default -> throw new IllegalArgumentException("정렬 필드 오류");
       }

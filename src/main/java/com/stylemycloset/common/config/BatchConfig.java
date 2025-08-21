@@ -32,7 +32,6 @@ public class BatchConfig {
             .build();
     }
 
-
     @Bean
     public Step weatherFetchStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder("weatherFetchStep", jobRepository)

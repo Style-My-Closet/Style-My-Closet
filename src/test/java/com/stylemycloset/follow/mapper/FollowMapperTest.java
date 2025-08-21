@@ -1,24 +1,18 @@
 package com.stylemycloset.follow.mapper;
 
 import com.stylemycloset.IntegrationTestSupport;
-import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
+import com.stylemycloset.binarycontent.storage.s3.BinaryContentStorage;
 import com.stylemycloset.follow.dto.FollowListResponse;
 import com.stylemycloset.follow.dto.FollowResult;
 import com.stylemycloset.follow.entity.Follow;
 import com.stylemycloset.follow.repository.FollowRepository;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
-import java.util.List;
-import java.util.NoSuchElementException;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

@@ -1,3 +1,0 @@
-ALTER TABLE comment_likes
-    ADD updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    ADD deleted_at TIMESTAMP WITH TIME ZONE;

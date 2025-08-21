@@ -5,7 +5,7 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-generated
+
 ### STS ###
 .apt_generated
 .classpath
@@ -39,17 +39,7 @@ out/
 
 ### Log File ###
 .logs
-/src/main/resources/db/migration/V5__insert_test_data.sql.disabled
-/src/test/java/com/stylemycloset/cloth/service/SqlQueryTest.java
-/test_queries.sql
-/actual_sql_queries.sql
 
 ### macOS ###
 .DS_Store
 storage/.DS_Store
-
-### Local-Binary-File ###
-.stylemycloset/storage
-.stylemycloset/storage/test
-/storage
-/Dockerfile

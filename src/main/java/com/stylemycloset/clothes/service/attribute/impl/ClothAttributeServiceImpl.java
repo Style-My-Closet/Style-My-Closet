@@ -1,0 +1,119 @@
+package com.stylemycloset.clothes.service.attribute.impl;
+
+import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDtoCursorResponse;
+import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDto;
+import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeDefinitionCreateRequest;
+import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeDefinitionUpdateRequest;
+import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeSearchCondition;
+import com.stylemycloset.clothes.entity.attribute.ClothesAttributeDefinition;
+import com.stylemycloset.clothes.exception.ClothesAttributeDefinitionDuplicateException;
+import com.stylemycloset.clothes.exception.ClothesAttributeNotFoundException;
+import com.stylemycloset.clothes.mapper.AttributeMapper;
+import com.stylemycloset.clothes.repository.attribute.ClothesAttributeDefinitionRepository;
+import com.stylemycloset.clothes.service.attribute.ClothAttributeService;
+import com.stylemycloset.notification.event.domain.ClothAttributeChangedEvent;
+import com.stylemycloset.notification.event.domain.NewClothAttributeEvent;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Slice;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class ClothAttributeServiceImpl implements ClothAttributeService {
+
+  private final ClothesAttributeDefinitionRepository clothesAttributeDefinitionRepository;
+  private final AttributeMapper attributeMapper;
+  private final ApplicationEventPublisher eventPublisher;
+
+  @Transactional
+  @Override
+  public ClothesAttributeDefinitionDto createAttribute(
+      ClothesAttributeDefinitionCreateRequest request
+  ) {
+    validateAttributeDefinitionDuplicate(request.name());
+    ClothesAttributeDefinition attribute = new ClothesAttributeDefinition(
+        request.name(),
+        request.selectableValues()
+    );
+    ClothesAttributeDefinition savedAttribute = clothesAttributeDefinitionRepository.save(
+        attribute);
+
+    publishNewAttributeEvent(savedAttribute);
+    return ClothesAttributeDefinitionDto.from(savedAttribute);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public ClothesAttributeDefinitionDtoCursorResponse getAttributes(
+      ClothesAttributeSearchCondition attributeSearchCondition
+  ) {
+    Slice<ClothesAttributeDefinition> attributes = clothesAttributeDefinitionRepository.findWithCursorPagination(
+        attributeSearchCondition.cursor(),
+        attributeSearchCondition.idAfter(),
+        attributeSearchCondition.limit(),
+        attributeSearchCondition.sortBy(),
+        attributeSearchCondition.sortDirection(),
+        attributeSearchCondition.keywordLike()
+    );
+
+    return attributeMapper.toPageResponse(attributes);
+  }
+
+  @Transactional
+  @Override
+  public ClothesAttributeDefinitionDto updateAttribute(
+      Long attributeId,
+      ClothesAttributeDefinitionUpdateRequest request
+  ) {
+    validateAttributeDefinitionDuplicate(request.name());
+    ClothesAttributeDefinition attribute = getAttribute(attributeId);
+    attribute.update(request.name(), request.selectableValues());
+    ClothesAttributeDefinition savedAttribute = clothesAttributeDefinitionRepository.save(
+        attribute);
+
+    publishAttributeChangedEvent(savedAttribute);
+    return ClothesAttributeDefinitionDto.from(savedAttribute);
+  }
+
+  @Transactional
+  @Override
+  public void deleteAttributeById(Long definitionId) {
+    validateAttributeExist(definitionId);
+    clothesAttributeDefinitionRepository.deleteById(definitionId);
+  }
+
+  private ClothesAttributeDefinition getAttribute(Long id) {
+    return clothesAttributeDefinitionRepository.findByIdAndDeletedAtIsNull(id)
+        .orElseThrow(ClothesAttributeNotFoundException::new);
+  }
+
+  private void publishAttributeChangedEvent(ClothesAttributeDefinition saved) {
+    eventPublisher.publishEvent(
+        new ClothAttributeChangedEvent(saved.getId(), saved.getName())
+    );
+  }
+
+  private void publishNewAttributeEvent(ClothesAttributeDefinition saved) {
+    eventPublisher.publishEvent(
+        new NewClothAttributeEvent(saved.getId(), saved.getName())
+    );
+  }
+
+  private void validateAttributeDefinitionDuplicate(String name) {
+    if (clothesAttributeDefinitionRepository.existsByActiveAttributeDefinition(name)) {
+      throw new ClothesAttributeDefinitionDuplicateException();
+    }
+  }
+
+  private void validateAttributeExist(Long attributeId) {
+    if (clothesAttributeDefinitionRepository.existsById(attributeId)) {
+      return;
+    }
+    throw new ClothesAttributeNotFoundException();
+  }
+
+} 

@@ -15,7 +15,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 
 @WebMvcTest(value = {FollowController.class})
-@Import({GlobalControllerExceptionHandler.class})
 @ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
 public abstract class ControllerTestSupport {

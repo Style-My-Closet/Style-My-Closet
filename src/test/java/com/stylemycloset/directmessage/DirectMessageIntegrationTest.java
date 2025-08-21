@@ -16,21 +16,21 @@ import com.stylemycloset.notification.dto.NotificationDto;
 import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
+import java.lang.reflect.Type;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Disabled;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
@@ -44,15 +44,13 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
 import org.springframework.web.socket.sockjs.client.Transport;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
-import java.lang.reflect.Type;
-import java.util.concurrent.TimeUnit;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class DirectMessageIntegrationTest extends IntegrationTestSupport {
 
-  @MockBean
+  @MockitoBean
   private UserRepository userRepository;
-  @MockBean
+  @MockitoBean
   private DirectMessageRepository messageRepository;
 
   @MockitoBean
@@ -79,7 +77,6 @@ class DirectMessageIntegrationTest extends IntegrationTestSupport {
 
   @DisplayName("DM 메세지를 상대방에게 전송하면, 상대방은 메세지를 받습니다.")
   @Test
-  @Disabled("임시로 비활성화")
   void send_and_receive() throws Exception {
     // given
     User sender = userRepository.save(new User("alice", "a@a.com", "pwd"));

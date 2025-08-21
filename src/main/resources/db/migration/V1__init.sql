@@ -9,7 +9,9 @@ CREATE TABLE follows
     followed_at TIMESTAMP WITH TIME ZONE NOT NULL,
     deleted_at  TIMESTAMP WITH TIME ZONE,
     created_at  TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at  TIMESTAMP WITH TIME ZONE
+    updated_at  TIMESTAMP WITH TIME ZONE,
+
+    CONSTRAINT uq_follower_followee UNIQUE (follower_id, followee_id)
 );
 
 -- message
@@ -19,7 +21,6 @@ CREATE TABLE messages
     sender_id   BIGINT                   NOT NULL,
     receiver_id BIGINT                   NOT NULL,
     content     TEXT                     NOT NULL,
-    sent_at     TIMESTAMP WITH TIME ZONE NOT NULL,
     deleted_at  TIMESTAMP WITH TIME ZONE,
     created_at  TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at  TIMESTAMP WITH TIME ZONE
@@ -45,11 +46,13 @@ CREATE TABLE users
     id                      BIGSERIAL PRIMARY KEY,
     name                    VARCHAR(20)              NOT NULL,
     email                   VARCHAR(30)              NOT NULL UNIQUE,
+    password                VARCHAR(60)              NOT NULL,
     role                    VARCHAR(10)              NOT NULL,
     locked                  BOOLEAN                  NOT NULL,
     gender                  VARCHAR(10),
     birth_date              DATE,
     temperature_sensitivity INTEGER,
+    profile_id              UUID,
     deleted_at              TIMESTAMP WITH TIME ZONE,
     created_at              TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at              TIMESTAMP WITH TIME ZONE,
@@ -73,41 +76,21 @@ CREATE TABLE locations
 
 ------------------- cloth --------------------
 
--- closet
-CREATE TABLE closets
-(
-    id         BIGSERIAL PRIMARY KEY,
-    user_id    BIGINT                   NOT NULL UNIQUE,
-    deleted_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE
-);
-
--- category
-CREATE TABLE clothes_categories
-(
-    id         BIGSERIAL PRIMARY KEY,
-    name       VARCHAR(50)              NOT NULL UNIQUE,
-    deleted_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE
-);
-
 -- clothes
 CREATE TABLE clothes
 (
-    id          BIGSERIAL PRIMARY KEY,
-    closet_id   BIGINT                   NOT NULL,
-    category_id BIGINT                   NOT NULL,
-    image_id    UUID,
-    name        VARCHAR(100)             NOT NULL,
-    deleted_at  TIMESTAMP WITH TIME ZONE,
-    created_at  TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at  TIMESTAMP WITH TIME ZONE
+    id           BIGSERIAL PRIMARY KEY,
+    owner_id     BIGINT                   NOT NULL,
+    name         VARCHAR(100)             NOT NULL,
+    image_id     UUID,
+    clothes_type varchar(50)              NOT NULL,
+    deleted_at   TIMESTAMP WITH TIME ZONE,
+    created_at   TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at   TIMESTAMP WITH TIME ZONE
 );
 
--- cloth_attribute : 계절 등 큰 카테고리
-CREATE TABLE clothes_attributes_categories
+-- cloth_attribute : 계절등 큰 카테고리의 이름
+CREATE TABLE clothes_attribute_definition
 (
     id         BIGSERIAL PRIMARY KEY,
     name       VARCHAR(100)             NOT NULL,
@@ -116,30 +99,27 @@ CREATE TABLE clothes_attributes_categories
     updated_at TIMESTAMP WITH TIME ZONE
 );
 
--- cloth_attribute_option : 계절의 여름, 가을, 겨울
-CREATE TABLE clothes_attributes_category_options
+-- cloth_attribute_selectable_value : 큰 속성 내에 선택할 수 있는 것 - 여름, 가을, 겨울
+CREATE TABLE clothes_attribute_selectable_value
 (
-    id           BIGSERIAL PRIMARY KEY,
-    attribute_id BIGINT                   NOT NULL,
-    value        VARCHAR(50)              NOT NULL UNIQUE,
-    deleted_at   TIMESTAMP WITH TIME ZONE,
-    created_at   TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at   TIMESTAMP WITH TIME ZONE
+    id                      BIGSERIAL PRIMARY KEY,
+    attribute_definition_id BIGINT                   NOT NULL,
+    value                   VARCHAR(50)              NOT NULL UNIQUE,
+    deleted_at              TIMESTAMP WITH TIME ZONE,
+    created_at              TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at              TIMESTAMP WITH TIME ZONE
 );
 
--- cloth_attribute_mapping : 여름, 가을 세부적인 속성 옵션들이 옷과 매핑이 되어있는걸 표현
-CREATE TABLE clothes_to_attribute_options
+-- cloth_attribute_selected_value: 옷과 매핑된  한 카테고리 내부네서 선택할 수 있는 값 -> 롤렉스 - 빨강
+CREATE TABLE clothes_attribute_selected_value
 (
-    id           BIGSERIAL PRIMARY KEY,
-    cloth_id     BIGINT                   NOT NULL,
-    attribute_id BIGINT                   NOT NULL,
-    option_id    BIGINT                   NOT NULL,
-    created_at   TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at   TIMESTAMP WITH TIME ZONE,
-
-    CONSTRAINT uq_clothing_attribute UNIQUE (cloth_id, attribute_id, option_id)
+    id                      BIGSERIAL PRIMARY KEY,
+    clothes_id              BIGINT                   NOT NULL,
+    attribute_selectable_id BIGINT                   NOT NULL,
+    deleted_at              TIMESTAMP WITH TIME ZONE,
+    created_at              TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at              TIMESTAMP WITH TIME ZONE
 );
-
 
 ---------------- binary_contents ---------------
 
@@ -147,7 +127,7 @@ CREATE TABLE clothes_to_attribute_options
 CREATE TABLE binary_contents
 (
     id           UUID PRIMARY KEY,
-    file_name    varchar(200)             NOT NULL,
+    original_name    varchar(200)             NOT NULL,
     content_type VARCHAR(100),
     size         BIGINT                   NOT NULL,
     created_at   TIMESTAMP WITH TIME ZONE NOT NULL
@@ -162,7 +142,7 @@ CREATE TABLE weather
     forecasted_at                      TIMESTAMP WITH TIME ZONE NOT NULL,
     forecast_at                        TIMESTAMP WITH TIME ZONE NOT NULL,
 
-    sky_status                         VARCHAR(20)              NOT NULL,
+    sky_status                         VARCHAR(20),
 
     precipitation_type                 VARCHAR(20),
     precipitation_amount               DOUBLE PRECISION,
@@ -192,7 +172,6 @@ CREATE TABLE weather
     FOREIGN KEY (location_id) REFERENCES locations (id)
 );
 
-
 ------------------- feed ---------------------
 
 -- feeds
@@ -207,7 +186,6 @@ CREATE TABLE feeds
     updated_at TIMESTAMP WITH TIME ZONE
 );
 
-
 -- feed_ootd_clothes
 CREATE TABLE feed_ootd_clothes
 (
@@ -217,7 +195,6 @@ CREATE TABLE feed_ootd_clothes
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     CONSTRAINT uq_feed_clothes UNIQUE (feed_id, clothes_id)
 );
-
 
 -- feed_comments
 CREATE TABLE feed_comments
@@ -231,7 +208,6 @@ CREATE TABLE feed_comments
     updated_at TIMESTAMP WITH TIME ZONE
 );
 
-
 -- feed_likes
 CREATE TABLE feed_likes
 (
@@ -241,14 +217,15 @@ CREATE TABLE feed_likes
     created_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
-
 -- comment_likes
 CREATE TABLE comment_likes
 (
     id         BIGSERIAL PRIMARY KEY,
     user_id    BIGINT                   NOT NULL,
     comment_id BIGINT                   NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
 

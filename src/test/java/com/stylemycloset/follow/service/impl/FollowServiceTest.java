@@ -3,7 +3,7 @@ package com.stylemycloset.follow.service.impl;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
-import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
+import com.stylemycloset.binarycontent.storage.s3.BinaryContentStorage;
 import com.stylemycloset.follow.dto.FollowListResponse;
 import com.stylemycloset.follow.dto.FollowResult;
 import com.stylemycloset.follow.dto.FollowSummaryResult;

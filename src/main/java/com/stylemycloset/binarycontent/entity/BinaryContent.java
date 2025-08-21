@@ -1,6 +1,6 @@
 package com.stylemycloset.binarycontent.entity;
 
-import com.stylemycloset.common.entity.SoftDeletableEntity;
+import com.stylemycloset.common.entity.CreatedAtEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -16,14 +16,14 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "binary_contents")
-public class BinaryContent extends SoftDeletableEntity {
+public class BinaryContent extends CreatedAtEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  @Column(name = "file_name", nullable = false)
-  private String originalFileName;
+  @Column(name = "original_name", nullable = false)
+  private String originalName;
 
   @Column(name = "content_type", nullable = false)
   private String contentType;
@@ -31,20 +31,10 @@ public class BinaryContent extends SoftDeletableEntity {
   @Column(name = "size", nullable = false)
   private Long size;
 
-
-  @Column(name = "image_url")
-  private String imageUrl;
-
-
-  public BinaryContent(String originalFileName, String contentType, Long size) {
-    this.originalFileName = originalFileName;
+  public BinaryContent(String originalName, String contentType, Long size) {
+    this.originalName = originalName;
     this.contentType = contentType;
     this.size = size;
   }
 
-
-
-  public void updateImageUrl(String publicUrl) {
-    this.imageUrl = publicUrl;
-  }
 }

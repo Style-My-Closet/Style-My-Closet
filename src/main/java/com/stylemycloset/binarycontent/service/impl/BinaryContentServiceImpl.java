@@ -6,13 +6,15 @@ import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.binarycontent.exception.BinaryContentNotFoundException;
 import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
 import com.stylemycloset.binarycontent.service.BinaryContentService;
-import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
+import com.stylemycloset.binarycontent.storage.s3.BinaryContentStorage;
+import java.net.URL;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 @Service
 @RequiredArgsConstructor

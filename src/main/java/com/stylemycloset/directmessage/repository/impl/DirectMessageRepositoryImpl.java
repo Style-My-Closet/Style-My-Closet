@@ -58,7 +58,7 @@ public class DirectMessageRepositoryImpl implements DirectMessageRepositoryCusto
     return convertToSlice(limit, directMessages, cursorStrategy, sortDirection);
   }
 
-  private BooleanExpression buildPredicate( // 추출 예정
+  private BooleanExpression buildPredicate(
       String cursor,
       String idAfter,
       String sortDirection,

@@ -1,15 +1,14 @@
 package com.stylemycloset.follow.mapper;
 
-import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
+import com.stylemycloset.binarycontent.mapper.BinaryContentMapper;
 import com.stylemycloset.common.repository.cursor.CursorStrategy;
+import com.stylemycloset.common.repository.cursor.NextCursorInfo;
 import com.stylemycloset.follow.dto.FollowListResponse;
-import com.stylemycloset.follow.dto.FollowListResponse.NextCursorInfo;
 import com.stylemycloset.follow.dto.FollowResult;
 import com.stylemycloset.follow.dto.FollowUserInfo;
 import com.stylemycloset.follow.entity.Follow;
 import com.stylemycloset.follow.repository.cursor.FollowCursorField;
 import com.stylemycloset.user.entity.User;
-import java.net.URL;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
@@ -20,7 +19,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class FollowMapper {
 
-  private final BinaryContentStorage binaryContentStorage;
+  private final BinaryContentMapper binaryContentMapper;
 
   public FollowResult toResult(Follow follow) {
     User followee = follow.getFollowee();
@@ -28,17 +27,15 @@ public class FollowMapper {
 
     return FollowResult.from(
         follow,
-        FollowUserInfo.of(followee, getProfileImageURL(followee)),
-        FollowUserInfo.of(follower, getProfileImageURL(follower))
+        FollowUserInfo.of(
+            followee,
+            binaryContentMapper.extractUrl(followee.getProfileImage())
+        ),
+        FollowUserInfo.of(
+            follower,
+            binaryContentMapper.extractUrl(follower.getProfileImage())
+        )
     );
-  }
-
-  private String getProfileImageURL(User user) {
-    if (user.getProfileImage() == null) {
-      return null;
-    }
-    URL url = binaryContentStorage.getUrl(user.getProfileImage().getId());
-    return url.toString();
   }
 
   public FollowListResponse<FollowResult> toFollowResponse(Slice<Follow> follows) {

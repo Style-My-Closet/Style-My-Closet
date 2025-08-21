@@ -1,22 +1,26 @@
 package com.stylemycloset;
 
+import java.net.URI;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.utility.DockerImageName;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-import com.stylemycloset.security.jwt.JwtSessionRepository;
-import com.stylemycloset.binarycontent.service.ImageStoragePort;
-import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
-import org.mockito.Mockito;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 
-@ContextConfiguration(classes = {TestContainerSupport.TestContainersConfiguration.class})
+@ContextConfiguration(classes = TestContainerSupport.TestContainersConfiguration.class)
 abstract class TestContainerSupport {
 
   private static final PostgreSQLContainer<?> POSTGRES_CONTAINER = new PostgreSQLContainer<>(
@@ -27,8 +31,15 @@ abstract class TestContainerSupport {
       .withTmpFs(Map.of("/var/lib/postgresql/data", "rw"))
       .withCommand("postgres", "-c", "max_connections=200");
 
+  private static final LocalStackContainer LOCAL_STACK_CONTAINER = new LocalStackContainer(
+      DockerImageName.parse("localstack/localstack:3.5.0"))
+      .withServices(
+          LocalStackContainer.Service.S3
+      );
+
   static {
     POSTGRES_CONTAINER.start();
+    LOCAL_STACK_CONTAINER.start();
   }
 
   @DynamicPropertySource
@@ -36,32 +47,52 @@ abstract class TestContainerSupport {
     registry.add("spring.datasource.url", POSTGRES_CONTAINER::getJdbcUrl);
     registry.add("spring.datasource.username", POSTGRES_CONTAINER::getUsername);
     registry.add("spring.datasource.password", POSTGRES_CONTAINER::getPassword);
-    registry.add("spring.datasource.hikari.maximum-pool-size", () -> 5);
-    registry.add("spring.batch.job.enabled", () -> false);
-    registry.add("spring.batch.jdbc.initialize-schema", () -> "never");
+
+    registry.add("style-my-closet.storage.s3.access-key", LOCAL_STACK_CONTAINER::getAccessKey);
+    registry.add("style-my-closet.storage.s3.secret-key", LOCAL_STACK_CONTAINER::getSecretKey);
+    registry.add("style-my-closet.storage.s3.region", LOCAL_STACK_CONTAINER::getRegion);
   }
 
   @TestConfiguration
-  @EnableJpaRepositories(basePackages = "com.stylemycloset")
   static class TestContainersConfiguration {
-    // PostgreSQL만 사용하는 깔끔한 테스트 환경
-    
+
+    private static final StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
+        AwsBasicCredentials.create(
+            LOCAL_STACK_CONTAINER.getAccessKey(),
+            LOCAL_STACK_CONTAINER.getSecretKey()
+        )
+    );
+    private static final Region region = Region.of(LOCAL_STACK_CONTAINER.getRegion());
+    private static final URI endpointURI = LOCAL_STACK_CONTAINER.getEndpointOverride(Service.S3);
+
     @Bean
-    @Primary
-    public JwtSessionRepository jwtSessionRepository() {
-      return Mockito.mock(JwtSessionRepository.class);
+    public S3Client s3Client() {
+      return S3Client.builder()
+          .endpointOverride(endpointURI)
+          .region(region)
+          .credentialsProvider(credentialsProvider)
+          .forcePathStyle(true)
+          .build();
     }
-    
+
     @Bean
-    @Primary
-    public ImageStoragePort imageStoragePort() {
-      return Mockito.mock(ImageStoragePort.class);
+    public S3Presigner s3Presigner() {
+      return S3Presigner.builder()
+          .endpointOverride(endpointURI)
+          .region(region)
+          .credentialsProvider(credentialsProvider)
+          .build();
     }
-    
+
+    /**
+     * 초기 버킷 생성
+     */
     @Bean
-    @Primary
-    public BinaryContentStorage binaryContentStorage() {
-      return Mockito.mock(BinaryContentStorage.class);
+    public CommandLineRunner createInitialBucket(
+        S3Client s3Client,
+        @Value("${style-my-closet.storage.s3.bucket}") String bucket
+    ) {
+      return args -> s3Client.createBucket(builder -> builder.bucket(bucket));
     }
   }
 

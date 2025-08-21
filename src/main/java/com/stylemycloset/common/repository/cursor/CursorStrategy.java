@@ -3,6 +3,7 @@ package com.stylemycloset.common.repository.cursor;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import org.hibernate.query.SortDirection;
 import org.springframework.data.domain.Sort.Direction;
 
 public interface CursorStrategy<T extends Comparable<T>, E> {
@@ -20,8 +21,19 @@ public interface CursorStrategy<T extends Comparable<T>, E> {
   BooleanExpression buildEq(String rawCursor);
 
   default Direction parseDirectionOrDefault(String rawDirection) {
-    return Direction.fromOptionalString(rawDirection)
-        .orElse(Direction.DESC);
+    SortDirection direction = getSortDirection(rawDirection);
+    if (direction != null && direction.name().startsWith(Direction.ASC.name())) {
+      return Direction.ASC;
+    }
+    return Direction.DESC;
+  }
+
+  private SortDirection getSortDirection(String rawDirection) {
+    try {
+      return SortDirection.interpret(rawDirection);
+    } catch (IllegalArgumentException ex) {
+      return null;
+    }
   }
 
 }

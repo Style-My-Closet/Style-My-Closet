@@ -1,16 +1,16 @@
 package com.stylemycloset.ootd.service;
 
-import com.stylemycloset.cloth.entity.AttributeOption;
-import com.stylemycloset.cloth.entity.Cloth;
-import com.stylemycloset.cloth.entity.ClothingAttribute;
-import com.stylemycloset.cloth.repository.ClothRepository;
+import com.stylemycloset.clothes.entity.attribute.ClothesAttributeDefinition;
+import com.stylemycloset.clothes.entity.attribute.ClothesAttributeSelectableValue;
+import com.stylemycloset.clothes.entity.clothes.Clothes;
+import com.stylemycloset.clothes.repository.clothes.ClothesRepository;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.notification.event.domain.FeedCommentEvent;
 import com.stylemycloset.notification.event.domain.FeedLikedEvent;
 import com.stylemycloset.notification.event.domain.NewFeedEvent;
 import com.stylemycloset.ootd.dto.AuthorDto;
-import com.stylemycloset.ootd.dto.ClothesAttributeWithDefDto;
+import com.stylemycloset.ootd.dto.ClothesAttributeWithDefinitionDto;
 import com.stylemycloset.ootd.dto.CommentCreateRequest;
 import com.stylemycloset.ootd.dto.CommentCursorResponse;
 import com.stylemycloset.ootd.dto.CommentDto;
@@ -25,11 +25,9 @@ import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.FeedClothes;
 import com.stylemycloset.ootd.entity.FeedComment;
 import com.stylemycloset.ootd.entity.FeedLike;
-import com.stylemycloset.ootd.repo.FeedClothesRepository;
-import com.stylemycloset.ootd.repo.FeedCommentRepository;
-import com.stylemycloset.ootd.repo.FeedLikeRepository;
-import com.stylemycloset.ootd.repo.FeedRepository;
-import com.stylemycloset.ootd.tempEnum.ClothesType;
+import com.stylemycloset.ootd.repository.FeedCommentRepository;
+import com.stylemycloset.ootd.repository.FeedLikeRepository;
+import com.stylemycloset.ootd.repository.FeedRepository;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import com.stylemycloset.weather.dto.PrecipitationDto;
@@ -52,9 +50,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class FeedServiceImpl implements FeedService {
 
   private final FeedRepository feedRepository;
-  private final FeedClothesRepository feedClothesRepository;
   private final UserRepository userRepository;
-  private final ClothRepository clothRepository;
+  private final ClothesRepository clothRepository;
   private final WeatherRepository weatherRepository;
   private final FeedLikeRepository feedLikeRepository;
   private final FeedCommentRepository feedCommentRepository;
@@ -69,7 +66,7 @@ public class FeedServiceImpl implements FeedService {
 
     Weather weather = findWeatherOrNull(request.weatherId());
 
-    List<Cloth> clothesList = clothRepository.findAllById(request.clothesIds());
+    List<Clothes> clothesList = clothRepository.findAllById(request.clothesIds());
     if (clothesList.size() != request.clothesIds().size()) {
       throw new StyleMyClosetException(ErrorCode.CLOTHES_NOT_FOUND,
           Map.of("requestedIds", request.clothesIds()));
@@ -155,7 +152,7 @@ public class FeedServiceImpl implements FeedService {
   }
 
   private FeedDto mapToFeedResponse(Feed feed, User currentUser) {
-    List<Cloth> clothesList = feed.getFeedClothes().stream()
+    List<Clothes> clothesList = feed.getFeedClothes().stream()
         .map(FeedClothes::getClothes)
         .collect(Collectors.toList());
 
@@ -208,24 +205,26 @@ public class FeedServiceImpl implements FeedService {
         temperatureDto);
   }
 
-  private List<OotdItemDto> toOotdItemDtoList(List<Cloth> clothesList) {
+  private List<OotdItemDto> toOotdItemDtoList(List<Clothes> clothesList) {
     return clothesList.stream().map(this::toOotdItemDto).collect(Collectors.toList());
   }
 
-  private OotdItemDto toOotdItemDto(Cloth cloth) {
-    List<ClothesAttributeWithDefDto> attributes = cloth.getAttributeValues().stream()
+  private OotdItemDto toOotdItemDto(Clothes clothes) {
+    List<ClothesAttributeWithDefinitionDto> attributes = clothes.getSelectedValues()
+        .stream()
         .map(attributeValue -> {
-          ClothingAttribute definition = attributeValue.getAttribute(); // 속성의 정의
-
+          ClothesAttributeDefinition definition = attributeValue.getSelectableValue()
+              .getDefinition();
           // 해당 속성이 가질 수 있는 모든 선택지
-          List<String> selectableValues = definition.getOptions().stream()
-              .map(AttributeOption::getValue)
+          List<String> selectableValues = definition.getSelectableValues()
+              .stream()
+              .map(ClothesAttributeSelectableValue::getValue)
               .collect(Collectors.toList());
 
           // 이 옷이 선택한 특정 값을 가져옴
-          String chosenValue = attributeValue.getOption().getValue();
+          String chosenValue = attributeValue.getSelectableValue().getValue();
 
-          return new ClothesAttributeWithDefDto(
+          return new ClothesAttributeWithDefinitionDto(
               definition.getId(),
               definition.getName(),
               selectableValues,
@@ -234,8 +233,8 @@ public class FeedServiceImpl implements FeedService {
         })
         .collect(Collectors.toList());
 
-    return new OotdItemDto(cloth.getId(), cloth.getName(), null, // TODO: 이미지 URL 로직
-        ClothesType.valueOf(cloth.getCategory().getName().name()), attributes);
+    return new OotdItemDto(clothes.getId(), clothes.getName(), null, // TODO: 이미지 URL 로직
+        clothes.getClothesType().name(), attributes);
   }
 
   @Override
@@ -323,7 +322,8 @@ public class FeedServiceImpl implements FeedService {
     FeedComment newComment = new FeedComment(feed, author, request.content());
     FeedComment savedComment = feedCommentRepository.save(newComment);
 
-    publisher.publishEvent(new FeedCommentEvent(newComment.getId(), newComment.getAuthor().getId()));
+    publisher.publishEvent(
+        new FeedCommentEvent(newComment.getId(), newComment.getAuthor().getId()));
 
     return toCommentDto(savedComment);
   }
@@ -337,4 +337,5 @@ public class FeedServiceImpl implements FeedService {
         comment.getContent()
     );
   }
+
 }

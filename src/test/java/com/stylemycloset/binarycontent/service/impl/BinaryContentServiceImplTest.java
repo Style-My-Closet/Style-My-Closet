@@ -10,7 +10,7 @@ import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.binarycontent.exception.BinaryContentNotFoundException;
 import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
 import com.stylemycloset.binarycontent.service.BinaryContentService;
-import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
+import com.stylemycloset.binarycontent.storage.s3.BinaryContentStorage;
 import com.stylemycloset.security.jwt.JwtSessionRepository;
 import com.stylemycloset.IntegrationTestSupport;
 import java.util.List;

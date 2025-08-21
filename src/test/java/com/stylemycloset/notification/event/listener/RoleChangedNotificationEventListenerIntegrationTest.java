@@ -51,7 +51,7 @@ public class RoleChangedNotificationEventListenerIntegrationTest extends Integra
   @Test
   void handler_createsAndSendsNotification() {
     // given
-    User user = TestUserFactory.createUser("name", "test@test.email", 1L);
+    User user = TestUserFactory.createUser("definitionName", "test@test.email", 1L);
     ReflectionTestUtils.setField(user, "role", Role.USER);
 
     given(userRepository.findById(user.getId())).willReturn(Optional.of(user));

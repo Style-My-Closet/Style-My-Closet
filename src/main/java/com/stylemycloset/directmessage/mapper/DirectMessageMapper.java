@@ -1,12 +1,12 @@
 package com.stylemycloset.directmessage.mapper;
 
-import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
+import com.stylemycloset.binarycontent.storage.s3.BinaryContentStorage;
+import com.stylemycloset.common.repository.cursor.CursorStrategy;
+import com.stylemycloset.common.repository.cursor.NextCursorInfo;
 import com.stylemycloset.directmessage.dto.DirectMessageResult;
 import com.stylemycloset.directmessage.dto.response.DirectMessageResponse;
-import com.stylemycloset.directmessage.dto.response.DirectMessageResponse.NextCursorInfo;
 import com.stylemycloset.directmessage.dto.response.DirectMessageUserInfo;
 import com.stylemycloset.directmessage.entity.DirectMessage;
-import com.stylemycloset.common.repository.cursor.CursorStrategy;
 import com.stylemycloset.directmessage.repository.cursor.DirectMessageField;
 import com.stylemycloset.user.entity.User;
 import java.net.URL;
@@ -44,8 +44,10 @@ public class DirectMessageMapper {
   public DirectMessageResponse<DirectMessageResult> toMessageResponse(
       Slice<DirectMessage> messages
   ) {
-    List<DirectMessageResult> messageResults = getMessageResults(messages);
-
+    List<DirectMessageResult> messageResults =  messages.getContent()
+        .stream()
+        .map(this::toResult)
+        .toList();
     Order order = getOrder(messages);
 
     return DirectMessageResponse.of(
@@ -58,20 +60,12 @@ public class DirectMessageMapper {
     );
   }
 
-
   private Order getOrder(Slice<DirectMessage> messages) {
     return messages.getPageable()
         .getSort()
         .stream()
         .findFirst()
         .orElseThrow(() -> new IllegalArgumentException("DTO 변환시 정렬 순서(Order)가 존재하지 않습니다."));
-  }
-
-  private List<DirectMessageResult> getMessageResults(Slice<DirectMessage> messages) {
-    return messages.getContent()
-        .stream()
-        .map(this::toResult)
-        .toList();
   }
 
   private NextCursorInfo extractNextCursorInfo(Slice<DirectMessage> messages, String sortBy) {

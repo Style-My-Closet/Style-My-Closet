@@ -1,5 +1,6 @@
 package com.stylemycloset.follow.dto;
 
+import com.stylemycloset.common.repository.cursor.NextCursorInfo;
 import java.util.List;
 
 public record FollowListResponse<T>(
@@ -22,17 +23,13 @@ public record FollowListResponse<T>(
   ) {
     return new FollowListResponse<>(
         followResults,
-        nextCursorInfo.nextCursor,
-        nextCursorInfo.nextIdAfter,
+        nextCursorInfo.nextCursor(),
+        nextCursorInfo.nextIdAfter(),
         hasNext,
         totalCount,
         sortBy,
         sortDirection
     );
-  }
-
-  public record NextCursorInfo(String nextCursor, String nextIdAfter) {
-
   }
 
 }

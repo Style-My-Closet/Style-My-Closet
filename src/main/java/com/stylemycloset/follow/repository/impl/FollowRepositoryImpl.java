@@ -6,7 +6,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.stylemycloset.common.repository.cursor.CursorStrategy;
 import com.stylemycloset.follow.entity.Follow;
-import com.stylemycloset.follow.repository.FollowRepositoryCustom;
 import com.stylemycloset.follow.repository.cursor.FollowCursorField;
 import java.util.List;
 import java.util.Objects;
