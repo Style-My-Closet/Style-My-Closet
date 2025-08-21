@@ -1,4 +1,4 @@
-package com.stylemycloset.directmessage.repository;
+package com.stylemycloset.directmessage.repository.impl;
 
 import com.stylemycloset.directmessage.entity.DirectMessage;
 import org.springframework.data.domain.Slice;

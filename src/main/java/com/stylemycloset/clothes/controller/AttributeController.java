@@ -1,24 +1,38 @@
 package com.stylemycloset.clothes.controller;
 
-import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeDefinitionCreateRequest;
-import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeDefinitionUpdateRequest;
-import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeSearchCondition;
 import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDto;
 import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDtoCursorResponse;
+import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeCreateRequest;
+import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeSearchCondition;
+import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeUpdateRequest;
 import com.stylemycloset.clothes.service.attribute.ClothAttributeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/clothes/attribute-defs")
 @RequiredArgsConstructor
 public class AttributeController {
 
   private final ClothAttributeService clothAttributeService;
+
+  @PostMapping
+  public ResponseEntity<ClothesAttributeDefinitionDto> createAttribute(
+      @Valid @RequestBody ClothesAttributeCreateRequest request
+  ) {
+    ClothesAttributeDefinitionDto attribute = clothAttributeService.createAttribute(request);
+    return ResponseEntity.ok(attribute);
+  }
 
   @GetMapping
   public ResponseEntity<ClothesAttributeDefinitionDtoCursorResponse> getAttributes(
@@ -30,18 +44,10 @@ public class AttributeController {
     return ResponseEntity.ok(response);
   }
 
-  @PostMapping
-  public ResponseEntity<ClothesAttributeDefinitionDto> createAttribute(
-      @Valid @RequestBody ClothesAttributeDefinitionCreateRequest request
-  ) {
-    ClothesAttributeDefinitionDto attribute = clothAttributeService.createAttribute(request);
-    return ResponseEntity.ok(attribute);
-  }
-
   @PatchMapping(value = "/{definitionId}")
   public ResponseEntity<ClothesAttributeDefinitionDto> updateAttribute(
       @PathVariable("definitionId") Long definitionId,
-      @Valid @RequestBody ClothesAttributeDefinitionUpdateRequest request
+      @Valid @RequestBody ClothesAttributeUpdateRequest request
   ) {
     ClothesAttributeDefinitionDto attribute = clothAttributeService.updateAttribute(
         definitionId,

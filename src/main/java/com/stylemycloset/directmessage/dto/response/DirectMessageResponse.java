@@ -1,6 +1,6 @@
 package com.stylemycloset.directmessage.dto.response;
 
-import com.stylemycloset.common.repository.cursor.NextCursorInfo;
+import com.stylemycloset.common.repository.NextCursorInfo;
 import com.stylemycloset.directmessage.dto.DirectMessageResult;
 import java.util.List;
 

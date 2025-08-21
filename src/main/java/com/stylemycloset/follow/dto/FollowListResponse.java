@@ -1,6 +1,6 @@
 package com.stylemycloset.follow.dto;
 
-import com.stylemycloset.common.repository.cursor.NextCursorInfo;
+import com.stylemycloset.common.repository.NextCursorInfo;
 import java.util.List;
 
 public record FollowListResponse<T>(

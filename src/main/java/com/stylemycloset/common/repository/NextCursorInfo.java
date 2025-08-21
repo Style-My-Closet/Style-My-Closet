@@ -1,4 +1,4 @@
-package com.stylemycloset.common.repository.cursor;
+package com.stylemycloset.common.repository;
 
 public record NextCursorInfo(
     String nextCursor,

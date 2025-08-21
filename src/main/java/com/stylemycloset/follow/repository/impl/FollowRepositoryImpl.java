@@ -4,16 +4,13 @@ import static com.stylemycloset.follow.entity.QFollow.follow;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.stylemycloset.common.repository.cursor.CursorStrategy;
+import com.stylemycloset.common.repository.CursorStrategy;
+import com.stylemycloset.common.repository.CustomSliceImpl;
 import com.stylemycloset.follow.entity.Follow;
 import com.stylemycloset.follow.repository.cursor.FollowCursorField;
 import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
-import org.springframework.data.domain.Sort;
 
 @RequiredArgsConstructor
 public class FollowRepositoryImpl implements FollowRepositoryCustom {
@@ -53,7 +50,7 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
         .limit(limit + 1)
         .fetch();
 
-    return convertToSlice(limit, follows, cursorStrategy, sortDirection);
+    return CustomSliceImpl.of(follows, limit, cursorStrategy, sortDirection);
   }
 
   @Override
@@ -89,7 +86,7 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
         .limit(limit + 1)
         .fetch();
 
-    return convertToSlice(limit, follows, cursorStrategy, sortDirection);
+    return CustomSliceImpl.of(follows, limit, cursorStrategy, sortDirection);
   }
 
   private BooleanExpression buildPredicate(
@@ -122,27 +119,6 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
       return follow.followee.name.containsIgnoreCase(nameLike);
     }
     return null;
-  }
-
-  private SliceImpl<Follow> convertToSlice(
-      Integer limit,
-      List<Follow> follows,
-      CursorStrategy<?, ?> cursorStrategy,
-      String sortDirection
-  ) {
-    Objects.requireNonNull(limit, "limit은 null이 될 수 없습니다");
-    boolean hasNext = follows.size() > limit;
-    List<Follow> content = follows.subList(0, Math.min(follows.size(), limit));
-    Sort sort = Sort.by(
-        cursorStrategy.parseDirectionOrDefault(sortDirection),
-        cursorStrategy.path().getMetadata().getName()
-    );
-
-    return new SliceImpl<>(
-        content,
-        PageRequest.of(0, limit, sort),
-        hasNext
-    );
   }
 
 }

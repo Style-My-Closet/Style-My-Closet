@@ -2,8 +2,8 @@ package com.stylemycloset.clothes.service.attribute.impl;
 
 import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDtoCursorResponse;
 import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDto;
-import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeDefinitionCreateRequest;
-import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeDefinitionUpdateRequest;
+import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeCreateRequest;
+import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeUpdateRequest;
 import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeSearchCondition;
 import com.stylemycloset.clothes.entity.attribute.ClothesAttributeDefinition;
 import com.stylemycloset.clothes.exception.ClothesAttributeDefinitionDuplicateException;
@@ -32,7 +32,7 @@ public class ClothAttributeServiceImpl implements ClothAttributeService {
   @Transactional
   @Override
   public ClothesAttributeDefinitionDto createAttribute(
-      ClothesAttributeDefinitionCreateRequest request
+      ClothesAttributeCreateRequest request
   ) {
     validateAttributeDefinitionDuplicate(request.name());
     ClothesAttributeDefinition attribute = new ClothesAttributeDefinition(
@@ -67,7 +67,7 @@ public class ClothAttributeServiceImpl implements ClothAttributeService {
   @Override
   public ClothesAttributeDefinitionDto updateAttribute(
       Long attributeId,
-      ClothesAttributeDefinitionUpdateRequest request
+      ClothesAttributeUpdateRequest request
   ) {
     validateAttributeDefinitionDuplicate(request.name());
     ClothesAttributeDefinition attribute = getAttribute(attributeId);

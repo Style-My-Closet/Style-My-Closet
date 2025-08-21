@@ -6,14 +6,11 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.clothes.repository.clothes.cursor.ClothesField;
-import com.stylemycloset.common.repository.cursor.CursorStrategy;
+import com.stylemycloset.common.repository.CursorStrategy;
+import com.stylemycloset.common.repository.CustomSliceImpl;
 import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 
@@ -49,7 +46,7 @@ public class ClothesRepositoryImpl implements ClothesRepositoryCustom {
         .limit(limit + 1)
         .fetch();
 
-    return convertToSlice(content, limit, primaryCursorStrategy, direction);
+    return CustomSliceImpl.of(content, limit, primaryCursorStrategy, direction);
   }
 
   private BooleanExpression buildClothesCursorPredicate(
@@ -68,25 +65,6 @@ public class ClothesRepositoryImpl implements ClothesRepositoryCustom {
     }
 
     return booleanExpression;
-  }
-
-  private SliceImpl<Clothes> convertToSlice(
-      List<Clothes> clothes,
-      Integer limit,
-      CursorStrategy<?, Clothes> primaryCursorStrategy,
-      String sortDirection
-  ) {
-    Objects.requireNonNull(limit, "limit은 null이 될 수 없습니다");
-    Sort sort = Sort.by(
-        primaryCursorStrategy.parseDirectionOrDefault(sortDirection),
-        primaryCursorStrategy.path().getMetadata().getName()
-    );
-
-    return new SliceImpl<>(
-        clothes.subList(0, Math.min(clothes.size(), limit)),
-        PageRequest.of(0, limit, sort),
-        clothes.size() > limit
-    );
   }
 
 }

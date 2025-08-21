@@ -1,6 +1,6 @@
 package com.stylemycloset.directmessage.repository.cursor;
 
-import com.stylemycloset.common.repository.cursor.CursorStrategy;
+import com.stylemycloset.common.repository.CursorStrategy;
 import com.stylemycloset.directmessage.entity.DirectMessage;
 import com.stylemycloset.directmessage.entity.QDirectMessage;
 import com.stylemycloset.directmessage.repository.cursor.strategy.ChronologicalCursorStrategy;

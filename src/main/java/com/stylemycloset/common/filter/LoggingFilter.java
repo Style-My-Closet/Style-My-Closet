@@ -27,7 +27,8 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 public class LoggingFilter extends OncePerRequestFilter {
 
   private static final List<String> EXCLUDE_PREFIXES = List.of(
-      "/css", "/js", "/images", "/static", "/favicon.ico", "/webjars", "/assets", "/closet-hanger-logo.png"
+      "/css", "/js", "/images", "/static", "/favicon.ico", "/webjars", "/assets",
+      "/closet-hanger-logo.png", "/"
   );
 
   @Override

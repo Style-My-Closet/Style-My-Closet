@@ -5,7 +5,7 @@ import static com.stylemycloset.clothes.entity.clothes.QClothes.clothes;
 import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.clothes.repository.clothes.cursor.strategy.ClothesNumberFieldStrategy;
 import com.stylemycloset.clothes.repository.clothes.cursor.strategy.ClothesTimeFieldStrategy;
-import com.stylemycloset.common.repository.cursor.CursorStrategy;
+import com.stylemycloset.common.repository.CursorStrategy;
 import java.time.Instant;
 import java.util.Arrays;
 

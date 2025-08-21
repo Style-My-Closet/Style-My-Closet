@@ -5,7 +5,7 @@ import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.DateTimePath;
-import com.stylemycloset.common.repository.cursor.CursorStrategy;
+import com.stylemycloset.common.repository.CursorStrategy;
 import com.stylemycloset.directmessage.entity.DirectMessage;
 import java.time.Instant;
 import java.util.function.Function;

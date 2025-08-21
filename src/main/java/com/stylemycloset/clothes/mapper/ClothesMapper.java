@@ -1,14 +1,14 @@
 package com.stylemycloset.clothes.mapper;
 
 import com.stylemycloset.binarycontent.mapper.BinaryContentMapper;
-import com.stylemycloset.binarycontent.storage.s3.BinaryContentStorage;
 import com.stylemycloset.clothes.dto.clothes.AttributeDto;
 import com.stylemycloset.clothes.dto.clothes.ClothesDto;
 import com.stylemycloset.clothes.dto.clothes.response.ClothDtoCursorResponse;
 import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.clothes.repository.clothes.cursor.ClothesField;
-import com.stylemycloset.common.repository.cursor.CursorStrategy;
-import com.stylemycloset.common.repository.cursor.NextCursorInfo;
+import com.stylemycloset.common.repository.CursorStrategy;
+import com.stylemycloset.common.repository.CustomSliceImpl;
+import com.stylemycloset.common.repository.NextCursorInfo;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
@@ -42,27 +42,17 @@ public class ClothesMapper {
         .stream()
         .map(this::toResponse)
         .toList();
-    Order order = getOrder(clothes);
+    Order order = CustomSliceImpl.getOrder(clothes);
 
     return ClothDtoCursorResponse.of(
         content,
         extractNextCursorInfo(clothes, order.getProperty()),
         clothes.hasNext(),
         null,
-        order.getProperty(),
-        order.getDirection().toString()
+        order
     );
   }
 
-  private Order getOrder(Slice<Clothes> clothes) {
-    return clothes.getPageable()
-        .getSort()
-        .stream()
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("DTO 변환시 정렬 순서(Order)가 존재하지 않습니다."));
-  }
-
-  // 에는 nextCursor로 빼고
   private NextCursorInfo extractNextCursorInfo(Slice<Clothes> clothes, String sortBy) {
     if (sortBy == null || sortBy.isBlank() ||
         !clothes.hasNext() || clothes.getContent().isEmpty()

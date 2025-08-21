@@ -1,6 +1,6 @@
 package com.stylemycloset.follow.repository.cursor;
 
-import com.stylemycloset.common.repository.cursor.CursorStrategy;
+import com.stylemycloset.common.repository.CursorStrategy;
 import com.stylemycloset.follow.entity.Follow;
 import com.stylemycloset.follow.entity.QFollow;
 import com.stylemycloset.follow.repository.cursor.strategy.ChronologicalCursorStrategy;

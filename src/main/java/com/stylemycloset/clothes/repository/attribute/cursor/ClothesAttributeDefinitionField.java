@@ -6,7 +6,7 @@ import com.stylemycloset.clothes.entity.attribute.ClothesAttributeDefinition;
 import com.stylemycloset.clothes.repository.attribute.cursor.strategy.AttributeIdCursorStrategy;
 import com.stylemycloset.clothes.repository.attribute.cursor.strategy.AttributeTextCursorStrategy;
 import com.stylemycloset.clothes.repository.attribute.cursor.strategy.AttributeTimeCursorStrategy;
-import com.stylemycloset.common.repository.cursor.CursorStrategy;
+import com.stylemycloset.common.repository.CursorStrategy;
 import java.time.Instant;
 import java.util.Arrays;
 

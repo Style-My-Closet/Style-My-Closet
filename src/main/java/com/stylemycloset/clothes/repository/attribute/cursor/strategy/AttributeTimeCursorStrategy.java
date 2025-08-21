@@ -5,7 +5,7 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.stylemycloset.clothes.entity.attribute.ClothesAttributeDefinition;
-import com.stylemycloset.common.repository.cursor.CursorStrategy;
+import com.stylemycloset.common.repository.CursorStrategy;
 import java.time.Instant;
 import java.util.function.Function;
 import org.springframework.data.domain.Sort.Direction;

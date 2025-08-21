@@ -1,11 +1,12 @@
 package com.stylemycloset.clothes.mapper;
 
-import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDtoCursorResponse;
 import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDto;
+import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDtoCursorResponse;
 import com.stylemycloset.clothes.entity.attribute.ClothesAttributeDefinition;
 import com.stylemycloset.clothes.repository.attribute.cursor.ClothesAttributeDefinitionField;
-import com.stylemycloset.common.repository.cursor.CursorStrategy;
-import com.stylemycloset.common.repository.cursor.NextCursorInfo;
+import com.stylemycloset.common.repository.CursorStrategy;
+import com.stylemycloset.common.repository.CustomSliceImpl;
+import com.stylemycloset.common.repository.NextCursorInfo;
 import java.util.List;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort.Order;
@@ -21,9 +22,8 @@ public class AttributeMapper {
         .stream()
         .map(ClothesAttributeDefinitionDto::from)
         .toList();
-    Order order = getOrder(attributeDefinitions);
-    NextCursorInfo nextCursorInfo = extractNextCursorInfo(attributeDefinitions,
-        order.getProperty());
+    Order order = CustomSliceImpl.getOrder(attributeDefinitions);
+    NextCursorInfo nextCursorInfo = extractNextCursorInfo(attributeDefinitions, order);
 
     return ClothesAttributeDefinitionDtoCursorResponse.of(
         definitions,
@@ -36,19 +36,11 @@ public class AttributeMapper {
     );
   }
 
-  private Order getOrder(Slice<ClothesAttributeDefinition> attributeDefinitions) {
-    return attributeDefinitions.getPageable()
-        .getSort()
-        .stream()
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("DTO 변환시 정렬 순서(Order)가 존재하지 않습니다."));
-  }
-
   private NextCursorInfo extractNextCursorInfo(
       Slice<ClothesAttributeDefinition> attributeDefinitions,
-      String sortBy
+      Order order
   ) {
-    if (sortBy == null || sortBy.isBlank() ||
+    if (order == null ||
         !attributeDefinitions.hasNext() || attributeDefinitions.getContent().isEmpty()
     ) {
       return new NextCursorInfo(null, null);
@@ -57,7 +49,7 @@ public class AttributeMapper {
     ClothesAttributeDefinition lastDefinition = attributeDefinitions.getContent()
         .get(attributeDefinitions.getContent().size() - 1);
     CursorStrategy<?, ClothesAttributeDefinition> cursorStrategy = ClothesAttributeDefinitionField.resolveStrategy(
-        sortBy);
+        order.getProperty());
     String cursor = cursorStrategy.extract(lastDefinition).toString();
     String idAfter = lastDefinition.getId().toString();
 

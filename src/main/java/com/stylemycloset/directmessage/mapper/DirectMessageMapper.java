@@ -1,15 +1,15 @@
 package com.stylemycloset.directmessage.mapper;
 
-import com.stylemycloset.binarycontent.storage.s3.BinaryContentStorage;
-import com.stylemycloset.common.repository.cursor.CursorStrategy;
-import com.stylemycloset.common.repository.cursor.NextCursorInfo;
+import com.stylemycloset.binarycontent.mapper.BinaryContentMapper;
+import com.stylemycloset.common.repository.CursorStrategy;
+import com.stylemycloset.common.repository.CustomSliceImpl;
+import com.stylemycloset.common.repository.NextCursorInfo;
 import com.stylemycloset.directmessage.dto.DirectMessageResult;
 import com.stylemycloset.directmessage.dto.response.DirectMessageResponse;
 import com.stylemycloset.directmessage.dto.response.DirectMessageUserInfo;
 import com.stylemycloset.directmessage.entity.DirectMessage;
 import com.stylemycloset.directmessage.repository.cursor.DirectMessageField;
 import com.stylemycloset.user.entity.User;
-import java.net.URL;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DirectMessageMapper {
 
-  private final BinaryContentStorage binaryContentStorage;
+  private final BinaryContentMapper binaryContentMapper;
 
   public DirectMessageResult toResult(DirectMessage directMessage) {
     User sender = directMessage.getSender();
@@ -28,27 +28,25 @@ public class DirectMessageMapper {
 
     return DirectMessageResult.from(
         directMessage,
-        DirectMessageUserInfo.from(sender, getProfileImageURL(sender)),
-        DirectMessageUserInfo.from(receiver, getProfileImageURL(receiver))
+        DirectMessageUserInfo.from(
+            sender,
+            binaryContentMapper.extractUrl(sender.getProfileImage())
+        ),
+        DirectMessageUserInfo.from(
+            receiver,
+            binaryContentMapper.extractUrl(receiver.getProfileImage())
+        )
     );
-  }
-
-  private String getProfileImageURL(User user) {
-    if (user.getProfileImage() == null) {
-      return null;
-    }
-    URL url = binaryContentStorage.getUrl(user.getProfileImage().getId());
-    return url.toString();
   }
 
   public DirectMessageResponse<DirectMessageResult> toMessageResponse(
       Slice<DirectMessage> messages
   ) {
-    List<DirectMessageResult> messageResults =  messages.getContent()
+    List<DirectMessageResult> messageResults = messages.getContent()
         .stream()
         .map(this::toResult)
         .toList();
-    Order order = getOrder(messages);
+    Order order = CustomSliceImpl.getOrder(messages);
 
     return DirectMessageResponse.of(
         messageResults,
@@ -58,14 +56,6 @@ public class DirectMessageMapper {
         order.getProperty(),
         order.getDirection().toString()
     );
-  }
-
-  private Order getOrder(Slice<DirectMessage> messages) {
-    return messages.getPageable()
-        .getSort()
-        .stream()
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("DTO 변환시 정렬 순서(Order)가 존재하지 않습니다."));
   }
 
   private NextCursorInfo extractNextCursorInfo(Slice<DirectMessage> messages, String sortBy) {

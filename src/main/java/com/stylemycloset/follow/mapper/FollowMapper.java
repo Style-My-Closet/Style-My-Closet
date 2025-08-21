@@ -1,8 +1,9 @@
 package com.stylemycloset.follow.mapper;
 
 import com.stylemycloset.binarycontent.mapper.BinaryContentMapper;
-import com.stylemycloset.common.repository.cursor.CursorStrategy;
-import com.stylemycloset.common.repository.cursor.NextCursorInfo;
+import com.stylemycloset.common.repository.CursorStrategy;
+import com.stylemycloset.common.repository.CustomSliceImpl;
+import com.stylemycloset.common.repository.NextCursorInfo;
 import com.stylemycloset.follow.dto.FollowListResponse;
 import com.stylemycloset.follow.dto.FollowResult;
 import com.stylemycloset.follow.dto.FollowUserInfo;
@@ -39,8 +40,11 @@ public class FollowMapper {
   }
 
   public FollowListResponse<FollowResult> toFollowResponse(Slice<Follow> follows) {
-    List<FollowResult> followResults = getFollowResults(follows);
-    Order order = getOrder(follows);
+    List<FollowResult> followResults = follows.getContent()
+        .stream()
+        .map(this::toResult)
+        .toList();
+    Order order = CustomSliceImpl.getOrder(follows);
 
     return FollowListResponse.of(
         followResults,
@@ -50,21 +54,6 @@ public class FollowMapper {
         order.getProperty(),
         order.getDirection().toString()
     );
-  }
-
-  private Order getOrder(Slice<Follow> follows) {
-    return follows.getPageable()
-        .getSort()
-        .stream()
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("DTO 변환시 정렬 순서(Order)가 존재하지 않습니다."));
-  }
-
-  private List<FollowResult> getFollowResults(Slice<Follow> follows) {
-    return follows.getContent()
-        .stream()
-        .map(this::toResult)
-        .toList();
   }
 
   private NextCursorInfo extractNextCursorInfo(Slice<Follow> follows, String sortBy) {

@@ -1,7 +1,7 @@
 package com.stylemycloset.follow.repository.impl.cursorstrategy;
 
 import com.querydsl.core.types.Path;
-import com.stylemycloset.common.repository.cursor.CursorStrategy;
+import com.stylemycloset.common.repository.CursorStrategy;
 import com.stylemycloset.follow.entity.QFollow;
 import com.stylemycloset.follow.repository.cursor.FollowCursorField;
 import java.util.stream.Stream;

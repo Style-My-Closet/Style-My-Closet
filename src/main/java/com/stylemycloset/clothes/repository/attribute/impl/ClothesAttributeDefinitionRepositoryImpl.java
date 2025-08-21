@@ -6,14 +6,11 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.stylemycloset.clothes.entity.attribute.ClothesAttributeDefinition;
 import com.stylemycloset.clothes.repository.attribute.cursor.ClothesAttributeDefinitionField;
-import com.stylemycloset.common.repository.cursor.CursorStrategy;
+import com.stylemycloset.common.repository.CursorStrategy;
+import com.stylemycloset.common.repository.CustomSliceImpl;
 import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -48,7 +45,7 @@ public class ClothesAttributeDefinitionRepositoryImpl implements
         .limit(limit + 1)
         .fetch();
 
-    return convertToSlice(attributeDefinitions, primaryCursorStrategy, limit, sortDirection);
+    return CustomSliceImpl.of(attributeDefinitions, limit, primaryCursorStrategy, sortDirection);
   }
 
   private BooleanExpression nameContains(String keyword) {
@@ -74,25 +71,6 @@ public class ClothesAttributeDefinitionRepositoryImpl implements
     }
 
     return booleanExpression;
-  }
-
-  private SliceImpl<ClothesAttributeDefinition> convertToSlice( // TODO: 8/19/25  커스텀 이거 해야함
-      List<ClothesAttributeDefinition> attributeDefinitions,
-      CursorStrategy<?, ClothesAttributeDefinition> primaryCursorStrategy,
-      Integer limit,
-      String sortDirection
-  ) {
-    Objects.requireNonNull(limit, "limit은 null이 될 수 없습니다");
-    Sort sort = Sort.by(
-        primaryCursorStrategy.parseDirectionOrDefault(sortDirection),
-        primaryCursorStrategy.path().getMetadata().getName()
-    );
-
-    return new SliceImpl<>(
-        attributeDefinitions.subList(0, Math.min(attributeDefinitions.size(), limit)),
-        PageRequest.of(0, limit, sort),
-        attributeDefinitions.size() > limit
-    );
   }
 
 }

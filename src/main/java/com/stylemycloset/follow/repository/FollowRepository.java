@@ -80,11 +80,25 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, FollowRep
   Set<Long> findFollowerIdsByFolloweeId(@Param("followeeId") Long followeeId);
 
   @Override
-  Slice<Follow> findFollowingsByFollowerId(Long followerId, String cursor, String idAfter,
-      Integer limit, String nameLike, String sortBy, String sortDirection);
+  Slice<Follow> findFollowingsByFollowerId(
+      Long followerId,
+      String cursor,
+      String idAfter,
+      Integer limit,
+      String nameLike,
+      String sortBy,
+      String sortDirection
+  );
 
   @Override
-  Slice<Follow> findFollowersByFolloweeId(Long followerId, String cursor, String idAfter,
-      Integer limit, String nameLike, String sortBy, String sortDirection);
+  Slice<Follow> findFollowersByFolloweeId(
+      Long followerId,
+      String cursor,
+      String idAfter,
+      Integer limit,
+      String nameLike,
+      String sortBy,
+      String sortDirection
+  );
 
 }

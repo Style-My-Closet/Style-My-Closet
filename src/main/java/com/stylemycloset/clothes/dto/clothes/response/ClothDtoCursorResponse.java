@@ -1,8 +1,9 @@
 package com.stylemycloset.clothes.dto.clothes.response;
 
 import com.stylemycloset.clothes.dto.clothes.ClothesDto;
-import com.stylemycloset.common.repository.cursor.NextCursorInfo;
+import com.stylemycloset.common.repository.NextCursorInfo;
 import java.util.List;
+import org.springframework.data.domain.Sort.Order;
 
 public record ClothDtoCursorResponse(
     List<ClothesDto> data,
@@ -19,8 +20,7 @@ public record ClothDtoCursorResponse(
       NextCursorInfo nextCursorInfo,
       Boolean hasNext,
       Long totalCount,
-      String sortBy,
-      String sortDirection
+      Order order
   ) {
     return new ClothDtoCursorResponse(
         data,
@@ -28,9 +28,24 @@ public record ClothDtoCursorResponse(
         nextCursorInfo.nextIdAfter(),
         hasNext,
         totalCount,
-        sortBy,
-        sortDirection
+        getSortBy(order),
+        getSortDirection(order)
     );
+  }
+
+  private static String getSortBy(Order order) {
+    if (order == null) {
+      return null;
+    }
+    return order.getProperty();
+  }
+
+  private static String getSortDirection(Order order) {
+    if (order == null) {
+      return null;
+    }
+    return order.getDirection()
+        .toString();
   }
 
 }
