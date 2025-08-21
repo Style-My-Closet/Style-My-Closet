@@ -22,12 +22,11 @@ public class CommentMapper {
         }
 
         return new CommentDto(
-            comment.getId(),
-            comment.getCreatedAt(),
-            comment.getFeed().getId(),
-            feedMapper.toAuthorDto(comment.getAuthor()),
-            comment.getContent()
-        );
+                comment.getId(),
+                comment.getCreatedAt(),
+                comment.getFeed().getId(),
+                feedMapper.toAuthorDto(comment.getAuthor()),
+                comment.getContent());
     }
 
     public List<CommentDto> toDtoList(List<FeedComment> comments) {
@@ -36,7 +35,7 @@ public class CommentMapper {
         }
 
         return comments.stream()
-            .map(this::toDto)
-            .collect(Collectors.toList());
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 }
