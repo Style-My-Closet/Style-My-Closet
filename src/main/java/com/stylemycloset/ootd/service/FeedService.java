@@ -16,7 +16,7 @@ public interface FeedService {
 
   FeedDto createFeed(FeedCreateRequest request);
 
-  FeedDtoCursorResponse getFeeds(FeedSearchRequest request);
+  FeedDtoCursorResponse getFeeds(FeedSearchRequest request, Long currentUserId);
 
   FeedDto toggleLike(Long userId, Long feedId);
 

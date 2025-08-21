@@ -19,8 +19,14 @@ public interface FeedLikeRepository extends JpaRepository<FeedLike, Long> {
   boolean existsByUserAndFeed(User user, Feed feed);
 
   // Batch 쿼리로 좋아요 수 조회
-  @Query("SELECT fl.feed.id as feedId, COUNT(fl) as count FROM FeedLike fl WHERE fl.feed.id IN :feedIds GROUP BY fl.feed.id")
-  List<Object[]> countByFeedIds(@Param("feedIds") List<Long> feedIds);
+  interface FeedLikeCountProjection {
+    Long getFeedId();
+    Long getCount();
+  }
+
+  @Query("SELECT fl.feed.id as feedId, COUNT(fl) as count " +
+         "FROM FeedLike fl WHERE fl.feed.id IN :feedIds GROUP BY fl.feed.id")
+  List<FeedLikeCountProjection> countByFeedIds(@Param("feedIds") List<Long> feedIds);
 
   // Batch 쿼리로 사용자가 좋아요한 피드 ID 목록 조회
   @Query("SELECT fl.feed.id FROM FeedLike fl WHERE fl.user.id = :userId AND fl.feed.id IN :feedIds")

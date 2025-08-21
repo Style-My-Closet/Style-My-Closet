@@ -164,11 +164,14 @@ public class FeedControllerTest extends IntegrationTestSupport {
         feedRepository.save(Feed.createFeed(testUser, null, "테스트 피드 " + i));
       }
 
+      ClosetUserDetails principal = createUserDetails();
+
       mockMvc.perform(get("/api/feeds")
               .param("limit", "10")
               .param("sortBy", "createdAt")
               .param("sortDirection", "DESCENDING")
-              .with(csrf())) // GET 요청이지만 CSRF 설정에 따라 필요할 수 있음
+              .with(csrf())
+              .with(user(principal))) // 인증된 사용자 정보 추가
           .andDo(print())
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.data.length()").value(10))

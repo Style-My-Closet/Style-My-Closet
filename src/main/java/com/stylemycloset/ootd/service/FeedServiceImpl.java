@@ -38,6 +38,7 @@ import com.stylemycloset.weather.dto.WeatherSummaryDto;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -89,9 +90,10 @@ public class FeedServiceImpl implements FeedService {
   }
 
   @Override
-  public FeedDtoCursorResponse getFeeds(FeedSearchRequest request) {
-    // TODO: 이 메서드에도 현재 로그인한 유저 ID를 파라미터로 받아와야 likedByMe를 계산
-    User currentUser = null;
+  public FeedDtoCursorResponse getFeeds(FeedSearchRequest request, Long currentUserId) {
+    // 인증된 사용자 정보 조회
+    User currentUser = currentUserId != null ? 
+        userRepository.findByIdAndDeletedAtIsNullAndLockedIsFalse(currentUserId).orElse(null) : null;
 
     List<Feed> feeds = feedRepository.findByConditions(request);
 
@@ -101,20 +103,23 @@ public class FeedServiceImpl implements FeedService {
       feeds.remove(limit);
     }
 
+    // 좋아요 수와 상태를 Batch 쿼리로 조회
+    Map<Long, Long> likeCountMap = getLikeCountMap(feeds);
+    Map<Long, Boolean> likedByMeMap = currentUser != null ? getLikedByMeMap(feeds, currentUser) : new HashMap<>();
+
     String nextCursor = null;
     Long nextIdAfter = null;
     if (hasNext && !feeds.isEmpty()) {
       Feed lastFeed = feeds.get(feeds.size() - 1);
       if ("createdAt".equals(request.sortBy()) || request.sortBy() == null) {
         nextCursor = lastFeed.getCreatedAt().toString();
+      } else if ("likeCount".equals(request.sortBy())) {
+        // likeCount 정렬 시 좋아요 수를 cursor로 사용
+        nextCursor = String.valueOf(likeCountMap.getOrDefault(lastFeed.getId(), 0L));
       }
 
       nextIdAfter = lastFeed.getId();
     }
-
-    // 좋아요 수와 상태를 Batch 쿼리로 조회
-    Map<Long, Long> likeCountMap = getLikeCountMap(feeds);
-    Map<Long, Boolean> likedByMeMap = currentUser != null ? getLikedByMeMap(feeds, currentUser) : new HashMap<>();
 
     List<FeedDto> feedDtos = feeds.stream()
         .map(feed -> mapToFeedResponseWithLikeInfo(feed, currentUser, likeCountMap, likedByMeMap))
@@ -224,11 +229,11 @@ public class FeedServiceImpl implements FeedService {
     }
     
     // Batch 쿼리로 좋아요 수 조회
-    List<Object[]> results = feedLikeRepository.countByFeedIds(feedIds);
+    List<FeedLikeRepository.FeedLikeCountProjection> results = feedLikeRepository.countByFeedIds(feedIds);
     return results.stream()
         .collect(Collectors.toMap(
-            result -> (Long) result[0],
-            result -> (Long) result[1]
+            FeedLikeRepository.FeedLikeCountProjection::getFeedId,
+            FeedLikeRepository.FeedLikeCountProjection::getCount
         ));
   }
 
@@ -240,10 +245,11 @@ public class FeedServiceImpl implements FeedService {
     
     // Batch 쿼리로 좋아요 상태 조회
     List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByUserAndFeedIds(currentUser.getId(), feedIds);
+    HashSet<Long> likedFeedIdSet = new HashSet<>(likedFeedIds); // O(1) 
     return feedIds.stream()
         .collect(Collectors.toMap(
             feedId -> feedId,
-            feedId -> likedFeedIds.contains(feedId)
+            feedId -> likedFeedIdSet.contains(feedId) // O(1) 
         ));
   }
 
@@ -415,10 +421,10 @@ public class FeedServiceImpl implements FeedService {
         .collect(Collectors.toMap(feedId -> feedId, feedId -> 0L));
     
     // Batch 쿼리로 좋아요 수 조회
-    List<Object[]> results = feedLikeRepository.countByFeedIds(feedIds);
+    List<FeedLikeRepository.FeedLikeCountProjection> results = feedLikeRepository.countByFeedIds(feedIds);
     results.forEach(result -> {
-      Long feedId = (Long) result[0];
-      Long count = (Long) result[1];
+      Long feedId = result.getFeedId();
+      Long count = result.getCount();
       likeCountMap.put(feedId, count);
     });
     
@@ -433,10 +439,11 @@ public class FeedServiceImpl implements FeedService {
     
     // Batch 쿼리로 좋아요 상태 조회
     List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByUserAndFeedIds(currentUser.getId(), feedIds);
+    HashSet<Long> likedFeedIdSet = new HashSet<>(likedFeedIds); // O(1) 
     return feedIds.stream()
         .collect(Collectors.toMap(
             feedId -> feedId,
-            feedId -> likedFeedIds.contains(feedId)
+            feedId -> likedFeedIdSet.contains(feedId) // O(1) 
         ));
   }
 }

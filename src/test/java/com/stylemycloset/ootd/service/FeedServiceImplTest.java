@@ -145,7 +145,7 @@ class FeedServiceImplTest {
           .thenReturn(fakeFeeds);
 
       // when (실행)
-      FeedDtoCursorResponse result = feedService.getFeeds(request);
+      FeedDtoCursorResponse result = feedService.getFeeds(request, null);
 
       // then (검증)
       assertThat(result).isNotNull();
@@ -178,7 +178,7 @@ class FeedServiceImplTest {
     when(feedRepository.findByConditions(request)).thenReturn(fakeFeeds);
 
     // when
-    FeedDtoCursorResponse result = feedService.getFeeds(request);
+    FeedDtoCursorResponse result = feedService.getFeeds(request, null);
 
     // then
     assertThat(result.hasNext()).isTrue();

@@ -49,11 +49,10 @@ public class FeedController {
 
   @GetMapping
   public ResponseEntity<FeedDtoCursorResponse> getFeeds(
-      @Valid FeedSearchRequest request
-
+      @Valid FeedSearchRequest request,
+      @AuthenticationPrincipal(expression = "userId") Long currentUserId
   ) {
-
-    FeedDtoCursorResponse response = feedService.getFeeds(request);
+    FeedDtoCursorResponse response = feedService.getFeeds(request, currentUserId);
     return ResponseEntity.ok(response);
   }
 
