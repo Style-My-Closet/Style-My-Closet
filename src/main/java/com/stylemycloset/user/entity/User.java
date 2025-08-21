@@ -18,7 +18,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -103,22 +102,27 @@ public class User extends SoftDeletableEntity {
     }
   }
 
-  public void updateProfile(ProfileUpdateRequest request) {
-    if (request.name() != null) {
-      this.name = request.name();
+  public void updateProfile(String name, Gender gender, LocalDate birthDate, Location location,
+      Integer temperatureSensitivity) {
+    if (name != null) {
+      this.name = name;
     }
-    if (request.gender() != null) {
-      this.gender = request.gender();
+    if (gender != null) {
+      this.gender = gender;
     }
-    if (request.birthDate() != null) {
-      this.birthDate = request.birthDate();
+    if (birthDate != null) {
+      this.birthDate = birthDate;
     }
-    if (request.location() != null) {
-      this.location = request.location();
+    if (location != null) {
+      this.location = location;
     }
-    if (request.temperatureSensitivity() != null) {
-      this.temperatureSensitivity = request.temperatureSensitivity();
+    if (temperatureSensitivity != null) {
+      this.temperatureSensitivity = temperatureSensitivity;
     }
+  }
+
+  public void updateImage(BinaryContent image) {
+    this.profileImage = image;
   }
 
   public void setId(Long id) {// 테스트 때문에 넣었습니다. // 이 부분은 제거해주세요

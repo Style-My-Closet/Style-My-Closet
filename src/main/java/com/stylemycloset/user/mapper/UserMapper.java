@@ -1,17 +1,34 @@
 package com.stylemycloset.user.mapper;
 
-
 import com.stylemycloset.user.dto.data.ProfileDto;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.entity.User;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
-@Mapper(componentModel = "spring")
-public interface UserMapper {
+@Component
+@RequiredArgsConstructor
+public class UserMapper {
 
-  UserDto UsertoUserDto(User user);
+  public UserDto UsertoUserDto(User user) {
+    return new UserDto(user.getId(),
+        user.getCreatedAt(),
+        user.getEmail(),
+        user.getName(),
+        user.getRole(),
+        user.getLinkedOAuthProviders(),
+        user.isLocked());
+  }
 
-  @Mapping(source = "id", target = "userId")
-  ProfileDto UsertoProfileDto(User user);
+  public ProfileDto UsertoProfileDto(User user, String profileImageUrl) {
+
+    return new ProfileDto(user.getId(),
+        user.getName(),
+        user.getGender(),
+        user.getBirthDate(),
+        user.getLocation(),
+        user.getTemperatureSensitivity(),
+        profileImageUrl
+    );
+  }
 }

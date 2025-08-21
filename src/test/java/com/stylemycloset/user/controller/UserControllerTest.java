@@ -230,7 +230,8 @@ public class UserControllerTest extends IntegrationTestSupport {
   void getProfileApiTest() throws Exception {
     // given
     User user = createUser(userRequest1.name(), userRequest1.email(), userRequest1.password());
-    user.updateProfile(profileRequest);
+    user.updateProfile(profileRequest.name(), profileRequest.gender(), profileRequest.birthDate(),
+        profileRequest.location(), profileRequest.temperatureSensitivity());
     User savedUser = userRepository.saveAndFlush(user);
 
     // when & then

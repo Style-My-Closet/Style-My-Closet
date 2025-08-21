@@ -1,5 +1,8 @@
 package com.stylemycloset.user.service;
 
+import com.stylemycloset.binarycontent.entity.BinaryContent;
+import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
+import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
 import com.stylemycloset.notification.event.domain.RoleChangedEvent;
 import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.user.dto.data.ProfileDto;
@@ -19,9 +22,11 @@ import com.stylemycloset.user.exception.UserNotFoundException;
 import com.stylemycloset.user.mapper.UserMapper;
 import com.stylemycloset.user.repository.UserRepository;
 import com.stylemycloset.user.util.MailService;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -41,6 +46,8 @@ public class UserServiceImpl implements UserService {
   private final UserMapper userMapper;
   private final JwtService jwtService;
   private final MailService mailSender;
+  private final BinaryContentRepository binaryContentRepository;
+  private final BinaryContentStorage storage;
 
   @Transactional
   @Override
@@ -106,19 +113,42 @@ public class UserServiceImpl implements UserService {
   @Transactional
   @Override
   public ProfileDto updateProfile(Long userId, ProfileUpdateRequest request,
-      MultipartFile image) {//이미지 구현은 나중에 binarycontent생기면 할예정
+      MultipartFile image) {
     User user = findUserById(userId);
+    String profileImageUrl = null;
+    if (image != null && !image.isEmpty()) {
+      try {
+        BinaryContent binaryContent = new BinaryContent(image.getOriginalFilename(),
+            image.getContentType(), image.getSize());
 
-    user.updateProfile(request);
-    return userMapper.UsertoProfileDto(user);
+        BinaryContent save = binaryContentRepository.save(binaryContent);
+
+        storage.put(save.getId(), image.getBytes());
+
+        user.updateImage(save);
+      } catch (IOException e) {
+        throw new RuntimeException("Could not save binary content");
+      }
+    }
+
+    user.updateProfile(request.name(), request.gender(), request.birthDate(), request.location(),
+        request.temperatureSensitivity());
+    if (user.getProfileImage() != null) {
+      profileImageUrl = storage.getUrl(user.getProfileImage().getId()).toString();
+    }
+    return userMapper.UsertoProfileDto(user, profileImageUrl);
   }
 
   @Transactional(readOnly = true)
   @Override
   public ProfileDto getProfile(Long userId) {
     User user = findUserById(userId);
+    String profileImageUrl = null;
 
-    return userMapper.UsertoProfileDto(user);
+    if (user.getProfileImage() != null) {
+      profileImageUrl = storage.getUrl(user.getProfileImage().getId()).toString();
+    }
+    return userMapper.UsertoProfileDto(user, profileImageUrl);
   }
 
   @Override
