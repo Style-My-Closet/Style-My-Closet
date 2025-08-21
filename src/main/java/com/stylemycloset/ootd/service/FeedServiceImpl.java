@@ -1,8 +1,6 @@
 package com.stylemycloset.ootd.service;
 
-import com.stylemycloset.cloth.entity.AttributeOption;
 import com.stylemycloset.cloth.entity.Cloth;
-import com.stylemycloset.cloth.entity.ClothingAttribute;
 import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
@@ -10,7 +8,6 @@ import com.stylemycloset.notification.event.domain.FeedCommentEvent;
 import com.stylemycloset.notification.event.domain.FeedLikedEvent;
 import com.stylemycloset.notification.event.domain.NewFeedEvent;
 import com.stylemycloset.ootd.dto.AuthorDto;
-import com.stylemycloset.ootd.dto.ClothesAttributeWithDefDto;
 import com.stylemycloset.ootd.dto.CommentCreateRequest;
 import com.stylemycloset.ootd.dto.CommentCursorResponse;
 import com.stylemycloset.ootd.dto.CommentDto;
@@ -29,7 +26,7 @@ import com.stylemycloset.ootd.repo.FeedClothesRepository;
 import com.stylemycloset.ootd.repo.FeedCommentRepository;
 import com.stylemycloset.ootd.repo.FeedLikeRepository;
 import com.stylemycloset.ootd.repo.FeedRepository;
-import com.stylemycloset.ootd.tempEnum.ClothesType;
+import com.stylemycloset.ootd.mapper.OotdItemMapper;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import com.stylemycloset.weather.dto.PrecipitationDto;
@@ -62,6 +59,7 @@ public class FeedServiceImpl implements FeedService {
   private final FeedLikeRepository feedLikeRepository;
   private final FeedCommentRepository feedCommentRepository;
   private final ApplicationEventPublisher publisher;
+  private final OotdItemMapper ootdItemMapper;
 
   @Override
   @Transactional
@@ -172,7 +170,7 @@ public class FeedServiceImpl implements FeedService {
 
     AuthorDto authorDto = toAuthorDto(feed.getAuthor());
     WeatherSummaryDto weatherDto = toWeatherSummaryDto(feed.getWeather());
-    List<OotdItemDto> ootdItemDtos = toOotdItemDtoList(clothesList);
+    List<OotdItemDto> ootdItemDtos = ootdItemMapper.toDtoList(clothesList);
 
     // Batch 쿼리로 좋아요 정보 조회
     List<Long> feedIds = List.of(feed.getId());
@@ -204,7 +202,7 @@ public class FeedServiceImpl implements FeedService {
 
     AuthorDto authorDto = toAuthorDto(feed.getAuthor());
     WeatherSummaryDto weatherDto = toWeatherSummaryDto(feed.getWeather());
-    List<OotdItemDto> ootdItemDtos = toOotdItemDtoList(clothesList);
+    List<OotdItemDto> ootdItemDtos = ootdItemMapper.toDtoList(clothesList);
 
     long likeCount = likeCountMap.getOrDefault(feed.getId(), 0L);
     boolean likedByMe = likedByMeMap.getOrDefault(feed.getId(), false);
@@ -279,36 +277,6 @@ public class FeedServiceImpl implements FeedService {
 
     return new WeatherSummaryDto(weather.getId(), weather.getSkyStatus(), precipitationDto,
         temperatureDto);
-  }
-
-  private List<OotdItemDto> toOotdItemDtoList(List<Cloth> clothesList) {
-    return clothesList.stream().map(this::toOotdItemDto).collect(Collectors.toList());
-  }
-
-  private OotdItemDto toOotdItemDto(Cloth cloth) {
-    List<ClothesAttributeWithDefDto> attributes = cloth.getAttributeValues().stream()
-        .map(attributeValue -> {
-          ClothingAttribute definition = attributeValue.getAttribute(); // 속성의 정의
-
-          // 해당 속성이 가질 수 있는 모든 선택지
-          List<String> selectableValues = definition.getOptions().stream()
-              .map(AttributeOption::getValue)
-              .collect(Collectors.toList());
-
-          // 이 옷이 선택한 특정 값을 가져옴
-          String chosenValue = attributeValue.getOption().getValue();
-
-          return new ClothesAttributeWithDefDto(
-              definition.getId(),
-              definition.getName(),
-              selectableValues,
-              chosenValue
-          );
-        })
-        .collect(Collectors.toList());
-
-    return new OotdItemDto(cloth.getId(), cloth.getName(), null, // TODO: 이미지 URL 로직
-        ClothesType.valueOf(cloth.getCategory().getName().name()), attributes);
   }
 
   @Override
