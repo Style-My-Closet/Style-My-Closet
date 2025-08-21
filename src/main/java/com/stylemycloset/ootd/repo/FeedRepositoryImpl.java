@@ -29,11 +29,9 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
   public List<Feed> findByConditions(FeedSearchRequest request) {
     int limit = request.limit() != null ? request.limit() : 10;
 
-    return queryFactory
-        .selectFrom(feed)
-        .leftJoin(feed.author).fetchJoin()
-        .leftJoin(feed.weather).fetchJoin()
-        .leftJoin(feed.feedClothes).fetchJoin()
+    List<Long> feedIds = queryFactory
+        .select(feed.id)
+        .from(feed)
         .where(
             cursorCondition(request),
             containsKeyword(request.keywordLike()),
@@ -43,6 +41,19 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
         )
         .orderBy(createOrderSpecifiers(request))
         .limit(limit + 1) // +1 조회
+        .fetch();
+
+    if (feedIds.isEmpty()) {
+      return new ArrayList<>();
+    }
+
+    return queryFactory
+        .selectFrom(feed)
+        .leftJoin(feed.author).fetchJoin()
+        .leftJoin(feed.weather).fetchJoin()
+        .leftJoin(feed.feedClothes).fetchJoin()
+        .where(feed.id.in(feedIds))
+        .orderBy(createOrderSpecifiers(request))
         .fetch();
   }
 

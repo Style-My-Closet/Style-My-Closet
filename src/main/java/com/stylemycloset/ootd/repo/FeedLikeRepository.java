@@ -21,10 +21,10 @@ public interface FeedLikeRepository extends JpaRepository<FeedLike, Long> {
   // Batch 쿼리로 좋아요 수 조회
   interface FeedLikeCountProjection {
     Long getFeedId();
-    Long getCount();
+    Long getLikeCount();
   }
 
-  @Query("SELECT fl.feed.id as feedId, COUNT(fl) as count " +
+  @Query("SELECT fl.feed.id as feedId, COUNT(fl) as likeCount " +
          "FROM FeedLike fl WHERE fl.feed.id IN :feedIds GROUP BY fl.feed.id")
   List<FeedLikeCountProjection> countByFeedIds(@Param("feedIds") List<Long> feedIds);
 

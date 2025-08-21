@@ -158,7 +158,6 @@ public class FeedControllerTest extends IntegrationTestSupport {
 
     @Test
     @DisplayName("피드 목록을 조회하면 200OK 상태와 함께 페이지된 피드 목록을 반환한다")
-    @WithMockUser
     void getFeeds_Returns200AndPagedFeeds() throws Exception {
       for (int i = 0; i < 11; i++) {
         feedRepository.save(Feed.createFeed(testUser, null, "테스트 피드 " + i));

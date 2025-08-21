@@ -45,6 +45,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,7 +91,7 @@ public class FeedServiceImpl implements FeedService {
   }
 
   @Override
-  public FeedDtoCursorResponse getFeeds(FeedSearchRequest request, Long currentUserId) {
+  public FeedDtoCursorResponse getFeeds(FeedSearchRequest request, @Nullable Long currentUserId) {
     // 인증된 사용자 정보 조회
     User currentUser = currentUserId != null ? 
         userRepository.findByIdAndDeletedAtIsNullAndLockedIsFalse(currentUserId).orElse(null) : null;
@@ -233,7 +234,7 @@ public class FeedServiceImpl implements FeedService {
     return results.stream()
         .collect(Collectors.toMap(
             FeedLikeRepository.FeedLikeCountProjection::getFeedId,
-            FeedLikeRepository.FeedLikeCountProjection::getCount
+            FeedLikeRepository.FeedLikeCountProjection::getLikeCount
         ));
   }
 
@@ -424,7 +425,7 @@ public class FeedServiceImpl implements FeedService {
     List<FeedLikeRepository.FeedLikeCountProjection> results = feedLikeRepository.countByFeedIds(feedIds);
     results.forEach(result -> {
       Long feedId = result.getFeedId();
-      Long count = result.getCount();
+      Long count = result.getLikeCount();
       likeCountMap.put(feedId, count);
     });
     
