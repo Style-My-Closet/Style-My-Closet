@@ -169,8 +169,7 @@ public class FeedControllerTest extends IntegrationTestSupport {
               .param("limit", "10")
               .param("sortBy", "createdAt")
               .param("sortDirection", "DESCENDING")
-              .with(csrf())
-              .with(user(principal))) // 인증된 사용자 정보 추가
+              .with(csrf()))
           .andDo(print())
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.data.length()").value(10))
