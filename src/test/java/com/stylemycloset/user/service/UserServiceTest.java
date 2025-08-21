@@ -5,10 +5,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
@@ -90,7 +88,7 @@ public class UserServiceTest {
     UserDto testUserDto = createTestUserDto(testUser);
     given(userRepository.existsByEmail(testUser.getEmail())).willReturn(false);
     given(userRepository.save(any(User.class))).willReturn(testUser);
-    given(userMapper.UsertoUserDto(testUser)).willReturn(testUserDto);
+    given(userMapper.toUserDto(testUser)).willReturn(testUserDto);
 
     //when
     UserDto result = userService.createUser(testUserCreateRequest);
@@ -111,7 +109,7 @@ public class UserServiceTest {
     final Long userId = 1L;
 
     given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
-    given(userMapper.UsertoUserDto(testUser)).willReturn(testUserDto);
+    given(userMapper.toUserDto(testUser)).willReturn(testUserDto);
     //when
     UserDto result = userService.updateRole(userId, request);
     //then
@@ -198,7 +196,7 @@ public class UserServiceTest {
     given(storage.getUrl(contentId)).willReturn(expectedUrl);
 
     ProfileDto testProfileDto = createTestProfileDto(testUser, expectedUrl.toString());
-    given(userMapper.UsertoProfileDto(testUser, expectedUrl.toString())).willReturn(testProfileDto);
+    given(userMapper.toProfileDto(testUser, expectedUrl.toString())).willReturn(testProfileDto);
 
     //when
     ProfileDto result = userService.updateProfile(userId, request, imageFile);
@@ -232,7 +230,7 @@ public class UserServiceTest {
 
     given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
     given(storage.getUrl(contentId)).willReturn(new URL(imageUrl));
-    given(userMapper.UsertoProfileDto(testUser, imageUrl)).willReturn(testProfileDto);
+    given(userMapper.toProfileDto(testUser, imageUrl)).willReturn(testProfileDto);
 
     //when
     ProfileDto result = userService.getProfile(userId);
@@ -264,7 +262,7 @@ public class UserServiceTest {
 
       given(userRepository.findUsersByCursor(request)).willReturn(testUsers);
       given(userRepository.countByFilter(request)).willReturn(100);
-      given(userMapper.UsertoUserDto(any(User.class)))
+      given(userMapper.toUserDto(any(User.class)))
           .willAnswer(invocation -> {
             User user = invocation.getArgument(0);
             return new UserDto(user.getId(), user.getCreatedAt(), user.getEmail(), user.getName(),
@@ -300,7 +298,7 @@ public class UserServiceTest {
           null);
 
       given(userRepository.findUsersByCursor(request)).willReturn(testUsers);
-      given(userMapper.UsertoUserDto(any(User.class)))
+      given(userMapper.toUserDto(any(User.class)))
           .willAnswer(invocation -> {
             User user = invocation.getArgument(0);
             return new UserDto(user.getId(), user.getCreatedAt(), user.getEmail(), user.getName(),

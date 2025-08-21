@@ -84,7 +84,7 @@ public class User extends SoftDeletableEntity {
     this.email = email;
     this.password = password;
     this.role = Role.USER;
-    this.linkedOAuthProviders = new ArrayList<>(List.of());
+    this.linkedOAuthProviders = new ArrayList<>();
     this.locked = false;
   }
 

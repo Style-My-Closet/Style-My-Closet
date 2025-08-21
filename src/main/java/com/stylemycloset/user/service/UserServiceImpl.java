@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -59,7 +58,7 @@ public class UserServiceImpl implements UserService {
 
     User user = new User(request.name(), request.email(), encodedPassword);
     User savedUser = userRepository.save(user);
-    return userMapper.UsertoUserDto(savedUser);
+    return userMapper.toUserDto(savedUser);
   }
 
   @PreAuthorize("hasRole('ADMIN')")
@@ -72,7 +71,7 @@ public class UserServiceImpl implements UserService {
 
     user.updateRole(updateRequest.role());
     publisher.publishEvent(new RoleChangedEvent(userId, previousRole));
-    return userMapper.UsertoUserDto(user);
+    return userMapper.toUserDto(user);
   }
 
   @Transactional
@@ -136,7 +135,7 @@ public class UserServiceImpl implements UserService {
     if (user.getProfileImage() != null) {
       profileImageUrl = storage.getUrl(user.getProfileImage().getId()).toString();
     }
-    return userMapper.UsertoProfileDto(user, profileImageUrl);
+    return userMapper.toProfileDto(user, profileImageUrl);
   }
 
   @Transactional(readOnly = true)
@@ -148,7 +147,7 @@ public class UserServiceImpl implements UserService {
     if (user.getProfileImage() != null) {
       profileImageUrl = storage.getUrl(user.getProfileImage().getId()).toString();
     }
-    return userMapper.UsertoProfileDto(user, profileImageUrl);
+    return userMapper.toProfileDto(user, profileImageUrl);
   }
 
   @Override
@@ -159,7 +158,7 @@ public class UserServiceImpl implements UserService {
 
     List<User> content = hasNext ? users.subList(0, request.limit()) : users;
 
-    List<UserDto> userDtos = content.stream().map(userMapper::UsertoUserDto).toList();
+    List<UserDto> userDtos = content.stream().map(userMapper::toUserDto).toList();
 
     String nextCursor = null;
     Long nextIdAfter = null;
