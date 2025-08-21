@@ -33,6 +33,7 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
         .selectFrom(feed)
         .leftJoin(feed.author).fetchJoin()
         .leftJoin(feed.weather).fetchJoin()
+        .leftJoin(feed.feedClothes).fetchJoin()
         .where(
             cursorCondition(request),
             containsKeyword(request.keywordLike()),

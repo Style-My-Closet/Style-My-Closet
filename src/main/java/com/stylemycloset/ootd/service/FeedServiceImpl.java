@@ -168,9 +168,13 @@ public class FeedServiceImpl implements FeedService {
     WeatherSummaryDto weatherDto = toWeatherSummaryDto(feed.getWeather());
     List<OotdItemDto> ootdItemDtos = toOotdItemDtoList(clothesList);
 
-    long likeCount = feedLikeRepository.countByFeed(feed);
-    boolean likedByMe =
-        (currentUser != null) && feedLikeRepository.existsByUserAndFeed(currentUser, feed);
+    // Batch 쿼리로 좋아요 정보 조회
+    List<Long> feedIds = List.of(feed.getId());
+    Map<Long, Long> likeCountMap = getLikeCountMapByFeedIds(feedIds);
+    Map<Long, Boolean> likedByMeMap = currentUser != null ? getLikedByMeMapByFeedIds(feedIds, currentUser) : new HashMap<>();
+
+    long likeCount = likeCountMap.getOrDefault(feed.getId(), 0L);
+    boolean likedByMe = likedByMeMap.getOrDefault(feed.getId(), false);
 
     return new FeedDto(
         feed.getId(),
@@ -398,5 +402,41 @@ public class FeedServiceImpl implements FeedService {
         toAuthorDto(comment.getAuthor()),
         comment.getContent()
     );
+  }
+
+  // Feed ID 리스트로 좋아요 수 조회 (개별 피드용)
+  private Map<Long, Long> getLikeCountMapByFeedIds(List<Long> feedIds) {
+    if (feedIds.isEmpty()) {
+      return new HashMap<>();
+    }
+    
+    // 모든 피드에 대해 기본값 0 설정
+    Map<Long, Long> likeCountMap = feedIds.stream()
+        .collect(Collectors.toMap(feedId -> feedId, feedId -> 0L));
+    
+    // Batch 쿼리로 좋아요 수 조회
+    List<Object[]> results = feedLikeRepository.countByFeedIds(feedIds);
+    results.forEach(result -> {
+      Long feedId = (Long) result[0];
+      Long count = (Long) result[1];
+      likeCountMap.put(feedId, count);
+    });
+    
+    return likeCountMap;
+  }
+
+  // Feed ID 리스트로 좋아요 상태 조회 (개별 피드용)
+  private Map<Long, Boolean> getLikedByMeMapByFeedIds(List<Long> feedIds, User currentUser) {
+    if (feedIds.isEmpty()) {
+      return new HashMap<>();
+    }
+    
+    // Batch 쿼리로 좋아요 상태 조회
+    List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByUserAndFeedIds(currentUser.getId(), feedIds);
+    return feedIds.stream()
+        .collect(Collectors.toMap(
+            feedId -> feedId,
+            feedId -> likedFeedIds.contains(feedId)
+        ));
   }
 }
