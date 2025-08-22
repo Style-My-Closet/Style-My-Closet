@@ -1,4 +1,4 @@
-package com.stylemycloset.clothes;
+package com.stylemycloset.clothes.service.clothes.impl;
 
 import static com.stylemycloset.clothes.service.clothes.impl.parser.JsoupSelectorConstant.META_ATTRIBUTE_CONTENT;
 import static com.stylemycloset.clothes.service.clothes.impl.parser.JsoupSelectorConstant.META_ATTRIBUTE_PROPERTY;
@@ -84,7 +84,6 @@ class ClothesUrlParserTest {
     Assertions.assertThat(info.productName()).isEqualTo(firstTitle);
     Assertions.assertThat(info.imageUrl()).isEqualTo(firstImageUrl);
   }
-
 
   @Test
   @DisplayName("og 메타가 없을 때는 null 필드")

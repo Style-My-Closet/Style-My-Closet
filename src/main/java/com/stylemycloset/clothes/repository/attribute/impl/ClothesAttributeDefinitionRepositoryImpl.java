@@ -32,16 +32,20 @@ public class ClothesAttributeDefinitionRepositoryImpl implements
   ) {
     CursorStrategy<?, ClothesAttributeDefinition> primaryCursorStrategy = ClothesAttributeDefinitionField.resolveStrategy(
         sortBy);
-    CursorStrategy<?, ClothesAttributeDefinition> idPrimaryCursorStrategy = ClothesAttributeDefinitionField.resolveStrategy(
-        clothesAttributeDefinition.id.getMetadata().getName());
+    CursorStrategy<?, ClothesAttributeDefinition> secondaryCursorStrategy = ClothesAttributeDefinitionField.resolveStrategy(
+        clothesAttributeDefinition.id.getMetadata().getName()
+    );
 
     List<ClothesAttributeDefinition> attributeDefinitions = queryFactory
         .selectFrom(clothesAttributeDefinition)
         .where(
             nameContains(keywordLike),
-            cursorCondition(primaryCursorStrategy, idPrimaryCursorStrategy, cursor, sortDirection)
+            cursorCondition(primaryCursorStrategy, secondaryCursorStrategy, sortDirection, cursor)
         )
-        .orderBy(clothesAttributeDefinition.id.asc())
+        .orderBy(
+            primaryCursorStrategy.buildOrder(sortDirection, cursor),
+            secondaryCursorStrategy.buildOrder(sortDirection, cursor)
+        )
         .limit(limit + 1)
         .fetch();
 
@@ -58,8 +62,8 @@ public class ClothesAttributeDefinitionRepositoryImpl implements
   private BooleanExpression cursorCondition(
       CursorStrategy<?, ClothesAttributeDefinition> primaryCursorStrategy,
       CursorStrategy<?, ClothesAttributeDefinition> idAfterStrategy,
-      String cursor,
-      String direction
+      String direction,
+      String cursor
   ) {
     BooleanExpression booleanExpression = primaryCursorStrategy.buildInequalityPredicate(direction,
         cursor);

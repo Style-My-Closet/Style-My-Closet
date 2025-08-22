@@ -9,7 +9,7 @@ public interface ClothesRepositoryCustom {
       String cursor,
       Long idAfter,
       Integer limit,
-      String TypeEqual,
+      String typeEqual,
       Long ownerId,
       String sortBy,
       String direction

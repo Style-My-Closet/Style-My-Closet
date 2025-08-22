@@ -14,7 +14,7 @@ public interface ClothesRepository extends JpaRepository<Clothes, Long>, Clothes
       String cursor,
       Long idAfter,
       Integer limit,
-      String TypeEqual,
+      String typeEqual,
       Long ownerId,
       String sortBy,
       String direction

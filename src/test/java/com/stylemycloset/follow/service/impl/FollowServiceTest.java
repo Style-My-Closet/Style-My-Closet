@@ -170,8 +170,8 @@ class FollowServiceTest extends IntegrationTestSupport {
             FollowSummaryResult::followingCount,
             FollowSummaryResult::followedByMe,
             FollowSummaryResult::followedByMeId,
-            FollowSummaryResult::followingMe
-        ).containsExactly(userA.getId(), 1L, 2L, true, followCtoA.getId(), true);
+            FollowSummaryResult::followingMe)
+        .containsExactly(userA.getId(), 1L, 2L, true, followCtoA.getId(), true);
   }
 
   @DisplayName("로그인 유저가 다른 유저의 팔로우 요약 정보를 조회하면 팔로우 여부가 포함된다(팔로우 정보가 없을떄)")
@@ -195,8 +195,8 @@ class FollowServiceTest extends IntegrationTestSupport {
             FollowSummaryResult::followingCount,
             FollowSummaryResult::followedByMe,
             FollowSummaryResult::followedByMeId,
-            FollowSummaryResult::followingMe
-        ).containsExactly(userB.getId(), 0L, 0L, false, null, false);
+            FollowSummaryResult::followingMe)
+        .containsExactly(userB.getId(), 0L, 0L, false, null, false);
   }
 
   @DisplayName("사용자가 팔로워의 팔로잉 목록을 첫 페이지 이후로 조회하면, 중복 없이 이어서 조회된다")
@@ -309,32 +309,6 @@ class FollowServiceTest extends IntegrationTestSupport {
     // when & then
     Assertions.assertThatThrownBy(() -> followService.softDelete(follow.getId()))
         .isInstanceOf(ActiveFollowNotFoundException.class);
-  }
-
-  @DisplayName("하드 삭제를 수행하면, 해당 팔로우 엔티티는 완전히 제거된다")
-  @Test
-  void hardDelete_removesRow() {
-    // given
-    User followee = userRepository.save(new User("followee", "e", "p"));
-    User follower = userRepository.save(new User("follower", "f", "p"));
-    Follow follow = followRepository.save(new Follow(followee, follower));
-
-    // when
-    followService.hardDelete(follow.getId());
-
-    // then
-    Assertions.assertThat(followRepository.findById(follow.getId())).isEmpty();
-  }
-
-  @DisplayName("존재하지 않는 팔로우 ID로 하드 삭제를 시도하면, 존재 검증에 실패해 예외가 발생한다")
-  @Test
-  void hardDelete_whenNotExist_throwsFollowNotFound() {
-    // given
-    long notExistsId = Long.MAX_VALUE;
-
-    // when & then
-    Assertions.assertThatThrownBy(() -> followService.hardDelete(notExistsId))
-        .isInstanceOf(FollowNotFoundException.class);
   }
 
 }

@@ -5,6 +5,7 @@ import static com.stylemycloset.clothes.entity.clothes.QClothes.clothes;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.stylemycloset.clothes.entity.clothes.Clothes;
+import com.stylemycloset.clothes.entity.clothes.ClothesType;
 import com.stylemycloset.clothes.repository.clothes.cursor.ClothesField;
 import com.stylemycloset.common.repository.CursorStrategy;
 import com.stylemycloset.common.repository.CustomSliceImpl;
@@ -25,7 +26,7 @@ public class ClothesRepositoryImpl implements ClothesRepositoryCustom {
       String cursor,
       Long idAfter,
       Integer limit,
-      String TypeEqual,
+      String typeEqual,
       Long ownerId,
       String sortBy,
       String direction
@@ -37,8 +38,9 @@ public class ClothesRepositoryImpl implements ClothesRepositoryCustom {
     List<Clothes> content = queryFactory
         .selectFrom(clothes)
         .where(
-            buildClothesCursorPredicate(cursor, direction, primaryCursorStrategy,
-                idAfterCursorStrategy)
+            buildTypeEqualPredicate(typeEqual),
+            buildClothesCursorPredicate(primaryCursorStrategy,
+                idAfterCursorStrategy, direction, cursor)
         ).orderBy(
             primaryCursorStrategy.buildOrder(direction, cursor),
             idAfterCursorStrategy.buildOrder(direction, cursor)
@@ -49,11 +51,18 @@ public class ClothesRepositoryImpl implements ClothesRepositoryCustom {
     return CustomSliceImpl.of(content, limit, primaryCursorStrategy, direction);
   }
 
+  private BooleanExpression buildTypeEqualPredicate(String typeEqual) {
+    if (typeEqual == null) {
+      return null;
+    }
+    return clothes.clothesType.eq(ClothesType.valueOf(typeEqual));
+  }
+
   private BooleanExpression buildClothesCursorPredicate(
-      String cursor,
-      String direction,
       CursorStrategy<?, Clothes> primaryCursorStrategy,
-      CursorStrategy<?, Clothes> idAfterCursorStrategy
+      CursorStrategy<?, Clothes> idAfterCursorStrategy,
+      String direction,
+      String cursor
   ) {
     BooleanExpression booleanExpression = primaryCursorStrategy.buildInequalityPredicate(direction,
         cursor);

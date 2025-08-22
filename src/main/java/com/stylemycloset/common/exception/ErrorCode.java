@@ -62,7 +62,6 @@ public enum ErrorCode {
   MESSAGE_NOT_FOUND("메시지 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
   // URL Extractor
-  CLOTHES_EXTRACTION_FAILED("URL을 통해 의상 정보를 추출할 수 없습니다.", HttpStatus.BAD_GATEWAY),
   INVALID_CLOTHES_META_INFO("파싱할 수 없는 페이지입니다.", HttpStatus.UNPROCESSABLE_ENTITY);
 
   private final String message;

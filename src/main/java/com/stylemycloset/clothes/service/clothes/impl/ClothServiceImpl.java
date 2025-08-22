@@ -6,22 +6,21 @@ import static com.stylemycloset.clothes.service.clothes.impl.parser.JsoupSelecto
 
 import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.clothes.dto.ClothesExtractedMetaInfo;
+import com.stylemycloset.clothes.dto.clothes.ClothesDto;
 import com.stylemycloset.clothes.dto.clothes.request.ClothBinaryContentRequest;
-import com.stylemycloset.clothes.dto.clothes.request.ClothesSearchCondition;
 import com.stylemycloset.clothes.dto.clothes.request.ClothUpdateRequest;
 import com.stylemycloset.clothes.dto.clothes.request.ClothesCreateRequest;
+import com.stylemycloset.clothes.dto.clothes.request.ClothesSearchCondition;
 import com.stylemycloset.clothes.dto.clothes.response.ClothDtoCursorResponse;
-import com.stylemycloset.clothes.dto.clothes.ClothesDto;
 import com.stylemycloset.clothes.dto.clothes.response.ClothUpdateResponseDto;
-import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.clothes.entity.attribute.ClothesAttributeSelectableValue;
+import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.clothes.exception.ClothesException;
-import com.stylemycloset.clothes.exception.ClothesExtractionFailedException;
 import com.stylemycloset.clothes.exception.InvalidClothesMetaInfoException;
 import com.stylemycloset.clothes.mapper.ClothesMapper;
 import com.stylemycloset.clothes.repository.clothes.ClothesRepository;
-import com.stylemycloset.clothes.service.clothes.impl.parser.ClothesUrlParser;
 import com.stylemycloset.clothes.service.clothes.ClothService;
+import com.stylemycloset.clothes.service.clothes.impl.parser.ClothesUrlParser;
 import com.stylemycloset.common.exception.ErrorCode;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -31,7 +30,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.parser.StreamParser;
 import org.springframework.data.domain.Slice;
 import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,10 +50,10 @@ public class ClothServiceImpl implements ClothService {
       ClothesCreateRequest createRequest,
       ClothBinaryContentRequest imageRequest
   ) {
-    BinaryContent image = clothesBinaryContentService.createBinaryContent(imageRequest);
     List<ClothesAttributeSelectableValue> selectableValues = clothesAttributeSelectableService.getSelectableValues(
         createRequest.attributes()
     );
+    BinaryContent image = clothesBinaryContentService.createBinaryContent(imageRequest);
     Clothes clothes = new Clothes(
         createRequest.ownerId(),
         createRequest.name(),
@@ -144,11 +142,6 @@ public class ClothServiceImpl implements ClothService {
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
-  }
-
-  @Recover
-  public ClothesDto recoverExtractInfo(UncheckedIOException uncheckedIOException, String url) {
-    throw new ClothesExtractionFailedException();
   }
 
   private void validateParsedInfo(String url, ClothesExtractedMetaInfo metaInfo) {
