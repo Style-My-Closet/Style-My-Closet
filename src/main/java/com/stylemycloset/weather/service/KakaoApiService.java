@@ -1,11 +1,17 @@
 package com.stylemycloset.weather.service;
 
+
+
+import static com.stylemycloset.location.util.LamcConverter.lamcProj;
+import static com.stylemycloset.location.util.LamcConverter.mapConv;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.location.Location;
 import com.stylemycloset.location.LocationRepository;
+import com.stylemycloset.location.util.LamcConverter;
 import com.stylemycloset.weather.dto.LocationInfo;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -32,12 +38,12 @@ public class KakaoApiService {
     private String baseUrl;
 
     public Location createLocation(double longitude, double latitude) {
-        JsonNode documents = fetchDocumentsFromKakao(latitude, longitude);
+        JsonNode documents = fetchDocumentsFromKakao(longitude, latitude);
         Location location = buildLocationFromJson(documents);
         return locationRepository.save(location);
     }
 
-    private JsonNode fetchDocumentsFromKakao(double latitude, double longitude) {
+    private JsonNode fetchDocumentsFromKakao(double longitude, double latitude) {
         try {
             String apiUrl = String.format("%s?x=%f&y=%f", baseUrl, longitude, latitude);
             URI uri = new URI(apiUrl);
@@ -89,9 +95,10 @@ public class KakaoApiService {
     }
 
     private Location buildLocationFromInfo(LocationInfo info) {
+        double[] xy = mapConv(info.x(), info.y(), 0);
         return Location.builder()
-            .x((int) info.x())
-            .y((int)info.y())
+            .x((int)xy[0])
+            .y((int)xy[1])
             .latitude(info.y())
             .longitude(info.x())
             .locationNames(info.locationNames())
