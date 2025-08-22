@@ -62,7 +62,7 @@ public class SseControllerTest extends IntegrationTestSupport {
 
     given(userRepository.findByEmail("testuser@test.com"))
         .willReturn(Optional.of(user));
-    given(userMapper.UsertoUserDto(user)).willReturn(dto);
+    given(userMapper.toUserDto(user)).willReturn(dto);
   }
 
   @DisplayName("lastEventId 없이 SSE 연결 요청을 보내면 SSE 연결 응답을 반환한다")
@@ -72,7 +72,8 @@ public class SseControllerTest extends IntegrationTestSupport {
     mockMvc.perform(get("/api/sse")
             .accept(MediaType.TEXT_EVENT_STREAM_VALUE))
         .andExpect(status().isOk())
-        .andExpect(header().string("content-type", org.hamcrest.Matchers.containsString(MediaType.TEXT_EVENT_STREAM_VALUE)));
+        .andExpect(header().string("content-type",
+            org.hamcrest.Matchers.containsString(MediaType.TEXT_EVENT_STREAM_VALUE)));
   }
 
   @DisplayName("lastEventId를 포함하여 SSE 연결 요청을 보내면 놓친 알림 데이터를 전송하고, SSE 연결 응답을 반환한다")
@@ -95,7 +96,8 @@ public class SseControllerTest extends IntegrationTestSupport {
         .andExpect(status().isOk())
         .andExpect(content().string(org.hamcrest.Matchers.containsString("데이터A")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("데이터B")))
-        .andExpect(header().string("content-type", org.hamcrest.Matchers.containsString(MediaType.TEXT_EVENT_STREAM_VALUE)));
+        .andExpect(header().string("content-type",
+            org.hamcrest.Matchers.containsString(MediaType.TEXT_EVENT_STREAM_VALUE)));
   }
 
   @DisplayName("잘못된 형식의 lastEventId를 포함하여 SSE 연결 요청을 보내면 경고 로그를 보낸다")

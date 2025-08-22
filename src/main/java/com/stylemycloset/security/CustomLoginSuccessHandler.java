@@ -1,10 +1,8 @@
 package com.stylemycloset.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.security.jwt.JwtSession;
 import com.stylemycloset.user.dto.data.UserDto;
-import com.stylemycloset.user.entity.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
