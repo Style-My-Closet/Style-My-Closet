@@ -121,7 +121,7 @@ public class FeedServiceImpl implements FeedService {
 
     // FeedMapper를 사용하여 FeedDto 리스트 생성
     List<FeedDto> feedDtos = feedMapper.toDtoList(feeds, currentUser, likeCountMap, 
-        new HashMap<>(), likedByMeMap); // TODO: commentCountMap 추가 필요
+        new HashMap<>(), likedByMeMap); // TODO: commentCount 구현 필요 여부 고민(명세서엔 존재, 프론트엔 없음)
 
     return new FeedDtoCursorResponse(
         feedDtos, nextCursor, nextIdAfter, hasNext, 0L, request.sortBy(), request.sortDirection());
@@ -172,7 +172,7 @@ public class FeedServiceImpl implements FeedService {
     boolean likedByMe = likedByMeMap.getOrDefault(feed.getId(), false);
 
     // FeedMapper를 사용하여 FeedDto 생성
-    return feedMapper.toDto(feed, currentUser, likeCount, 0, likedByMe);
+    return feedMapper.toDto(feed, currentUser, likeCount, 0, likedByMe); // TODO: commentCount 구현 필요 (명세서 요구사항)
   }
 
   private FeedDto mapToFeedResponseWithLikeInfo(Feed feed, User currentUser, 
@@ -181,7 +181,7 @@ public class FeedServiceImpl implements FeedService {
     boolean likedByMe = likedByMeMap.getOrDefault(feed.getId(), false);
 
     // FeedMapper를 사용하여 FeedDto 생성
-    return feedMapper.toDto(feed, currentUser, likeCount, 0, likedByMe);
+    return feedMapper.toDto(feed, currentUser, likeCount, 0, likedByMe); // TODO: commentCount 구현 필요 (명세서 요구사항)
   }
 
   private Map<Long, Long> getLikeCountMap(List<Feed> feeds) {
@@ -276,7 +276,7 @@ public class FeedServiceImpl implements FeedService {
     // CommentMapper를 사용하여 CommentDto 리스트 생성
     List<CommentDto> commentDtos = commentMapper.toDtoList(comments);
 
-    // TODO: totalCount 로직 추가 필요
+    // TODO: totalCount 구현 필요 (명세서 요구사항)
     return new CommentCursorResponse(commentDtos, nextCursor, nextIdAfter, hasNext, 0L, "createdAt",
         "DESC");
   }
