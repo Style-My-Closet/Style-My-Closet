@@ -1,18 +1,16 @@
 package com.stylemycloset.clothes.controller;
 
-import com.stylemycloset.clothes.dto.clothes.request.ClothBinaryContentRequest;
-import com.stylemycloset.clothes.dto.clothes.request.ClothesSearchCondition;
-import com.stylemycloset.clothes.dto.clothes.request.ClothesCreateRequest;
-import com.stylemycloset.clothes.dto.clothes.request.ClothUpdateRequest;
-import com.stylemycloset.clothes.dto.clothes.response.ClothDtoCursorResponse;
 import com.stylemycloset.clothes.dto.clothes.ClothesDto;
+import com.stylemycloset.clothes.dto.clothes.request.ClothBinaryContentRequest;
+import com.stylemycloset.clothes.dto.clothes.request.ClothUpdateRequest;
+import com.stylemycloset.clothes.dto.clothes.request.ClothesCreateRequest;
+import com.stylemycloset.clothes.dto.clothes.request.ClothesSearchCondition;
+import com.stylemycloset.clothes.dto.clothes.response.ClothDtoCursorResponse;
 import com.stylemycloset.clothes.dto.clothes.response.ClothUpdateResponseDto;
 import com.stylemycloset.clothes.service.clothes.ClothService;
-import com.stylemycloset.clothes.service.extractor.ClothesInfoExtractionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -31,7 +29,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class ClothesController {
 
   private final ClothService clothService;
-  private final ClothesInfoExtractionService clothesInfoExtractionService;
 
   @PostMapping
   public ResponseEntity<ClothesDto> createCloth(
@@ -77,7 +74,7 @@ public class ClothesController {
   public ResponseEntity<ClothesDto> extractClothInfo(
       @RequestParam("url") String url
   ) {
-    ClothesDto extractedClothes = clothesInfoExtractionService.extractInfo(url);
+    ClothesDto extractedClothes = clothService.extractInfo(url);
     return ResponseEntity.ok(extractedClothes);
   }
 

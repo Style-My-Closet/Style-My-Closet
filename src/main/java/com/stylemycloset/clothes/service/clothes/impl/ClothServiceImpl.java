@@ -1,6 +1,11 @@
 package com.stylemycloset.clothes.service.clothes.impl;
 
+import static com.stylemycloset.clothes.service.clothes.impl.parser.JsoupSelectorConstant.META_ATTRIBUTE_CONTENT;
+import static com.stylemycloset.clothes.service.clothes.impl.parser.JsoupSelectorConstant.META_ATTRIBUTE_PROPERTY;
+import static com.stylemycloset.clothes.service.clothes.impl.parser.JsoupSelectorConstant.META_PROPERTY_SELECTOR;
+
 import com.stylemycloset.binarycontent.entity.BinaryContent;
+import com.stylemycloset.clothes.dto.ClothesExtractedMetaInfo;
 import com.stylemycloset.clothes.dto.clothes.request.ClothBinaryContentRequest;
 import com.stylemycloset.clothes.dto.clothes.request.ClothesSearchCondition;
 import com.stylemycloset.clothes.dto.clothes.request.ClothUpdateRequest;
@@ -11,14 +16,23 @@ import com.stylemycloset.clothes.dto.clothes.response.ClothUpdateResponseDto;
 import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.clothes.entity.attribute.ClothesAttributeSelectableValue;
 import com.stylemycloset.clothes.exception.ClothesException;
+import com.stylemycloset.clothes.exception.ClothesExtractionFailedException;
+import com.stylemycloset.clothes.exception.InvalidClothesMetaInfoException;
 import com.stylemycloset.clothes.mapper.ClothesMapper;
 import com.stylemycloset.clothes.repository.clothes.ClothesRepository;
-import com.stylemycloset.clothes.repository.attribute.ClothesAttributeDefinitionSelectedRepository;
+import com.stylemycloset.clothes.service.clothes.impl.parser.ClothesUrlParser;
 import com.stylemycloset.clothes.service.clothes.ClothService;
 import com.stylemycloset.common.exception.ErrorCode;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.jsoup.Jsoup;
+import org.jsoup.parser.StreamParser;
 import org.springframework.data.domain.Slice;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,10 +40,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ClothServiceImpl implements ClothService {
 
-  private final ClothesAttributeDefinitionSelectedRepository selectedValuesRepository;
   private final ClothesRepository clothesRepository;
   private final ClothesAttributeSelectableService clothesAttributeSelectableService;
   private final ClothesBinaryContentService clothesBinaryContentService;
+  private final ClothesUrlParser clothesURLParser;
   private final ClothesMapper clothesMapper;
 
   @Transactional
@@ -101,6 +115,47 @@ public class ClothServiceImpl implements ClothService {
   public void deleteCloth(Long clothId) {
     validateClothesExists(clothId);
     clothesRepository.deleteById(clothId);
+  }
+
+  @Retryable(
+      retryFor = UncheckedIOException.class,
+      maxAttempts = 3,
+      backoff = @Backoff(
+          delay = 1000,
+          multiplier = 2.0
+      )
+  )
+  @Override
+  public ClothesDto extractInfo(String url) {
+    try (StreamParser streamer = Jsoup.connect(url)
+        .timeout(10_000)
+        .execute()
+        .streamParser()
+    ) {
+      ClothesExtractedMetaInfo metaInfo = clothesURLParser.extract(
+          streamer,
+          META_PROPERTY_SELECTOR,
+          META_ATTRIBUTE_PROPERTY,
+          META_ATTRIBUTE_CONTENT
+      );
+
+      validateParsedInfo(url, metaInfo);
+      return ClothesDto.of(metaInfo.productName(), metaInfo.imageUrl());
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  @Recover
+  public ClothesDto recoverExtractInfo(UncheckedIOException uncheckedIOException, String url) {
+    throw new ClothesExtractionFailedException();
+  }
+
+  private void validateParsedInfo(String url, ClothesExtractedMetaInfo metaInfo) {
+    if (metaInfo == null || metaInfo.productName() == null || metaInfo.imageUrl() == null) {
+      throw new InvalidClothesMetaInfoException()
+          .addDetails("request_url", url);
+    }
   }
 
   private void validateClothesExists(Long clothId) {

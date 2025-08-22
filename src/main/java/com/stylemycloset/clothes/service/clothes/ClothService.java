@@ -27,4 +27,6 @@ public interface ClothService {
 
   void deleteCloth(Long clothId);
 
+  ClothesDto extractInfo(String url);
+
 }
