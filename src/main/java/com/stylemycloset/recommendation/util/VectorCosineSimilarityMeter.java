@@ -30,7 +30,7 @@ public class VectorCosineSimilarityMeter {
 
 
         float[] inputVector = conditionVectorizer.toConditionVector(
-            clothingConditionMapper.from3Entity(cloth, weather, user)
+            clothingConditionMapper.from3Entity(cloth.getAttributeValues(), weather, user, false)
         );
 
 
@@ -42,22 +42,8 @@ public class VectorCosineSimilarityMeter {
     // 사용자 피드백 데이터 저장
     public void recordFeedback(Weather weather, User user, List<ClothingAttributeValue> values, Boolean label) {
 
-        ClothingCondition.ClothingConditionBuilder builder = ClothingCondition.builder()
-            .temperature(weather.getTemperature().getCurrent())
-            .humidity(weather.getHumidity().getCurrent())
-            .weatherType(weather.getAlertType())
-            .gender(user.getGender())
-            .temperatureSensitivity(user.getTemperatureSensitivity())
-            .label(label);
 
-        ClothingCondition.ClothingConditionBuilder builder2 =
-            ClothingConditionBuilderHelper.addClothingAttributes(builder,values);
-
-        ClothingCondition feature = builder2.build();
-
-        float[] embedding = conditionVectorizer.toConditionVector(feature);
-
-        feature = builder.embedding(embedding).build();
+        ClothingCondition feature = clothingConditionMapper.from3Entity(values, weather, user, label);
 
         repository.save(feature);
     }

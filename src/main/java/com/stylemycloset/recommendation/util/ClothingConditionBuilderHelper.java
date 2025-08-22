@@ -6,9 +6,14 @@ import com.stylemycloset.recommendation.entity.Color;
 import com.stylemycloset.recommendation.entity.PantsLength;
 import com.stylemycloset.recommendation.entity.SleeveLength;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
+@RequiredArgsConstructor
 public class ClothingConditionBuilderHelper {
-    public static ClothingCondition.ClothingConditionBuilder addClothingAttributes(
+
+    public ClothingCondition.ClothingConditionBuilder addClothingAttributes(
         ClothingCondition.ClothingConditionBuilder builder,
         List<ClothingAttributeValue> values
     ) {

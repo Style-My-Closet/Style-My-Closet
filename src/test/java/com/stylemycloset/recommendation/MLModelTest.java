@@ -1,11 +1,10 @@
 package com.stylemycloset.recommendation;
 
-import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.recommendation.entity.ClothingCondition;
 import com.stylemycloset.recommendation.mapper.ClothingConditionMapper;
 import com.stylemycloset.recommendation.repository.ClothingConditionRepository;
 import com.stylemycloset.recommendation.service.MLModelService;
-import com.stylemycloset.recommendation.util.ClothingVectorizer;
+import com.stylemycloset.recommendation.util.ClothingConditionBuilderHelper;
 import com.stylemycloset.recommendation.util.ConditionVectorizer;
 import com.stylemycloset.recommendation.util.MeaningfulDummyGenerator;
 import ml.dmlc.xgboost4j.java.XGBoostError;
@@ -18,8 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-
-import static com.stylemycloset.recommendation.RandomDummyGenerator.generateDummyList;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,11 +25,14 @@ class MLModelTest {
     @Mock
     private ClothingConditionRepository clothingConditionRepository;
 
-    @Mock
-    private ClothingConditionMapper clothingConditionMapper;
 
-    @Mock
-    private ConditionVectorizer conditionVectorizer;
+
+
+    private final ConditionVectorizer conditionVectorizer  = new ConditionVectorizer();
+
+    private final ClothingConditionBuilderHelper clothingConditionBuilderHelper = new ClothingConditionBuilderHelper();
+
+    private final ClothingConditionMapper clothingConditionMapper = new ClothingConditionMapper(conditionVectorizer,clothingConditionBuilderHelper);
 
     @InjectMocks
     private MLModelService service; // 가상의 서비스
@@ -41,8 +41,12 @@ class MLModelTest {
 
     @BeforeEach
     void setUp() {
-        service = new MLModelService( clothingConditionRepository, clothingConditionMapper, conditionVectorizer);
-        dummyData = MeaningfulDummyGenerator.generateMeaningfulDummyList();
+        service = new MLModelService( clothingConditionRepository, clothingConditionMapper);
+        List<ClothingCondition> dummys = MeaningfulDummyGenerator.generateMeaningfulDummyList();
+
+        dummyData = dummys.stream()
+            .map(clothingConditionMapper::withVector)
+            .toList();
     }
 
     @Test

@@ -57,8 +57,10 @@ public class RecommendationService {
                 if(!vectorCosineSimilarityMeter.recommend(c, weather, user)) {
                     current.clothes().remove(ClothesMapper.toClothesDto(c));
                     result = current;
+                    vectorCosineSimilarityMeter.recordFeedback(weather,user,c.getAttributeValues(),false);
+                } else {
                     vectorCosineSimilarityMeter.recordFeedback(weather,user,c.getAttributeValues(),true);
-                } else continue;
+                }
             }
         }else result = mlModelService.prediction(clothes,weather,user);
 

@@ -2,8 +2,6 @@ package com.stylemycloset.recommendation.service;
 
 import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingAttributeValue;
-import com.stylemycloset.cloth.repository.ClothRepository;
-import com.stylemycloset.recommendation.dto.ClothesDto;
 import com.stylemycloset.recommendation.dto.RecommendationDto;
 import com.stylemycloset.recommendation.entity.ClothingCondition;
 import com.stylemycloset.recommendation.entity.TrainingData;
@@ -11,11 +9,8 @@ import com.stylemycloset.recommendation.mapper.ClothesMapper;
 import com.stylemycloset.recommendation.mapper.ClothingConditionMapper;
 import com.stylemycloset.recommendation.mapper.RecommendationMapper;
 import com.stylemycloset.recommendation.repository.ClothingConditionRepository;
-import com.stylemycloset.recommendation.util.ClothingConditionBuilderHelper;
-import com.stylemycloset.recommendation.util.ConditionVectorizer;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.weather.entity.Weather;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import ml.dmlc.xgboost4j.java.*;
 import org.springframework.stereotype.Service;
@@ -31,7 +26,6 @@ public class MLModelService {
     private Booster booster;  // XGBoost 모델
     private final ClothingConditionRepository repository;
     private final ClothingConditionMapper clothingConditionMapper;
-    private final ConditionVectorizer conditionVectorizer;
 
     public RecommendationDto prediction(List<Cloth> clothes, Weather weather, User user)
         throws XGBoostError {
@@ -39,7 +33,7 @@ public class MLModelService {
         RecommendationDto result = null;
         trainModel();
         for(Cloth c : clothes) {
-            double p =  predictSingle(clothingConditionMapper.from3Entity(c,weather,user));
+            double p =  predictSingle(clothingConditionMapper.from3Entity(c.getAttributeValues(),weather,user,false));
             if(!(p>70)){
                 current.clothes().remove(ClothesMapper.toClothesDto(c));
                 result = current;
@@ -122,22 +116,7 @@ public class MLModelService {
     // 사용자 피드백 데이터 저장
     private void recordFeedback(Weather weather, User user, List<ClothingAttributeValue> values, Boolean label) {
 
-        ClothingCondition.ClothingConditionBuilder builder = ClothingCondition.builder()
-            .temperature(weather.getTemperature().getCurrent())
-            .humidity(weather.getHumidity().getCurrent())
-            .weatherType(weather.getAlertType())
-            .gender(user.getGender())
-            .temperatureSensitivity(user.getTemperatureSensitivity())
-            .label(label);
-
-        ClothingCondition.ClothingConditionBuilder builder2 =
-            ClothingConditionBuilderHelper.addClothingAttributes(builder,values);
-
-        ClothingCondition feature = builder2.build();
-
-        float[] embedding = conditionVectorizer.toConditionVector(feature);
-
-        feature = builder.embedding(embedding).build();
+        ClothingCondition feature = clothingConditionMapper.from3Entity(values, weather, user, label);
 
         repository.save(feature);
     }
