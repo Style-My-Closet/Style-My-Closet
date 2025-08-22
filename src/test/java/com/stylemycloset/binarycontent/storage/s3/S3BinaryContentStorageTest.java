@@ -47,7 +47,7 @@ class S3BinaryContentStorageTest extends IntegrationTestSupport {
     byte[] fileBytes = "url-test".getBytes(StandardCharsets.UTF_8);
 
     // when
-    UUID resultId = binaryContentStorage.put(id, fileBytes).get();
+    UUID resultId = binaryContentStorage.putAsync(id, fileBytes).get();
 
     // then
     InputStream inputStream = binaryContentStorage.get(resultId);
@@ -62,7 +62,7 @@ class S3BinaryContentStorageTest extends IntegrationTestSupport {
     byte[] fileBytes = "url-test".getBytes(StandardCharsets.UTF_8);
 
     // when & then
-    Assertions.assertThatThrownBy(() -> binaryContentStorage.put(id, fileBytes).get())
+    Assertions.assertThatThrownBy(() -> binaryContentStorage.putAsync(id, fileBytes).get())
         .isInstanceOf(ExecutionException.class)
         .hasCauseInstanceOf(S3UploadArgumentException.class);
   }
@@ -73,7 +73,7 @@ class S3BinaryContentStorageTest extends IntegrationTestSupport {
     // given
     UUID id = UUID.randomUUID();
     byte[] fileBytes = "url-test".getBytes(StandardCharsets.UTF_8);
-    binaryContentStorage.put(id, fileBytes).join();
+    binaryContentStorage.putAsync(id, fileBytes).join();
 
     // when
     URL url = binaryContentStorage.getUrl(id);

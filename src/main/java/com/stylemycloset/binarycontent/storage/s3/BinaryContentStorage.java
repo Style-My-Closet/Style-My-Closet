@@ -7,7 +7,9 @@ import java.util.concurrent.CompletableFuture;
 
 public interface BinaryContentStorage {
 
-  CompletableFuture<UUID> put(UUID binaryContentId, byte[] bytes);
+  UUID put(UUID binaryContentId, byte[] bytes);
+
+  CompletableFuture<UUID> putAsync(UUID binaryContentId, byte[] bytes);
 
   InputStream get(UUID binaryContentId);
 

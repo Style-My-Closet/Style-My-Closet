@@ -6,10 +6,8 @@ import com.stylemycloset.clothes.repository.attribute.ClothesAttributeDefinition
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ClothesAttributeSelectableService {
@@ -37,16 +35,9 @@ public class ClothesAttributeSelectableService {
     }
 
     return definitionSelectableValueRepository.findByDefinitionIdAndValue(
-        attribute.definitionId(),
-        attribute.value()
-    ).orElseGet(() -> {
-          log.warn("Selectable value 가 등록되있지 않습니다. definitionId={}, value={}",
-              attribute.definitionId(),
-              attribute.value()
-          );
-          return null;
-        }
-    );
+            attribute.definitionId(),
+            attribute.value())
+        .orElse(null);
   }
 
 }

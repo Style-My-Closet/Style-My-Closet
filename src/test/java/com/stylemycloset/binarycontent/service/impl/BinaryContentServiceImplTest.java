@@ -55,7 +55,7 @@ class BinaryContentServiceImplTest extends IntegrationTestSupport {
     // then
     Assertions.assertThat(binaryContent.originalFileName()).isEqualTo(name);
 
-    verify(binaryContentStorage, times(1)).put(any(), any());
+    verify(binaryContentStorage, times(1)).putAsync(any(), any());
   }
 
   @DisplayName("null 받을 경우, null을 리턴합니다.")

@@ -46,12 +46,31 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
       maxAttempts = MAX_ATTEMPT,
       backoff = @Backoff(delay = 1000, multiplier = 2.0)
   )
+  @Override
+  public UUID put(UUID binaryContentId, byte[] bytes) {
+    validatePutArgument(binaryContentId, bytes);
+
+    String key = binaryContentId.toString();
+    PutObjectRequest putRequest = PutObjectRequest.builder()
+        .bucket(bucket)
+        .key(key)
+        .contentType(MediaType.IMAGE_JPEG_VALUE)
+        .build();
+    s3Client.putObject(putRequest, RequestBody.fromBytes(bytes));
+
+    return binaryContentId;
+  }
+
+  @Retryable(
+      retryFor = {AwsServiceException.class, SdkClientException.class},
+      notRecoverable = S3UploadArgumentException.class,
+      maxAttempts = MAX_ATTEMPT,
+      backoff = @Backoff(delay = 1000, multiplier = 2.0)
+  )
   @Async("uploadExecutor")
   @Override
-  public CompletableFuture<UUID> put(UUID binaryContentId, byte[] bytes) {
-    if (binaryContentId == null || bytes == null || bytes.length == 0) {
-      throw new S3UploadArgumentException(Map.of());
-    }
+  public CompletableFuture<UUID> putAsync(UUID binaryContentId, byte[] bytes) {
+    validatePutArgument(binaryContentId, bytes);
 
     String key = binaryContentId.toString();
     PutObjectRequest putRequest = PutObjectRequest.builder()
@@ -95,6 +114,12 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
             .signatureDuration(Duration.ofSeconds(presignedUrlExpirationSeconds))
     );
     return presignedGetObjectRequest.url();
+  }
+
+  private void validatePutArgument(UUID binaryContentId, byte[] bytes) {
+    if (binaryContentId == null || bytes == null || bytes.length == 0) {
+      throw new S3UploadArgumentException();
+    }
   }
 
 }
