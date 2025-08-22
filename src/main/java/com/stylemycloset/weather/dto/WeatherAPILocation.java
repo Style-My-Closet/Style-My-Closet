@@ -3,9 +3,9 @@ package com.stylemycloset.weather.dto;
 import java.util.List;
 
 public record WeatherAPILocation(
-    Double latitude,
-    Double longitude,
-    Integer x,
-    Integer y,
+    double latitude,
+    double longitude,
+    int x,
+    int y,
     List<String> locationNames
 ) {}

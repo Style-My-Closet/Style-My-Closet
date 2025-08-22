@@ -6,13 +6,18 @@ import com.stylemycloset.security.CustomAuthenticationProvider;
 import com.stylemycloset.security.CustomLoginFailureHandler;
 import com.stylemycloset.security.CustomLoginSuccessHandler;
 import com.stylemycloset.security.JsonUsernamePasswordAuthenticationFilter;
+import com.stylemycloset.security.OAuth2LoginFailureHandler;
+import com.stylemycloset.security.OAuth2LoginSuccessHandler;
 import com.stylemycloset.security.SecurityMatchers;
 import com.stylemycloset.security.jwt.JwtAuthenticationFilter;
 import com.stylemycloset.security.jwt.JwtLogoutHandler;
 import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.repository.UserRepository;
+import com.stylemycloset.user.service.CustomOAuth2UserService;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -34,7 +39,11 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+  private final CustomOAuth2UserService customOAuth2UserService;
+  private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http,
@@ -46,6 +55,13 @@ public class SecurityConfig {
         .authorizeHttpRequests(authorize -> authorize
             .requestMatchers(SecurityMatchers.PUBLIC_MATCHERS).permitAll()
             .anyRequest().hasRole(Role.USER.name())
+        )
+        .oauth2Login(oauth2 -> oauth2
+            .userInfoEndpoint(userInfo -> userInfo
+                .userService(customOAuth2UserService)
+            )
+            .successHandler(oAuth2LoginSuccessHandler)
+            .failureHandler(new OAuth2LoginFailureHandler())
         )
         .sessionManagement(session ->
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -71,12 +87,6 @@ public class SecurityConfig {
             JsonUsernamePasswordAuthenticationFilter.class);
 
     return http.build();
-  }
-
-
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
   }
 
   @Bean

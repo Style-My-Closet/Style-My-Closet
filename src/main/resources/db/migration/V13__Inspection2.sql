@@ -12,3 +12,7 @@ CREATE TABLE clothing_conditions (
                                      pants_length SMALLINT,
                                      label BOOLEAN
 );
+ALTER TABLE locations ADD CONSTRAINT uq_location_lat_lon UNIQUE(latitude, longitude);
+
+ALTER TABLE batch_step_execution
+    ALTER COLUMN start_time DROP NOT NULL;

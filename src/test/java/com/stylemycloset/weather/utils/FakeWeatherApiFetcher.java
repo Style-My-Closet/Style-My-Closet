@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.location.Location;
 import com.stylemycloset.weather.util.WeatherApiFetcher;
+import com.stylemycloset.weather.util.WeatherItemsFilterer;
 import java.util.List;
 
 
@@ -18,8 +19,8 @@ public class FakeWeatherApiFetcher extends WeatherApiFetcher {
 
     private final ObjectMapper objectMapper;
 
-    public FakeWeatherApiFetcher(ObjectMapper objectMapper) {
-        super(null, objectMapper); // 실제 RestTemplate은 사용 안 함
+    public FakeWeatherApiFetcher(ObjectMapper objectMapper, WeatherItemsFilterer weatherItemsFilterer) {
+        super(null, objectMapper, weatherItemsFilterer); // 실제 RestTemplate은 사용 안 함
         this.objectMapper = objectMapper;
     }
 
