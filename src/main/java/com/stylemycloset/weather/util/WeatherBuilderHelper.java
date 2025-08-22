@@ -1,5 +1,7 @@
 package com.stylemycloset.weather.util;
 
+import static com.stylemycloset.weather.util.DateTimeUtils.parseDateTime;
+
 import com.stylemycloset.location.Location;
 import com.stylemycloset.weather.entity.Humidity;
 import com.stylemycloset.weather.entity.Precipitation;
@@ -42,6 +44,8 @@ public class WeatherBuilderHelper {
 
     public Weather build() {
         return Weather.builder()
+            .forecastAt(context.forecastAt)
+            .forecastedAt(context.forecastedAt)
             .location(context.location)
             .skyStatus(context.skyStatus)
             .precipitation(context.precipitation)
@@ -53,8 +57,4 @@ public class WeatherBuilderHelper {
             .build();
     }
 
-    private LocalDateTime parseDateTime(String dateStr, String timeStr) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
-        return LocalDateTime.parse(dateStr + timeStr, formatter);
-    }
 }
