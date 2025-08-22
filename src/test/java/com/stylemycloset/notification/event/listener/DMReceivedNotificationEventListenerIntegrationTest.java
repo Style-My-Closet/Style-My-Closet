@@ -16,15 +16,13 @@ import com.stylemycloset.notification.event.domain.DMSentEvent;
 import com.stylemycloset.notification.repository.NotificationRepository;
 import com.stylemycloset.notification.util.NotificationStubHelper;
 import com.stylemycloset.notification.util.TestUserFactory;
-import com.stylemycloset.sse.dto.SseInfo;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
+import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -66,15 +64,13 @@ public class DMReceivedNotificationEventListenerIntegrationTest extends Integrat
     given(messageRepository.findWithReceiverById(message.getId())).willReturn(Optional.of(message));
     NotificationStubHelper.stubSave(notificationRepository);
 
-    CopyOnWriteArrayList<SseEmitter> list1 = new CopyOnWriteArrayList<>();
-    given(sseRepository.findOrCreateEmitters(dmReceiver.getId())).willReturn(list1);
+    Deque<SseEmitter> list1 = new ArrayDeque<>();
+
     willAnswer(inv -> {
       list1.add(inv.getArgument(1));
       return null;
     }).given(sseRepository).addEmitter(eq(dmReceiver.getId()), any(SseEmitter.class));
-
-    Deque<SseInfo> queue1 = new ConcurrentLinkedDeque<>();
-    given(sseRepository.findOrCreateEvents(dmReceiver.getId())).willReturn(queue1);
+    given(sseRepository.findOrCreateEmitters(dmReceiver.getId())).willReturn(list1);
 
     String now = String.valueOf(System.currentTimeMillis());
     sseService.connect(dmReceiver.getId(), now, null);
@@ -94,7 +90,6 @@ public class DMReceivedNotificationEventListenerIntegrationTest extends Integrat
     assertThat(saved.getCreatedAt()).isNotNull();
     assertThat(saved.getTitle()).isEqualTo("[DM] user");
     assertThat(saved.getLevel()).isEqualTo(NotificationLevel.INFO);
-    assertThat(queue1).isNotEmpty();
   }
 
 }

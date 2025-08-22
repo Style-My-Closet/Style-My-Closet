@@ -83,6 +83,8 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-aop'
 
+    // https://mvnrepository.com/artifact/ml.dmlc/xgboost4j
+    implementation 'ml.dmlc:xgboost4j_2.13:3.0.2'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
 }
