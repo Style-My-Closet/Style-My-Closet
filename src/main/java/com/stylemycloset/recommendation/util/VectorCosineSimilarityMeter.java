@@ -1,6 +1,7 @@
 package com.stylemycloset.recommendation.util;
 
 
+import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingAttributeValue;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
@@ -22,19 +23,14 @@ import org.springframework.stereotype.Component;
 public class VectorCosineSimilarityMeter {
 
     private final ClothingConditionRepository repository;
-    private final WeatherRepository weatherRepository;
-    private final UserRepository userRepository;
     private final ConditionVectorizer conditionVectorizer;
+    private final ClothingConditionMapper clothingConditionMapper;
 
+    public boolean recommend(Cloth cloth ,Weather weather, User user) {
 
-    public boolean recommend(RecommendationDto dto) {
-        Weather weather = weatherRepository.findById(dto.weatherId())
-            .orElseThrow(() -> new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("weather", "null")));
-        User user = userRepository.findById(dto.userID())
-            .orElseThrow(() -> new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("user", "null")));
 
         float[] inputVector = conditionVectorizer.toConditionVector(
-            ClothingConditionMapper.fromRecommendationDto(dto, weather, user)
+            clothingConditionMapper.from3Entity(cloth, weather, user)
         );
 
 

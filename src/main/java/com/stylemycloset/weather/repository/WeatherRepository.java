@@ -36,8 +36,9 @@ public interface WeatherRepository extends JpaRepository<Weather, Long> {
 
     @Query(""" 
         SELECT w FROM Weather w
-        WHERE w.location.latitude = :latitude
-        AND w.location.longitude = :longitude
+        JOIN FETCH w.location l
+        WHERE l.latitude = :latitude
+        AND l.longitude = :longitude
         ORDER BY w.forecastAt DESC
     """)
     List<Weather> findByLocation(@Param("latitude") double latitude, @Param("longitude") double longitude);

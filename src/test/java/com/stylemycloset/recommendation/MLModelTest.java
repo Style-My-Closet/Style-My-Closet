@@ -1,8 +1,11 @@
 package com.stylemycloset.recommendation;
 
+import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.recommendation.entity.ClothingCondition;
+import com.stylemycloset.recommendation.mapper.ClothingConditionMapper;
 import com.stylemycloset.recommendation.repository.ClothingConditionRepository;
 import com.stylemycloset.recommendation.service.MLModelService;
+import com.stylemycloset.recommendation.util.ClothingVectorizer;
 import com.stylemycloset.recommendation.util.ConditionVectorizer;
 import com.stylemycloset.recommendation.util.MeaningfulDummyGenerator;
 import ml.dmlc.xgboost4j.java.XGBoostError;
@@ -25,7 +28,11 @@ class MLModelTest {
     @Mock
     private ClothingConditionRepository clothingConditionRepository;
 
+    @Mock
+    private ClothingConditionMapper clothingConditionMapper;
 
+    @Mock
+    private ConditionVectorizer conditionVectorizer;
 
     @InjectMocks
     private MLModelService service; // 가상의 서비스
@@ -34,7 +41,7 @@ class MLModelTest {
 
     @BeforeEach
     void setUp() {
-        service = new MLModelService( clothingConditionRepository );
+        service = new MLModelService( clothingConditionRepository, clothingConditionMapper, conditionVectorizer);
         dummyData = MeaningfulDummyGenerator.generateMeaningfulDummyList();
     }
 

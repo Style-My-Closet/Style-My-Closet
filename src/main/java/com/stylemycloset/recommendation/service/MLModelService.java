@@ -1,8 +1,22 @@
 package com.stylemycloset.recommendation.service;
 
+import com.stylemycloset.cloth.entity.Cloth;
+import com.stylemycloset.cloth.entity.ClothingAttributeValue;
+import com.stylemycloset.cloth.repository.ClothRepository;
+import com.stylemycloset.recommendation.dto.ClothesDto;
+import com.stylemycloset.recommendation.dto.RecommendationDto;
 import com.stylemycloset.recommendation.entity.ClothingCondition;
 import com.stylemycloset.recommendation.entity.TrainingData;
+import com.stylemycloset.recommendation.mapper.ClothesMapper;
+import com.stylemycloset.recommendation.mapper.ClothingConditionMapper;
+import com.stylemycloset.recommendation.mapper.RecommendationMapper;
 import com.stylemycloset.recommendation.repository.ClothingConditionRepository;
+import com.stylemycloset.recommendation.util.ClothingConditionBuilderHelper;
+import com.stylemycloset.recommendation.util.ConditionVectorizer;
+import com.stylemycloset.user.entity.User;
+import com.stylemycloset.weather.entity.Weather;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import ml.dmlc.xgboost4j.java.*;
 import org.springframework.stereotype.Service;
 import java.util.HashMap;
@@ -10,34 +24,32 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class MLModelService {
+
 
     private Booster booster;  // XGBoost 모델
     private final ClothingConditionRepository repository;
+    private final ClothingConditionMapper clothingConditionMapper;
+    private final ConditionVectorizer conditionVectorizer;
 
-    public MLModelService(ClothingConditionRepository repository) {
-        this.repository = repository;
-    }
-
-    // DB에서 학습 데이터 읽어오기 (embedding 컬럼 활용)
-    private TrainingData loadTrainingData() {
-        List<ClothingCondition> conditions = repository.findAll();
-        if (conditions.isEmpty()) return null;
-
-        int nSamples = conditions.size();
-        int nFeatures = conditions.get(0).getEmbedding().length;
-
-        float[][] x = new float[nSamples][nFeatures];
-        int[] y = new int[nSamples];
-
-        for (int i = 0; i < nSamples; i++) {
-            x[i] = conditions.get(i).getEmbedding(); // embedding 바로 사용
-            y[i] = conditions.get(i).getLabel() ? 1 : 0;
+    public RecommendationDto prediction(List<Cloth> clothes, Weather weather, User user)
+        throws XGBoostError {
+        RecommendationDto current = RecommendationMapper.parseToRecommendationDto(clothes,weather,user);
+        RecommendationDto result = null;
+        trainModel();
+        for(Cloth c : clothes) {
+            double p =  predictSingle(clothingConditionMapper.from3Entity(c,weather,user));
+            if(!(p>70)){
+                current.clothes().remove(ClothesMapper.toClothesDto(c));
+                result = current;
+                recordFeedback(weather,user,c.getAttributeValues(),false);
+            }else {
+              recordFeedback(weather,user,c.getAttributeValues(),true);
+            }
         }
-
-        return new TrainingData(x, y);
+        return result;
     }
-
     // 단일 예측
     public float predictSingle(float[] embedding) throws XGBoostError {
         DMatrix dMatrix = new DMatrix(embedding, 1, embedding.length, Float.NaN);
@@ -88,7 +100,45 @@ public class MLModelService {
 
         booster = XGBoost.train(trainMat, params, 10, watches, null, null);
     }
+    // DB에서 학습 데이터 읽어오기 (embedding 컬럼 활용)
+    private TrainingData loadTrainingData() {
+        List<ClothingCondition> conditions = repository.findAll();
+        if (conditions.isEmpty()) return null;
 
-    // 학습 데이터 DTO
+        int nSamples = conditions.size();
+        int nFeatures = conditions.get(0).getEmbedding().length;
 
+        float[][] x = new float[nSamples][nFeatures];
+        int[] y = new int[nSamples];
+
+        for (int i = 0; i < nSamples; i++) {
+            x[i] = conditions.get(i).getEmbedding(); // embedding 바로 사용
+            y[i] = conditions.get(i).getLabel() ? 1 : 0;
+        }
+
+        return new TrainingData(x, y);
+    }
+
+    // 사용자 피드백 데이터 저장
+    private void recordFeedback(Weather weather, User user, List<ClothingAttributeValue> values, Boolean label) {
+
+        ClothingCondition.ClothingConditionBuilder builder = ClothingCondition.builder()
+            .temperature(weather.getTemperature().getCurrent())
+            .humidity(weather.getHumidity().getCurrent())
+            .weatherType(weather.getAlertType())
+            .gender(user.getGender())
+            .temperatureSensitivity(user.getTemperatureSensitivity())
+            .label(label);
+
+        ClothingCondition.ClothingConditionBuilder builder2 =
+            ClothingConditionBuilderHelper.addClothingAttributes(builder,values);
+
+        ClothingCondition feature = builder2.build();
+
+        float[] embedding = conditionVectorizer.toConditionVector(feature);
+
+        feature = builder.embedding(embedding).build();
+
+        repository.save(feature);
+    }
 }

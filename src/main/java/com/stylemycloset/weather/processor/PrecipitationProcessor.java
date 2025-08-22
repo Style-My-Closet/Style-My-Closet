@@ -57,7 +57,7 @@ public class PrecipitationProcessor implements WeatherCategoryProcessor {
     private AlertType convertToAlertType(String value) {
         return switch (value) {
             case "0" -> AlertType.NONE;     // 없음
-            case "1" -> AlertType.SNOW_RAIN;     // 비
+            case "1" -> AlertType.RAIN_SNOW;     // 비
             case "2" -> AlertType.SNOW; // 비/눈
             case "3" -> AlertType.SHOWER;     // 눈
             default -> AlertType.NONE;

@@ -24,6 +24,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +63,8 @@ public class WeatherServiceImpl implements WeatherService {
         return locationMapper.toDto(location);
     }
 
+
+    @Transactional
     public void checkWeather(double latitude, double longitude, Long userId) {
 
         Optional<Weather> weather= getTodayWeatherByLocation(latitude, longitude);
@@ -94,6 +97,7 @@ public class WeatherServiceImpl implements WeatherService {
             eventPublisher.publishEvent(new WeatherAlertEvent(userId, data.getId(), message));
         }
     }
+
 
 
     public Optional<Weather> getTodayWeatherByLocation(double latitude, double longitude) {

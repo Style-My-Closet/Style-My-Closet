@@ -49,4 +49,5 @@ public class ClothingConditionBuilderHelper {
 
         return builder;
     }
+
 }
