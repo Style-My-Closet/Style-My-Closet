@@ -50,6 +50,7 @@ public class ClothingConditionMapper {
             .humidity(cc.getHumidity())
             .windSpeed(cc.getWindSpeed())
             .weatherType(cc.getWeatherType())
+            .color(cc.getColor())
             .gender(cc.getGender())
             .temperatureSensitivity(cc.getTemperatureSensitivity())
             .pantsLength(cc.getPantsLength())

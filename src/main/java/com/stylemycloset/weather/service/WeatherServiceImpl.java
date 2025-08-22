@@ -40,12 +40,8 @@ public class WeatherServiceImpl implements WeatherService {
 
     public List<WeatherDto> getWeatherByCoordinates(double latitude, double longitude) {
 
-        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul")); // 한국 기준 오늘 날짜
-        ZonedDateTime kstMidnight = today.atStartOfDay(ZoneId.of("Asia/Seoul")); // 한국 자정
-        ZonedDateTime utcZoned = kstMidnight.withZoneSameInstant(ZoneOffset.UTC); // UTC 변환
-        LocalDateTime utcTime = utcZoned.toLocalDateTime(); // DB에 넣을 값
 
-        List<Weather> weathers = weatherRepository.findTheNext5DaysByLocation(latitude, longitude, utcTime);
+        List<Weather> weathers = getTheNext5DaysByLocation(latitude, longitude);
         if(weathers.isEmpty()){
             Location location = locationRepository.findByLatitudeAndLongitude(latitude,longitude).orElseGet(
                 ()->kakaoApiService.createLocation(longitude,latitude)  );
@@ -112,6 +108,27 @@ public class WeatherServiceImpl implements WeatherService {
                 return !createdAt.isBefore(startOfDay) && createdAt.isBefore(endOfDay);
             })
             .findFirst(); // 또는 필요에 따라 collect(Collectors.toList())
+    }
+
+    public List<Weather> getTheNext5DaysByLocation(Double latitude, Double longitude) {
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul")); // 한국 기준 오늘 날짜
+        ZonedDateTime kstMidnight = today.atStartOfDay(ZoneId.of("Asia/Seoul")); // 한국 자정
+        ZonedDateTime utcZoned = kstMidnight.withZoneSameInstant(ZoneOffset.UTC); // UTC 변환
+        LocalDateTime utcTime = utcZoned.toLocalDateTime(); // DB에 넣을 값
+
+        Instant startOfDay = today.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
+        Instant endOfDay = today.plusDays(1).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
+
+        List<Weather> ws1 =  weatherRepository.findTheNext5DaysByLocation(latitude, longitude, utcTime);
+
+        List<Weather> ws2 = ws1.stream()
+            .filter(weather -> {
+                Instant createdAt = weather.getCreatedAt();
+                return !createdAt.isBefore(startOfDay) && createdAt.isBefore(endOfDay);
+            })
+            .toList();
+
+        return ws2;
     }
 }
 
