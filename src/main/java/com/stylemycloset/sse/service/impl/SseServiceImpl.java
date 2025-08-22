@@ -8,7 +8,6 @@ import com.stylemycloset.sse.service.SseService;
 import java.io.IOException;
 import java.util.Deque;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,27 +23,20 @@ public class SseServiceImpl implements SseService {
   private final SseSender sseSender;
 
   private static final long DEFAULT_TIMEOUT = 30L * 60 * 1000;
-  private static final int MAX_EVENT_COUNT = 30;
-  private static final int MAX_EMITTER_COUNT = 3;
   private static final String EVENT_NAME = "notifications";
 
   @Override
   public SseEmitter connect(Long userId, String eventId, String lastEventId) {
     SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
 
-    CopyOnWriteArrayList<SseEmitter> emitters = sseRepository.findOrCreateEmitters(userId);
-
     emitter.onCompletion(() -> sseRepository.removeEmitter(userId, emitter));
     emitter.onTimeout(() -> sseRepository.removeEmitter(userId, emitter));
     emitter.onError(e -> sseRepository.removeEmitter(userId, emitter));
 
-    if(emitters.size() >= MAX_EMITTER_COUNT) {
-      SseEmitter removed = emitters.remove(0);
-      removed.complete();
-      log.info("최대 emitter 수를 초과하여 오래된 emitter 제거됨 : id={}, size={}", userId, emitters.size());
+    SseEmitter computeEmitter = sseRepository.addEmitter(userId, emitter);
+    if(computeEmitter != null) {
+      computeEmitter.complete();
     }
-    sseRepository.addEmitter(userId, emitter);
-
 
     sseSender.sendToClient(userId, emitter, eventId, "connect", "Sse Connected");
 
@@ -72,7 +64,7 @@ public class SseServiceImpl implements SseService {
   @Override
   public void sendNotification(NotificationDto notificationDto) {
     Long receiverId = notificationDto.receiverId();
-    List<SseEmitter> sseEmitters = sseRepository.findOrCreateEmitters(receiverId);
+    Deque<SseEmitter> sseEmitters = sseRepository.findOrCreateEmitters(receiverId);
     if(sseEmitters.isEmpty()) {
       log.info("SSE 연결이 없어 알림 전송 실패 : id={}, notificationId={}",
           receiverId, notificationDto.id());
@@ -81,12 +73,8 @@ public class SseServiceImpl implements SseService {
 
     long eventId = notificationDto.createdAt().toEpochMilli();
     SseInfo sseInfo = new SseInfo(eventId, EVENT_NAME, notificationDto, System.currentTimeMillis());
-    Deque<SseInfo> eventDeque = sseRepository.findOrCreateEvents(receiverId);
 
-    if (eventDeque.size() >= MAX_EVENT_COUNT) {
-      eventDeque.pollFirst();
-    }
-    eventDeque.add(sseInfo);
+    sseRepository.addEvent(receiverId, sseInfo);
 
     for(SseEmitter sseEmitter : sseEmitters) {
       sseSender.sendToClientAsync(receiverId, sseEmitter, String.valueOf(eventId), EVENT_NAME, notificationDto);
