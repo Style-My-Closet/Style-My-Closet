@@ -3,6 +3,8 @@ package com.stylemycloset.weather.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,12 +20,13 @@ import com.stylemycloset.weather.entity.Temperature;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.entity.Weather.AlertType;
 import com.stylemycloset.weather.entity.WindSpeed;
-import com.stylemycloset.weather.mapper.LocationMapper;
+import com.stylemycloset.location.mapper.LocationMapper;
 import com.stylemycloset.weather.mapper.WeatherInfosMapper;
 import com.stylemycloset.weather.mapper.WeatherMapper;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
@@ -55,6 +58,12 @@ public class WeatherServiceTest {
     private LocationRepository locationRepository;
 
     @Mock
+    private KakaoApiService kakaoApiService;
+
+    @Mock
+    private ForecastApiService forecastApiService;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @Test
@@ -76,7 +85,7 @@ public class WeatherServiceTest {
 
         Weather weather = Weather.builder()
             .id(1L)
-            .forecastedAt(LocalDateTime.now().minusHours(3))
+            .forecastedAt(LocalDateTime.now())
             .forecastAt(LocalDateTime.now())
             .location(location)
             .skyStatus(Weather.SkyStatus.CLEAR)
@@ -86,13 +95,15 @@ public class WeatherServiceTest {
             .windSpeed(windSpeed)
             .build();
 
-        when(weatherRepository.findByLocation(37.5665, 126.9780))
+        when(weatherRepository.findTheNext4DaysByLocation(eq(37.5665d),
+            eq(126.978d),
+            any(LocalDateTime.class)))
             .thenReturn(List.of(weather));
 
         when(weatherMapper.toDto(weather)).thenReturn(new WeatherDto(
             weather.getId(),
-            weather.getForecastedAt(),
-            weather.getForecastAt(),
+            weather.getForecastedAt().atZone(ZoneId.of("UTC")).toInstant(),
+            weather.getForecastAt().atZone(ZoneId.of("UTC")).toInstant(),
             weather.getLocation(),
             weather.getSkyStatus(),
             WeatherInfosMapper.toDto(weather.getPrecipitation()) ,

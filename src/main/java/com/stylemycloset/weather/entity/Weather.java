@@ -26,11 +26,9 @@ public class Weather extends CreatedAtEntity {
   private Long id;
 
   @Column(name = "forecasted_at", nullable = false)
-  @CreatedDate
   private LocalDateTime forecastedAt;
 
   @Column(name = "forecast_at", nullable = false)
-  @CreatedDate
   private LocalDateTime forecastAt;
 
   //forecastedAt: 예보가 생성된 시점 (기상청이 예보 발표한 시점)

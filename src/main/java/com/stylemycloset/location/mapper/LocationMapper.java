@@ -1,8 +1,7 @@
-package com.stylemycloset.weather.mapper;
+package com.stylemycloset.location.mapper;
 
 import com.stylemycloset.location.Location;
 import com.stylemycloset.weather.dto.WeatherAPILocation;
-import java.util.List;
 import org.springframework.stereotype.Component;
 
 @Component

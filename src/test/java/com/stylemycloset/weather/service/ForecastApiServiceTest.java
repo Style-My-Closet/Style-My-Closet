@@ -6,11 +6,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.location.Location;
 import com.stylemycloset.location.LocationRepository;
@@ -21,21 +18,17 @@ import com.stylemycloset.weather.processor.HumidityProcessor;
 import com.stylemycloset.weather.processor.TmpProcessor;
 import com.stylemycloset.weather.processor.WeatherCategoryProcessor;
 import com.stylemycloset.weather.repository.WeatherRepository;
-import com.stylemycloset.weather.util.WeatherApiFetcher;
 import com.stylemycloset.weather.util.WeatherBuilderHelperContext;
-import com.stylemycloset.weather.util.WeatherItemDeduplicator;
+import com.stylemycloset.weather.util.WeatherItemsFilterer;
 import com.stylemycloset.weather.utils.FakeWeatherApiFetcher;
-import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("forecast")
@@ -48,15 +41,10 @@ class ForecastApiServiceTest {
     private LocationRepository locationRepository;
 
     @Mock
-    private WeatherItemDeduplicator deduplicator;
-
-    private TmpProcessor tmpProcessor;
-    private HumidityProcessor humidProcessor;
+    private WeatherItemsFilterer filterer;
 
     @Mock
     private WeatherBuilderHelperContext ctx;
-
-    private FakeWeatherApiFetcher apiFetcher;
 
 
     private ForecastApiService forecastApiService;
@@ -72,21 +60,16 @@ class ForecastApiServiceTest {
     void setUp() {
         // weatherRepository는 Mockito mock 상태
         // processor는 실제 객체 생성, weatherRepository 주입
-        tmpProcessor = Mockito.spy(new TmpProcessor(weatherRepository));
-        humidProcessor = Mockito.spy(new HumidityProcessor(weatherRepository));
+        TmpProcessor tmpProcessor = Mockito.spy(new TmpProcessor(weatherRepository));
+        HumidityProcessor humidProcessor = Mockito.spy(new HumidityProcessor(weatherRepository));
 
-        apiFetcher = new FakeWeatherApiFetcher(new ObjectMapper());
+        FakeWeatherApiFetcher apiFetcher = new FakeWeatherApiFetcher(new ObjectMapper(), filterer);
         List<WeatherCategoryProcessor> processors = List.of(tmpProcessor, humidProcessor);
 
         forecastApiService = new ForecastApiService(
             apiFetcher,
-            deduplicator,
-            locationRepository,
             processors
         );
-
-        // deduplicator 설정 (mock)
-        when(deduplicator.deduplicate(anyList())).thenAnswer(inv -> inv.getArgument(0));
 
         // 필요하면 processor 내 특정 메서드만 mock 처리 가능
         doReturn(true).when(tmpProcessor).supports("TMP");
@@ -110,12 +93,11 @@ class ForecastApiServiceTest {
     @Test
     void fetchData_shouldSaveWeatherAndLocation() {
         // when
-        Weather weather = forecastApiService.fetchData(location);
+        List<Weather> weathers = forecastApiService.fetchData(location);
 
-        weatherRepository.save(weather);
+        weatherRepository.saveAll(weathers);
         // then
-        verify(weatherRepository).save(any(Weather.class));
-        verify(locationRepository).save(any(Location.class));
+        verify(weatherRepository).saveAll(anyList());
     }
 }
 
