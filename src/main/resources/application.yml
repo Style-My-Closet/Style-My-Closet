@@ -55,7 +55,6 @@ style-my-closet:
       bucket: ${AWS_S3_BUCKET:bucket}
       presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION_SECOND:600}
 
-
 closet:
   admin:
     username: ${CLOSET_ADMIN_USERNAME:admin}
@@ -76,10 +75,4 @@ security:
     secret: ${SECURITY_JWT_SECRET}
     access-token-validity-seconds: ${SECURITY_JWT_ACCESS_TOKEN_VALIDITY_SECONDS}
     refresh-token-validity-seconds: ${SECURITY_JWT_REFRESH_TOKEN_VALIDITY_SECONDS}
-
-app:
-  aws:
-    region: ${AWS_S3_REGION}
-    accessKeyId: ${AWS_S3_ACCESS_KEY}
-    secretAccessKey: ${AWS_S3_SECRET_KEY}
 

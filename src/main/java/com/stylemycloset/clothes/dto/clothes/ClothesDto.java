@@ -12,4 +12,18 @@ public record ClothesDto(
     List<AttributeDto> attributes
 ) {
 
+  public static ClothesDto of(
+      String name,
+      String imageUrl
+  ) {
+    return new ClothesDto(
+        null,
+        null,
+        name,
+        imageUrl,
+        null,
+        null
+    );
+  }
+
 }

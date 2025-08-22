@@ -55,12 +55,3 @@ security:
     secret: ${SECURITY_JWT_SECRET:myVerySecretJWTKeyThatShouldBeLongEnough}
     access-token-validity-seconds: ${SECURITY_JWT_ACCESS_TOKEN_VALIDITY_SECONDS:3600}
     refresh-token-validity-seconds: ${SECURITY_JWT_REFRESH_TOKEN_VALIDITY_SECONDS:86400}
-
-# OpenAI 관련 환경변수 테스트 기본값 설정
-OPENAI_API_KEY: test-openai-api-key
-CUSTOM_AI_AUTH_VALUE: test-custom-ai-auth
-OPENAI_MODEL: gpt-4-vision-preview-test
-OPENAI_ORG_ID: test-org-id
-OPENAI_PROJECT_ID: test-project-id
-
-

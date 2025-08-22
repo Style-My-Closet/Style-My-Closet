@@ -88,6 +88,8 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+    implementation 'org.jsoup:jsoup:1.18.3'
 }
 
 

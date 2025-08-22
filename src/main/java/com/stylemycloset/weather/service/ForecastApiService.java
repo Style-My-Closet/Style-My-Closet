@@ -52,7 +52,7 @@ public class ForecastApiService {
 
             WeatherBuilderHelper builder = builders.computeIfAbsent(key,
                 k -> new WeatherBuilderHelper(baseDate, baseTime, fcstDate, fcstTime, location,processors));
-            builder.setCategoryValue(item.path("category").asText(), item.path("fcstValue").asText());
+            builder.setCategoryValue(item.path("clothesType").asText(), item.path("fcstValue").asText());
 
 
         }

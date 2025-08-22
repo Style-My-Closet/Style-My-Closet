@@ -8,7 +8,7 @@ import com.stylemycloset.clothes.dto.clothes.response.ClothDtoCursorResponse;
 import com.stylemycloset.clothes.dto.clothes.ClothesDto;
 import com.stylemycloset.clothes.dto.clothes.response.ClothUpdateResponseDto;
 import com.stylemycloset.clothes.service.clothes.ClothService;
-import com.stylemycloset.clothes.service.extract.ClothesProductExtractionService;
+import com.stylemycloset.clothes.service.extractor.ClothesInfoExtractionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class ClothesController {
 
   private final ClothService clothService;
-  private final ClothesProductExtractionService clothesProductExtractionService;
+  private final ClothesInfoExtractionService clothesInfoExtractionService;
 
   @PostMapping
   public ResponseEntity<ClothesDto> createCloth(
@@ -75,11 +75,9 @@ public class ClothesController {
 
   @GetMapping("/extractions")
   public ResponseEntity<ClothesDto> extractClothInfo(
-      @AuthenticationPrincipal(expression = "userId") Long ownerId,
       @RequestParam("url") String url
   ) {
-    ClothesDto extractedClothes = clothesProductExtractionService.extractImageAndBasicInfo(url,
-        ownerId);
+    ClothesDto extractedClothes = clothesInfoExtractionService.extractInfo(url);
     return ResponseEntity.ok(extractedClothes);
   }
 

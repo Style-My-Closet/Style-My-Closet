@@ -30,7 +30,7 @@ public class WeatherItemDeduplicator {
             item.path("fcstDate").asText() + "|" +
             item.path("fcstTime").asText() + "|" +
             item.path("nx").asText() + "," + item.path("ny").asText() + "|" +
-            item.path("category").asText();
+            item.path("clothesType").asText();
     }
 }
 

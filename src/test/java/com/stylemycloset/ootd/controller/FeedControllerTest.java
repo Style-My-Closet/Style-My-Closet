@@ -110,8 +110,8 @@
 //    testCloth2 = saveCloth("옷2", testCloset, topCategory, null);
 //  }
 //
-//  private Cloth saveCloth(String definitionName, Closet closet, ClothingCategory category, BinaryContent bin) {
-//    Cloth c = Cloth.createCloth(definitionName, closet, category, bin != null ? bin.getId() : null);
+//  private Cloth saveCloth(String definitionName, Closet closet, ClothingCategory clothesType, BinaryContent bin) {
+//    Cloth c = Cloth.createCloth(definitionName, closet, clothesType, bin != null ? bin.getId() : null);
 //    return clothRepository.save(c);
 //  }
 //
