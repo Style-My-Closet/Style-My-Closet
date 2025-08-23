@@ -22,7 +22,7 @@ public class SseServiceImpl implements SseService {
   private final SseRepository sseRepository;
   private final SseSender sseSender;
 
-  private static final long DEFAULT_TIMEOUT = 30L * 60 * 1000;
+  private static final long DEFAULT_TIMEOUT = 5L * 60 * 1000;
   private static final String EVENT_NAME = "notifications";
 
   @Override
@@ -30,13 +30,20 @@ public class SseServiceImpl implements SseService {
     SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
 
     emitter.onCompletion(() -> sseRepository.removeEmitter(userId, emitter));
-    emitter.onTimeout(() -> sseRepository.removeEmitter(userId, emitter));
-    emitter.onError(e -> sseRepository.removeEmitter(userId, emitter));
+    emitter.onTimeout(() -> {
+      sseRepository.removeEmitter(userId, emitter);
+      emitter.complete();
+    });
+    emitter.onError(e -> {
+      sseRepository.removeEmitter(userId, emitter);
+      emitter.complete();
+    });
 
     SseEmitter computeEmitter = sseRepository.addEmitter(userId, emitter);
     if(computeEmitter != null) {
       computeEmitter.complete();
     }
+    log.info("연결된 Emitter 수: {}", sseRepository.findOrCreateEmitters(userId).size());
 
     sseSender.sendToClient(userId, emitter, eventId, "connect", "Sse Connected");
 
@@ -81,15 +88,16 @@ public class SseServiceImpl implements SseService {
     }
   }
 
-  @Scheduled(fixedRate = 2 * 60 * 1000)
+  @Scheduled(fixedRate = 30 * 1000)
   public void cleanUpSseEmitters() {
     sseRepository.findAllEmittersReadOnly()
         .forEach((userId, emitters) ->
             emitters.forEach(emitter -> {
               try{
-                emitter.send(SseEmitter.event().name("heartbeat").data("data"));
+                emitter.send(SseEmitter.event().name("heartbeat").data("ping"));
               } catch (IOException | IllegalStateException e){
                 log.debug("user [{}]에 대한 연결이 실패하여 emitter를 삭제", userId);
+                try { emitter.complete(); } catch (RuntimeException ignore) {}
                 sseRepository.removeEmitter(userId, emitter);
               }
             }));

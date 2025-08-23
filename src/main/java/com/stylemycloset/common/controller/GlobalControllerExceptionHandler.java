@@ -1,6 +1,7 @@
 package com.stylemycloset.common.controller;
 
 import com.stylemycloset.common.exception.StyleMyClosetException;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -75,7 +76,14 @@ public class GlobalControllerExceptionHandler {
   }
 
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception exception) {
+  public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception exception, HttpServletRequest request) {
+    String accept = request.getHeader("Accept");
+
+    if (accept != null && accept.toLowerCase().contains("text/event-stream")) {
+      log.info("[SSE] handled silently: uri={}, ex={}", request.getRequestURI(), exception.toString());
+      return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
     log.error("Not SpecificException: {}", exception.getMessage());
 
     ErrorResponse errorResponse = ErrorResponse.of(exception,

@@ -1,7 +1,10 @@
 package com.stylemycloset.security;
 
+import jakarta.servlet.DispatcherType;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.DispatcherTypeRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
@@ -28,8 +31,16 @@ public class SecurityMatchers {
       "/api/auth/reset-password", HttpMethod.POST.name()
   );
   public static final RequestMatcher DM = new AntPathRequestMatcher("/ws/**");
+  public static final RequestMatcher ERROR = new AntPathRequestMatcher("/error");
+
+  public static final RequestMatcher SSE_ASYNC = new AndRequestMatcher(
+      new DispatcherTypeRequestMatcher(DispatcherType.ASYNC),
+      new AntPathRequestMatcher("/api/sse"));
+  public static final RequestMatcher SSE_ERROR = new AndRequestMatcher(
+      new DispatcherTypeRequestMatcher(DispatcherType.ERROR),
+      new AntPathRequestMatcher("/api/sse"));
 
   public static final RequestMatcher[] PUBLIC_MATCHERS = new RequestMatcher[]{
-      NON_API, GET_CSRF_TOKEN, SIGN_UP, LOGIN, LOGOUT, ME, REFRESH, RESET_PASSWORD, DM
+      NON_API, GET_CSRF_TOKEN, SIGN_UP, LOGIN, LOGOUT, ME, REFRESH, RESET_PASSWORD, DM, ERROR
   };
 }
