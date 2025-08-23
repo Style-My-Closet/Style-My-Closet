@@ -43,7 +43,6 @@ public class SseServiceImpl implements SseService {
     if(computeEmitter != null) {
       computeEmitter.complete();
     }
-    log.info("연결된 Emitter 수: {}", sseRepository.findOrCreateEmitters(userId).size());
 
     sseSender.sendToClient(userId, emitter, eventId, "connect", "Sse Connected");
 
