@@ -31,12 +31,12 @@ public class SseServiceImpl implements SseService {
 
     emitter.onCompletion(() -> sseRepository.removeEmitter(userId, emitter));
     emitter.onTimeout(() -> {
+      try { emitter.complete(); } catch (RuntimeException ignore) {}
       sseRepository.removeEmitter(userId, emitter);
-      emitter.complete();
     });
     emitter.onError(e -> {
+      try { emitter.complete(); } catch (RuntimeException ignore) {}
       sseRepository.removeEmitter(userId, emitter);
-      emitter.complete();
     });
 
     SseEmitter computeEmitter = sseRepository.addEmitter(userId, emitter);
