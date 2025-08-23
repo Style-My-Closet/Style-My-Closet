@@ -14,11 +14,15 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Table(name = "clothes_attribute_selectable_value")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Where(clause = "deleted_at IS NULL")
+@BatchSize(size = 100)
 public class ClothesAttributeSelectableValue extends SoftDeletableEntity {
 
   @Id

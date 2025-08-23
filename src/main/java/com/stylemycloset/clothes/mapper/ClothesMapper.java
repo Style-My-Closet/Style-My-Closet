@@ -22,7 +22,7 @@ public class ClothesMapper {
   private final BinaryContentMapper binaryContentMapper;
 
   public ClothesDto toResponse(Clothes clothes) {
-    List<AttributeDto> attributes = clothes.getSelectedValues() // TODO: 8/17/25 N+1 해결 바람
+    List<AttributeDto> attributes = clothes.getSelectedValues()
         .stream()
         .map(AttributeDto::from)
         .toList();

@@ -1,6 +1,6 @@
 package com.stylemycloset.binarycontent.storage.s3;
 
-import static com.stylemycloset.common.filter.LogMdcKeys.REQUEST_ID;
+import static com.stylemycloset.common.logging.LogMdcKeys.REQUEST_ID;
 
 import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
 import com.stylemycloset.binarycontent.storage.s3.s3.exception.S3UploadArgumentException;

@@ -1,11 +1,11 @@
 package com.stylemycloset.clothes.service.clothes.impl;
 
-import static com.stylemycloset.clothes.service.clothes.impl.parser.JsoupSelectorConstant.META_ATTRIBUTE_CONTENT;
-import static com.stylemycloset.clothes.service.clothes.impl.parser.JsoupSelectorConstant.META_ATTRIBUTE_PROPERTY;
-import static com.stylemycloset.clothes.service.clothes.impl.parser.JsoupSelectorConstant.META_PROPERTY_SELECTOR;
+import static com.stylemycloset.clothes.service.extractor.impl.parser.JsoupSelectorConstant.META_ATTRIBUTE_CONTENT;
+import static com.stylemycloset.clothes.service.extractor.impl.parser.JsoupSelectorConstant.META_ATTRIBUTE_PROPERTY;
+import static com.stylemycloset.clothes.service.extractor.impl.parser.JsoupSelectorConstant.META_PROPERTY_SELECTOR;
 
 import com.stylemycloset.clothes.dto.ClothesExtractedMetaInfo;
-import com.stylemycloset.clothes.service.clothes.impl.parser.ClothesUrlParser;
+import com.stylemycloset.clothes.service.extractor.impl.parser.ClothesUrlParser;
 import java.io.IOException;
 import org.assertj.core.api.Assertions;
 import org.jsoup.parser.Parser;

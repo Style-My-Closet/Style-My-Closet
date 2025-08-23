@@ -1,5 +1,6 @@
-package com.stylemycloset.clothes.entity.attribute;
+package com.stylemycloset.clothes.entity.clothes;
 
+import com.stylemycloset.clothes.entity.attribute.ClothesAttributeSelectableValue;
 import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import jakarta.persistence.Entity;
@@ -14,6 +15,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 @Getter
 @Entity

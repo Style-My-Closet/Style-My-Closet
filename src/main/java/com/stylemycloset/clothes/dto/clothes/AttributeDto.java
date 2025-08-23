@@ -1,6 +1,6 @@
 package com.stylemycloset.clothes.dto.clothes;
 
-import com.stylemycloset.clothes.entity.attribute.ClothesAttributeSelectedValue;
+import com.stylemycloset.clothes.entity.clothes.ClothesAttributeSelectedValue;
 import com.stylemycloset.clothes.entity.attribute.ClothesAttributeDefinition;
 import com.stylemycloset.clothes.entity.attribute.ClothesAttributeSelectableValue;
 import java.util.List;
@@ -12,7 +12,7 @@ public record AttributeDto(
     String value
 ) {
 
-  public static AttributeDto from( // TODO: 8/17/25 N+1 처리필요
+  public static AttributeDto from(
       ClothesAttributeSelectedValue attributeSelectedValue
   ) {
     ClothesAttributeSelectableValue selectedValue = attributeSelectedValue.getSelectableValue();

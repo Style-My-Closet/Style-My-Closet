@@ -2,7 +2,6 @@ package com.stylemycloset.clothes.entity.clothes;
 
 import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.clothes.entity.attribute.ClothesAttributeSelectableValue;
-import com.stylemycloset.clothes.entity.attribute.ClothesAttributeSelectedValue;
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

@@ -1,8 +1,8 @@
-package com.stylemycloset.common.filter;
+package com.stylemycloset.common.logging;
 
-import static com.stylemycloset.common.filter.LogMdcKeys.REQUEST_ID;
-import static com.stylemycloset.common.filter.LogMdcKeys.REQUEST_METHOD;
-import static com.stylemycloset.common.filter.LogMdcKeys.REQUEST_URL;
+import static com.stylemycloset.common.logging.LogMdcKeys.REQUEST_ID;
+import static com.stylemycloset.common.logging.LogMdcKeys.REQUEST_METHOD;
+import static com.stylemycloset.common.logging.LogMdcKeys.REQUEST_URL;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -28,13 +28,14 @@ public class LoggingFilter extends OncePerRequestFilter {
 
   private static final List<String> EXCLUDE_PREFIXES = List.of(
       "/css", "/js", "/images", "/static", "/favicon.ico", "/webjars", "/assets",
-      "/closet-hanger-logo.png", "/"
+      "/closet-hanger-logo.png"
   );
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String uri = request.getRequestURI();
-    return EXCLUDE_PREFIXES.stream().anyMatch(uri::startsWith);
+    return EXCLUDE_PREFIXES.stream()
+        .anyMatch(uri::startsWith);
   }
 
   @Override

@@ -24,6 +24,7 @@ import org.hibernate.annotations.Where;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Where(clause = "deleted_at IS NULL")
+@BatchSize(size = 100)
 public class ClothesAttributeDefinition extends SoftDeletableEntity {
 
   @Id
@@ -34,7 +35,7 @@ public class ClothesAttributeDefinition extends SoftDeletableEntity {
   @Column(name = "name", nullable = false, length = 50)
   private String name;
 
-  @BatchSize(size = 100)
+  @BatchSize(size = 50)
   @OneToMany(mappedBy = "definition", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<ClothesAttributeSelectableValue> selectableValues;
 

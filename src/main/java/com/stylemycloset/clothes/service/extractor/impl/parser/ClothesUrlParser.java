@@ -1,4 +1,4 @@
-package com.stylemycloset.clothes.service.clothes.impl.parser;
+package com.stylemycloset.clothes.service.extractor.impl.parser;
 
 import com.stylemycloset.clothes.dto.ClothesExtractedMetaInfo;
 import java.io.IOException;

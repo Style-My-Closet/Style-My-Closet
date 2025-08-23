@@ -1,11 +1,11 @@
 package com.stylemycloset.clothes.service.clothes;
 
-import com.stylemycloset.clothes.dto.clothes.request.ClothBinaryContentRequest;
-import com.stylemycloset.clothes.dto.clothes.request.ClothesSearchCondition;
-import com.stylemycloset.clothes.dto.clothes.request.ClothesCreateRequest;
-import com.stylemycloset.clothes.dto.clothes.request.ClothUpdateRequest;
-import com.stylemycloset.clothes.dto.clothes.response.ClothDtoCursorResponse;
 import com.stylemycloset.clothes.dto.clothes.ClothesDto;
+import com.stylemycloset.clothes.dto.clothes.request.ClothBinaryContentRequest;
+import com.stylemycloset.clothes.dto.clothes.request.ClothUpdateRequest;
+import com.stylemycloset.clothes.dto.clothes.request.ClothesCreateRequest;
+import com.stylemycloset.clothes.dto.clothes.request.ClothesSearchCondition;
+import com.stylemycloset.clothes.dto.clothes.response.ClothDtoCursorResponse;
 import com.stylemycloset.clothes.dto.clothes.response.ClothUpdateResponseDto;
 
 public interface ClothService {
@@ -26,7 +26,5 @@ public interface ClothService {
   void softDeleteCloth(Long clothId);
 
   void deleteCloth(Long clothId);
-
-  ClothesDto extractInfo(String url);
 
 }

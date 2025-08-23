@@ -1,4 +1,4 @@
-package com.stylemycloset.common.filter;
+package com.stylemycloset.common.logging;
 
 public final class LogMdcKeys {
 

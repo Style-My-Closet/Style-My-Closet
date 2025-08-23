@@ -8,6 +8,7 @@ import com.stylemycloset.clothes.dto.clothes.request.ClothesSearchCondition;
 import com.stylemycloset.clothes.dto.clothes.response.ClothDtoCursorResponse;
 import com.stylemycloset.clothes.dto.clothes.response.ClothUpdateResponseDto;
 import com.stylemycloset.clothes.service.clothes.ClothService;
+import com.stylemycloset.clothes.service.extractor.ClothesInfoExtractService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class ClothesController {
 
   private final ClothService clothService;
+  private final ClothesInfoExtractService clothesInfoExtractService;
 
   @PostMapping
   public ResponseEntity<ClothesDto> createCloth(
@@ -74,7 +76,7 @@ public class ClothesController {
   public ResponseEntity<ClothesDto> extractClothInfo(
       @RequestParam("url") String url
   ) {
-    ClothesDto extractedClothes = clothService.extractInfo(url);
+    ClothesDto extractedClothes = clothesInfoExtractService.extractInfo(url);
     return ResponseEntity.ok(extractedClothes);
   }
 

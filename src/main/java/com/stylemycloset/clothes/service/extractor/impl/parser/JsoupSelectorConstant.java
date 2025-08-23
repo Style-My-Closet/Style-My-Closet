@@ -1,4 +1,4 @@
-package com.stylemycloset.clothes.service.clothes.impl.parser;
+package com.stylemycloset.clothes.service.extractor.impl.parser;
 
 public final class JsoupSelectorConstant {
 

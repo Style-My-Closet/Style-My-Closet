@@ -20,7 +20,6 @@ public class ClothesAttributeSelectableService {
     if (selectedValueRequests == null || selectedValueRequests.isEmpty()) {
       return null;
     }
-
     return selectedValueRequests.stream()
         .map(this::getClothesDefinitionSelectableValue)
         .filter(Objects::nonNull)
@@ -33,10 +32,10 @@ public class ClothesAttributeSelectableService {
     if (attribute == null) {
       return null;
     }
-
     return definitionSelectableValueRepository.findByDefinitionIdAndValue(
             attribute.definitionId(),
-            attribute.value())
+            attribute.value()
+        )
         .orElse(null);
   }
 
