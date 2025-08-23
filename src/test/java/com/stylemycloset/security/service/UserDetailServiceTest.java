@@ -21,7 +21,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.userdetails.UserDetails;
 
 @ExtendWith(MockitoExtension.class)
 public class UserDetailServiceTest {
@@ -48,7 +47,7 @@ public class UserDetailServiceTest {
 
     // Mock 객체 동작 정의
     when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
-    when(userMapper.UsertoUserDto(user)).thenReturn(userDto);
+    when(userMapper.toUserDto(user)).thenReturn(userDto);
 
     //when
     ClosetUserDetails userDetails = (ClosetUserDetails) closetUserDetailsService.loadUserByUsername(
@@ -61,6 +60,6 @@ public class UserDetailServiceTest {
     assertThat(userDetails.getPassword()).isEqualTo(user.getPassword());
 
     verify(userRepository, times(1)).findByEmail(user.getEmail());
-    verify(userMapper, times(1)).UsertoUserDto(user);
+    verify(userMapper, times(1)).toUserDto(user);
   }
 }

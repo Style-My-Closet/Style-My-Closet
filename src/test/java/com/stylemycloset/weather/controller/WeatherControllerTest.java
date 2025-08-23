@@ -19,8 +19,11 @@ import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import com.stylemycloset.weather.entity.WindSpeed;
 import com.stylemycloset.weather.mapper.WeatherInfosMapper;
 import com.stylemycloset.weather.mapper.WeatherMapper;
+import com.stylemycloset.weather.service.ForecastApiService;
+import com.stylemycloset.weather.service.KakaoApiService;
 import com.stylemycloset.weather.service.WeatherService;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +33,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
@@ -49,8 +54,13 @@ class WeatherControllerTest {
     @Mock
     private WeatherService weatherService;
 
-    private WeatherMapper weatherMapper = new WeatherMapper();
+    @Mock
+    private JobLauncher jobLauncher;
 
+    @Mock
+    private Job weatherJob;
+
+    private final WeatherMapper weatherMapper = new WeatherMapper();
 
     @InjectMocks
     private WeatherController weatherController;
@@ -60,7 +70,7 @@ class WeatherControllerTest {
         // 진짜 구현체 생성, 내부 필드는 mock
 
         // Controller에 직접 구현체 주입
-        weatherController = new WeatherController(weatherService);
+        weatherController = new WeatherController(weatherService,jobLauncher,weatherJob);
 
       mockMvc = MockMvcBuilders.standaloneSetup(weatherController)
           .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
@@ -108,8 +118,8 @@ class WeatherControllerTest {
 
         WeatherDto dummyDto = new WeatherDto(
             1L,
-            LocalDateTime.now().minusHours(3),
-            LocalDateTime.now(),
+            LocalDateTime.now().minusHours(3).atZone(ZoneId.of("UTC")).toInstant(),
+            LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant(),
             location,
             SkyStatus.CLOUDY,
             WeatherInfosMapper.toDto(precipitation) ,

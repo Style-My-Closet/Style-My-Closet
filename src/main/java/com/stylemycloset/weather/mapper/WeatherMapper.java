@@ -3,6 +3,7 @@ package com.stylemycloset.weather.mapper;
 import com.stylemycloset.weather.dto.WeatherDto;
 import com.stylemycloset.weather.dto.WindSpeedDto;
 import com.stylemycloset.weather.entity.Weather;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,8 +19,8 @@ public class WeatherMapper {
 
         return new WeatherDto(
             weather.getId(),
-            weather.getForecastedAt(),
-            weather.getForecastAt(),
+            weather.getForecastedAt().atZone(ZoneId.of("UTC")).toInstant(),
+            weather.getForecastAt().atZone(ZoneId.of("UTC")).toInstant(),
             weather.getLocation(),
             weather.getSkyStatus(),
             WeatherInfosMapper.toDto(weather.getPrecipitation()) ,
