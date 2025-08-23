@@ -158,17 +158,19 @@ public class FeedControllerTest extends IntegrationTestSupport {
 
     @Test
     @DisplayName("피드 목록을 조회하면 200OK 상태와 함께 페이지된 피드 목록을 반환한다")
-    @WithMockUser
     void getFeeds_Returns200AndPagedFeeds() throws Exception {
       for (int i = 0; i < 11; i++) {
         feedRepository.save(Feed.createFeed(testUser, null, "테스트 피드 " + i));
       }
 
+      ClosetUserDetails principal = createUserDetails();
+
       mockMvc.perform(get("/api/feeds")
               .param("limit", "10")
               .param("sortBy", "createdAt")
               .param("sortDirection", "DESCENDING")
-              .with(csrf())) // GET 요청이지만 CSRF 설정에 따라 필요할 수 있음
+              .with(csrf())
+              .with(user(principal))) // 인증된 사용자 정보 추가
           .andDo(print())
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.data.length()").value(10))
