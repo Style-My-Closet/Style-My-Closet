@@ -31,7 +31,6 @@ public class SecurityMatchers {
       "/api/auth/reset-password", HttpMethod.POST.name()
   );
   public static final RequestMatcher DM = new AntPathRequestMatcher("/ws/**");
-  public static final RequestMatcher ERROR = new AntPathRequestMatcher("/error");
 
   public static final RequestMatcher SSE_ASYNC = new AndRequestMatcher(
       new DispatcherTypeRequestMatcher(DispatcherType.ASYNC),
@@ -41,6 +40,6 @@ public class SecurityMatchers {
       new AntPathRequestMatcher("/api/sse"));
 
   public static final RequestMatcher[] PUBLIC_MATCHERS = new RequestMatcher[]{
-      NON_API, GET_CSRF_TOKEN, SIGN_UP, LOGIN, LOGOUT, ME, REFRESH, RESET_PASSWORD, DM, ERROR
+      NON_API, GET_CSRF_TOKEN, SIGN_UP, LOGIN, LOGOUT, ME, REFRESH, RESET_PASSWORD, DM
   };
 }
