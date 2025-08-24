@@ -79,26 +79,4 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, FollowRep
       + "AND f.follower.deletedAt is null")
   Set<Long> findFollowerIdsByFolloweeId(@Param("followeeId") Long followeeId);
 
-  @Override
-  Slice<Follow> findFollowingsByFollowerId(
-      Long followerId,
-      String cursor,
-      String idAfter,
-      Integer limit,
-      String nameLike,
-      String sortBy,
-      String sortDirection
-  );
-
-  @Override
-  Slice<Follow> findFollowersByFolloweeId(
-      Long followerId,
-      String cursor,
-      String idAfter,
-      Integer limit,
-      String nameLike,
-      String sortBy,
-      String sortDirection
-  );
-
 }

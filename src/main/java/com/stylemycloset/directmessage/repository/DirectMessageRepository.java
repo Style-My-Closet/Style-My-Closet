@@ -16,15 +16,4 @@ public interface DirectMessageRepository
   @Query("SELECT m FROM DirectMessage m JOIN FETCH m.receiver WHERE m.id = :id")
   Optional<DirectMessage> findWithReceiverById(@Param("id") Long id);
 
-  @Override
-  Slice<DirectMessage> findMessagesBetweenParticipants(
-      Long senderId,
-      Long receiverId,
-      String cursor,
-      String idAfter,
-      Integer limit,
-      String sortBy,
-      String sortDirection
-  );
-
 }

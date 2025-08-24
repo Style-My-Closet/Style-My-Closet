@@ -1,16 +1,18 @@
 package com.stylemycloset.clothes.repository.attribute.impl;
 
 import com.stylemycloset.clothes.entity.attribute.ClothesAttributeDefinition;
+import org.hibernate.query.SortDirection;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort.Direction;
 
 public interface ClothesAttributeDefinitionRepositoryCustom {
 
   Slice<ClothesAttributeDefinition> findWithCursorPagination(
       String cursor,
-      Long idAfter,
+      String idAfter,
       Integer limit,
       String sortBy,
-      String sortDirection,
+      Direction sortDirection,
       String keywordLike
   );
 

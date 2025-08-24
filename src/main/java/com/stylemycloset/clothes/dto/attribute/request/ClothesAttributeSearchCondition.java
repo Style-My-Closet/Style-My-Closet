@@ -1,11 +1,13 @@
 package com.stylemycloset.clothes.dto.attribute.request;
 
+import org.springframework.data.domain.Sort.Direction;
+
 public record ClothesAttributeSearchCondition(
     String cursor,
-    Long idAfter,
+    String idAfter,
     Integer limit,
     String sortBy,
-    String sortDirection,
+    Direction sortDirection,
     String keywordLike
 ) {
 

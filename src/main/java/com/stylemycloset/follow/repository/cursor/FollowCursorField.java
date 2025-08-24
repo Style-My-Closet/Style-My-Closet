@@ -22,12 +22,6 @@ public enum FollowCursorField {
       Follow::getCreatedAt)
   ),
 
-  UPDATED_AT(new ChronologicalCursorStrategy(
-      QFollow.follow.updatedAt,
-      Instant::parse,
-      Follow::getUpdatedAt)
-  ),
-
   FOLLOWED_AT(new ChronologicalCursorStrategy(
       QFollow.follow.followedAt,
       Instant::parse,

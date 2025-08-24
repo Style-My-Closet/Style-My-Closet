@@ -9,15 +9,4 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ClothesRepository extends JpaRepository<Clothes, Long>, ClothesRepositoryCustom {
 
-  @Override
-  Slice<Clothes> findClothesByCondition(
-      String cursor,
-      Long idAfter,
-      Integer limit,
-      String typeEqual,
-      Long ownerId,
-      String sortBy,
-      String direction
-  );
-
 }

@@ -1,7 +1,5 @@
 package com.stylemycloset.clothes.repository.attribute.cursor.strategy;
 
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.stylemycloset.clothes.entity.attribute.ClothesAttributeDefinition;
@@ -29,25 +27,15 @@ public record AttributeIdCursorStrategy(
   }
 
   @Override
-  public BooleanExpression buildInequalityPredicate(String rawDirection, String rawCursor) {
+  public BooleanExpression buildInequalityPredicate(Direction direction, String rawCursor) {
     if (rawCursor == null || rawCursor.isBlank()) {
       return null;
     }
-    Direction direction = parseDirectionOrDefault(rawDirection);
     Long parsed = parse(rawCursor);
-    if (direction.isDescending()) {
+    if (isDescendingOrDefault(direction)) {
       return path.lt(parsed);
     }
     return path.gt(parsed);
-  }
-
-  @Override
-  public OrderSpecifier<Long> buildOrder(String rawDirection, String rawCursor) {
-    Direction direction = parseDirectionOrDefault(rawDirection);
-    if (direction.isDescending()) {
-      return new OrderSpecifier<>(Order.DESC, path);
-    }
-    return new OrderSpecifier<>(Order.ASC, path);
   }
 
   @Override

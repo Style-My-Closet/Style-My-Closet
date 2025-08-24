@@ -2,6 +2,7 @@ package com.stylemycloset.directmessage.repository.impl;
 
 import com.stylemycloset.directmessage.entity.DirectMessage;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort.Direction;
 
 public interface DirectMessageRepositoryCustom {
 
@@ -12,7 +13,7 @@ public interface DirectMessageRepositoryCustom {
       String idAfter,
       Integer limit,
       String sortBy,
-      String sortDirection
+      Direction sortDirection
   );
 
 }

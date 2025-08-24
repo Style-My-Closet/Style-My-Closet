@@ -2,6 +2,8 @@ package com.stylemycloset.directmessage.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import org.hibernate.query.SortDirection;
+import org.springframework.data.domain.Sort.Direction;
 
 public record DirectMessageSearchCondition(
     @Positive
@@ -11,7 +13,7 @@ public record DirectMessageSearchCondition(
     String idAfter,
     Integer limit,
     String sortBy,
-    String sortDirection
+    Direction sortDirection
 ) {
 
 }

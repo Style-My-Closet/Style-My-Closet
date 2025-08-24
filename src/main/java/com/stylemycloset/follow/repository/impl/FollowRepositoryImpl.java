@@ -11,6 +11,7 @@ import com.stylemycloset.follow.repository.cursor.FollowCursorField;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort.Direction;
 
 @RequiredArgsConstructor
 public class FollowRepositoryImpl implements FollowRepositoryCustom {
@@ -25,7 +26,7 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
       Integer limit,
       String nameLike,
       String sortBy,
-      String sortDirection
+      Direction direction
   ) {
     CursorStrategy<?, Follow> cursorStrategy = FollowCursorField.resolveStrategy(sortBy);
     CursorStrategy<?, Follow> idAfterStrategy = FollowCursorField.resolveStrategy(
@@ -39,18 +40,18 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
         .where(
             follow.follower.id.eq(followerId),
             buildFolloweeNameLikeCondition(nameLike),
-            buildPredicate(cursor, idAfter, sortDirection, cursorStrategy, idAfterStrategy),
+            cursorStrategy.buildCursorPredicate(direction, cursor, idAfter, idAfterStrategy),
             follow.deletedAt.isNull(),
             follow.followee.deletedAt.isNull()
         )
         .orderBy(
-            cursorStrategy.buildOrder(sortDirection, cursor),
-            idAfterStrategy.buildOrder(sortDirection, idAfter)
+            cursorStrategy.buildOrder(direction),
+            idAfterStrategy.buildOrder(direction)
         )
         .limit(limit + 1)
         .fetch();
 
-    return CustomSliceImpl.of(follows, limit, cursorStrategy, sortDirection);
+    return CustomSliceImpl.of(follows, limit, cursorStrategy, direction);
   }
 
   @Override
@@ -61,7 +62,7 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
       Integer limit,
       String nameLike,
       String sortBy,
-      String sortDirection
+      Direction direction
   ) {
     CursorStrategy<?, Follow> cursorStrategy = FollowCursorField.resolveStrategy(sortBy);
     CursorStrategy<?, Follow> idAfterStrategy = FollowCursorField.resolveStrategy(
@@ -75,36 +76,18 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
         .where(
             follow.followee.id.eq(followerId),
             buildFollowerNameLikeCondition(nameLike),
-            buildPredicate(cursor, idAfter, sortDirection, cursorStrategy, idAfterStrategy),
+            cursorStrategy.buildCursorPredicate(direction, cursor, idAfter, idAfterStrategy),
             follow.deletedAt.isNull(),
             follow.follower.deletedAt.isNull()
         )
         .orderBy(
-            cursorStrategy.buildOrder(sortDirection, cursor),
-            idAfterStrategy.buildOrder(sortDirection, idAfter)
+            cursorStrategy.buildOrder(direction),
+            idAfterStrategy.buildOrder(direction)
         )
         .limit(limit + 1)
         .fetch();
 
-    return CustomSliceImpl.of(follows, limit, cursorStrategy, sortDirection);
-  }
-
-  private BooleanExpression buildPredicate(
-      String cursor,
-      String idAfter,
-      String sortDirection,
-      CursorStrategy<?, Follow> cursorStrategy,
-      CursorStrategy<?, Follow> idAfterStrategy
-  ) {
-    BooleanExpression booleanExpression = cursorStrategy.buildInequalityPredicate(sortDirection,
-        cursor);
-    BooleanExpression buildEq = cursorStrategy.buildEq(cursor);
-    BooleanExpression buildSecondary = idAfterStrategy.buildInequalityPredicate(sortDirection,
-        idAfter);
-    if (buildEq != null && buildSecondary != null) {
-      booleanExpression.or(buildEq.and(buildSecondary));
-    }
-    return booleanExpression;
+    return CustomSliceImpl.of(follows, limit, cursorStrategy, direction);
   }
 
   private BooleanExpression buildFollowerNameLikeCondition(String nameLike) {

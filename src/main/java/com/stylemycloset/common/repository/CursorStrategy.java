@@ -1,9 +1,9 @@
 package com.stylemycloset.common.repository;
 
+import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import org.hibernate.query.SortDirection;
 import org.springframework.data.domain.Sort.Direction;
 
 public interface CursorStrategy<T extends Comparable<T>, E> {
@@ -14,26 +14,35 @@ public interface CursorStrategy<T extends Comparable<T>, E> {
 
   T extract(E instance);
 
-  BooleanExpression buildInequalityPredicate(String rawDirection, String rawCursor);
-
-  OrderSpecifier<T> buildOrder(String rawDirection, String rawCursor);
+  BooleanExpression buildInequalityPredicate(Direction direction, String rawCursor);
 
   BooleanExpression buildEq(String rawCursor);
 
-  default Direction parseDirectionOrDefault(String rawDirection) {
-    SortDirection direction = getSortDirection(rawDirection);
-    if (direction != null && direction.name().startsWith(Direction.ASC.name())) {
-      return Direction.ASC;
-    }
-    return Direction.DESC;
+  default boolean isDescendingOrDefault(Direction direction) {
+    return direction == null || direction.isDescending();
   }
 
-  private SortDirection getSortDirection(String rawDirection) {
-    try {
-      return SortDirection.interpret(rawDirection);
-    } catch (IllegalArgumentException ex) {
-      return null;
+  default OrderSpecifier<T> buildOrder(Direction direction) {
+    if (isDescendingOrDefault(direction)) {
+      return new OrderSpecifier<>(Order.DESC, path());
     }
+    return new OrderSpecifier<>(Order.ASC, path());
+  }
+
+  default BooleanExpression buildCursorPredicate(
+      Direction direction,
+      String rawCursor,
+      String idAfter,
+      CursorStrategy<?, E> idAfterStrategy
+  ) {
+    BooleanExpression booleanExpression = buildInequalityPredicate(direction, rawCursor);
+    BooleanExpression buildEq = buildEq(rawCursor);
+    BooleanExpression buildSecondary = idAfterStrategy.buildInequalityPredicate(direction,
+        idAfter);
+    if (buildEq == null || buildSecondary == null) {
+      return booleanExpression;
+    }
+    return booleanExpression.or(buildEq.and(buildSecondary));
   }
 
 }

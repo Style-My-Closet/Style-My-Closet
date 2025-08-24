@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 
 public final class CustomSliceImpl<T> extends SliceImpl<T> {
@@ -18,10 +19,10 @@ public final class CustomSliceImpl<T> extends SliceImpl<T> {
       List<T> contents,
       int limit,
       CursorStrategy<?, T> primaryCursorStrategy,
-      String sortDirection
+      Direction direction
   ) {
     Sort sort = Sort.by(
-        primaryCursorStrategy.parseDirectionOrDefault(sortDirection),
+        getDirection(direction),
         primaryCursorStrategy.path().getMetadata().getName()
     );
 
@@ -30,6 +31,13 @@ public final class CustomSliceImpl<T> extends SliceImpl<T> {
         PageRequest.of(0, limit, sort),
         contents.size() > limit
     );
+  }
+
+  private static Direction getDirection(Direction direction) {
+    if (direction == null) {
+      direction = Direction.DESC;
+    }
+    return direction;
   }
 
   public static <T> Order getOrder(Slice<T> attributeDefinitions) {

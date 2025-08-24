@@ -1,8 +1,10 @@
 package com.stylemycloset.follow.service.impl;
 
+import static com.stylemycloset.follow.entity.QFollow.follow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
+import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.binarycontent.storage.s3.BinaryContentStorage;
 import com.stylemycloset.follow.dto.FollowListResponse;
 import com.stylemycloset.follow.dto.FollowResult;
@@ -14,11 +16,9 @@ import com.stylemycloset.follow.entity.Follow;
 import com.stylemycloset.follow.entity.QFollow;
 import com.stylemycloset.follow.exception.ActiveFollowNotFoundException;
 import com.stylemycloset.follow.exception.FollowAlreadyExistException;
-import com.stylemycloset.follow.exception.FollowNotFoundException;
 import com.stylemycloset.follow.exception.FollowSelfForbiddenException;
 import com.stylemycloset.follow.repository.FollowRepository;
 import com.stylemycloset.follow.service.FollowService;
-import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.notification.dto.NotificationDto;
 import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.user.entity.User;
@@ -29,6 +29,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.transaction.TestTransaction;
 
@@ -211,7 +212,7 @@ class FollowServiceTest extends IntegrationTestSupport {
 
     FollowListResponse<FollowResult> firstSearchResult = followService.getFollowings(
         new SearchFollowingsCondition(userA.getId(), null, null, 1, null,
-            QFollow.follow.createdAt.getMetadata().getName(), "DESC")
+            follow.createdAt.getMetadata().getName(), Direction.DESC)
     );
 
     // when
@@ -222,8 +223,9 @@ class FollowServiceTest extends IntegrationTestSupport {
             firstSearchResult.nextIdAfter(),
             1,
             null,
-            QFollow.follow.createdAt.getMetadata().getName(),
-            "DESC")
+            follow.createdAt.getMetadata().getName(),
+            Direction.DESC
+        )
     );
 
     // then
@@ -247,7 +249,7 @@ class FollowServiceTest extends IntegrationTestSupport {
 
     FollowListResponse<FollowResult> firstSearchResult = followService.getFollowers(
         new SearchFollowersCondition(userA.getId(), null, null, 1, null,
-            QFollow.follow.createdAt.getMetadata().getName(), "DESC")
+            follow.createdAt.getMetadata().getName(), Direction.DESC)
     );
 
     // when
@@ -258,8 +260,8 @@ class FollowServiceTest extends IntegrationTestSupport {
             firstSearchResult.nextIdAfter(),
             1,
             null,
-            QFollow.follow.createdAt.getMetadata().getName(),
-            "DESC"
+            follow.createdAt.getMetadata().getName(),
+            Direction.DESC
         )
     );
 

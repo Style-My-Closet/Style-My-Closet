@@ -1,7 +1,5 @@
 package com.stylemycloset.clothes.repository.clothes.cursor.strategy;
 
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.stylemycloset.clothes.entity.clothes.Clothes;
@@ -30,28 +28,16 @@ public record ClothesTimeFieldStrategy(
   }
 
   @Override
-  public BooleanExpression buildInequalityPredicate(String rawDirection, String rawCursor) {
+  public BooleanExpression buildInequalityPredicate(Direction direction, String rawCursor) {
     if (rawCursor == null || rawCursor.isBlank()) {
       return null;
     }
-
-    Direction direction = parseDirectionOrDefault(rawDirection);
     Instant parsed = parse(rawCursor);
-    if (direction.isDescending()) {
+    if (isDescendingOrDefault(direction)) {
       return path.lt(parsed);
     }
     return path.gt(parsed);
   }
-
-  @Override
-  public OrderSpecifier<Instant> buildOrder(String rawDirection, String rawCursor) {
-    Direction direction = parseDirectionOrDefault(rawDirection);
-    if (direction.isDescending()) {
-      return new OrderSpecifier<>(Order.DESC, path);
-    }
-    return new OrderSpecifier<>(Order.ASC, path);
-  }
-
   @Override
   public BooleanExpression buildEq(String rawCursor) {
     if (rawCursor == null || rawCursor.isBlank()) {

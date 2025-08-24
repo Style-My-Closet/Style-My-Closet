@@ -1,11 +1,9 @@
 package com.stylemycloset.clothes.repository.clothes.impl;
 
-import static com.stylemycloset.binarycontent.entity.QBinaryContent.binaryContent;
 import static com.stylemycloset.clothes.entity.clothes.QClothes.clothes;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.stylemycloset.binarycontent.entity.QBinaryContent;
 import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.clothes.entity.clothes.ClothesType;
 import com.stylemycloset.clothes.repository.clothes.cursor.ClothesField;
@@ -15,7 +13,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Slice;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Sort.Direction;
 
 
 @Slf4j
@@ -27,12 +25,12 @@ public class ClothesRepositoryImpl implements ClothesRepositoryCustom {
   @Override
   public Slice<Clothes> findClothesByCondition(
       String cursor,
-      Long idAfter,
+      String idAfter,
       Integer limit,
-      String typeEqual,
+      ClothesType typeEqual,
       Long ownerId,
       String sortBy,
-      String direction
+      Direction direction
   ) {
     CursorStrategy<?, Clothes> primaryCursorStrategy = ClothesField.resolveStrategy(sortBy);
     CursorStrategy<?, Clothes> idAfterCursorStrategy = ClothesField.resolveStrategy(
@@ -43,12 +41,12 @@ public class ClothesRepositoryImpl implements ClothesRepositoryCustom {
         .join(clothes.image).fetchJoin()
         .where(
             buildTypeEqualPredicate(typeEqual),
-            buildClothesCursorPredicate(primaryCursorStrategy,
-                idAfterCursorStrategy, direction, cursor)
+            primaryCursorStrategy.buildCursorPredicate(direction, cursor, idAfter,
+                idAfterCursorStrategy)
         )
         .orderBy(
-            primaryCursorStrategy.buildOrder(direction, cursor),
-            idAfterCursorStrategy.buildOrder(direction, cursor)
+            primaryCursorStrategy.buildOrder(direction),
+            idAfterCursorStrategy.buildOrder(direction)
         )
         .limit(limit + 1)
         .fetch();
@@ -56,29 +54,11 @@ public class ClothesRepositoryImpl implements ClothesRepositoryCustom {
     return CustomSliceImpl.of(content, limit, primaryCursorStrategy, direction);
   }
 
-  private BooleanExpression buildTypeEqualPredicate(String typeEqual) {
+  private BooleanExpression buildTypeEqualPredicate(ClothesType typeEqual) {
     if (typeEqual == null) {
       return null;
     }
-    return clothes.clothesType.eq(ClothesType.valueOf(typeEqual));
-  }
-
-  private BooleanExpression buildClothesCursorPredicate(
-      CursorStrategy<?, Clothes> primaryCursorStrategy,
-      CursorStrategy<?, Clothes> idAfterCursorStrategy,
-      String direction,
-      String cursor
-  ) {
-    BooleanExpression booleanExpression = primaryCursorStrategy.buildInequalityPredicate(direction,
-        cursor);
-    BooleanExpression buildEq = primaryCursorStrategy.buildEq(cursor);
-    BooleanExpression buildSecondary = idAfterCursorStrategy.buildInequalityPredicate(direction,
-        cursor);
-    if (buildEq != null && buildSecondary != null) {
-      booleanExpression.or(buildEq.and(buildSecondary));
-    }
-
-    return booleanExpression;
+    return clothes.clothesType.eq(typeEqual);
   }
 
 }

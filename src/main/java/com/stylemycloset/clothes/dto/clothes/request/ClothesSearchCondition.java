@@ -1,10 +1,12 @@
 package com.stylemycloset.clothes.dto.clothes.request;
 
+import com.stylemycloset.clothes.entity.clothes.ClothesType;
+
 public record ClothesSearchCondition(
     String cursor,
-    Long idAfter,
+    String idAfter,
     Integer limit,
-    String typeEqual,
+    ClothesType typeEqual,
     Long ownerId
 ) {
 

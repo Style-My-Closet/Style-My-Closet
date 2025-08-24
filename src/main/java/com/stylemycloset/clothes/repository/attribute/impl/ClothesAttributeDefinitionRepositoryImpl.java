@@ -11,6 +11,7 @@ import com.stylemycloset.common.repository.CustomSliceImpl;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -24,15 +25,15 @@ public class ClothesAttributeDefinitionRepositoryImpl implements
   @Override
   public Slice<ClothesAttributeDefinition> findWithCursorPagination(
       String cursor,
-      Long idAfter,
+      String idAfter,
       Integer limit,
       String sortBy,
-      String sortDirection,
+      Direction direction,
       String keywordLike
   ) {
-    CursorStrategy<?, ClothesAttributeDefinition> primaryCursorStrategy = ClothesAttributeDefinitionField.resolveStrategy(
+    CursorStrategy<?, ClothesAttributeDefinition> primaryStrategy = ClothesAttributeDefinitionField.resolveStrategy(
         sortBy);
-    CursorStrategy<?, ClothesAttributeDefinition> secondaryCursorStrategy = ClothesAttributeDefinitionField.resolveStrategy(
+    CursorStrategy<?, ClothesAttributeDefinition> idAfterStrategy = ClothesAttributeDefinitionField.resolveStrategy(
         clothesAttributeDefinition.id.getMetadata().getName()
     );
 
@@ -40,16 +41,16 @@ public class ClothesAttributeDefinitionRepositoryImpl implements
         .selectFrom(clothesAttributeDefinition)
         .where(
             nameContains(keywordLike),
-            cursorCondition(primaryCursorStrategy, secondaryCursorStrategy, sortDirection, cursor)
+            primaryStrategy.buildCursorPredicate(direction, cursor, idAfter, idAfterStrategy)
         )
         .orderBy(
-            primaryCursorStrategy.buildOrder(sortDirection, cursor),
-            secondaryCursorStrategy.buildOrder(sortDirection, cursor)
+            primaryStrategy.buildOrder(direction),
+            idAfterStrategy.buildOrder(direction)
         )
         .limit(limit + 1)
         .fetch();
 
-    return CustomSliceImpl.of(attributeDefinitions, limit, primaryCursorStrategy, sortDirection);
+    return CustomSliceImpl.of(attributeDefinitions, limit, primaryStrategy, direction);
   }
 
   private BooleanExpression nameContains(String keyword) {
@@ -57,24 +58,6 @@ public class ClothesAttributeDefinitionRepositoryImpl implements
       return clothesAttributeDefinition.name.containsIgnoreCase(keyword.trim());
     }
     return null;
-  }
-
-  private BooleanExpression cursorCondition(
-      CursorStrategy<?, ClothesAttributeDefinition> primaryCursorStrategy,
-      CursorStrategy<?, ClothesAttributeDefinition> idAfterStrategy,
-      String direction,
-      String cursor
-  ) {
-    BooleanExpression booleanExpression = primaryCursorStrategy.buildInequalityPredicate(direction,
-        cursor);
-    BooleanExpression buildEq = primaryCursorStrategy.buildEq(cursor);
-    BooleanExpression buildSecondary = idAfterStrategy.buildInequalityPredicate(direction,
-        cursor);
-    if (buildEq != null && buildSecondary != null) {
-      booleanExpression.or(buildEq.and(buildSecondary));
-    }
-
-    return booleanExpression;
   }
 
 }

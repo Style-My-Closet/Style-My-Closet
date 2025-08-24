@@ -17,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort.Direction;
 
 class ClothAttributeServiceImplTest extends IntegrationTestSupport {
 
@@ -59,7 +60,7 @@ class ClothAttributeServiceImplTest extends IntegrationTestSupport {
             null,
             20,
             QClothesAttributeDefinition.clothesAttributeDefinition.name.getMetadata().getName(),
-            SortDirection.ASCENDING.name(),
+            Direction.ASC,
             null
         )
     );

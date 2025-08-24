@@ -1,7 +1,5 @@
 package com.stylemycloset.follow.repository.cursor.strategy;
 
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.stylemycloset.common.repository.CursorStrategy;
@@ -23,31 +21,21 @@ public record NumberCursorStrategy<T extends Number & Comparable<T>>(
   @Override
   public T extract(Follow instance) {
     if (instance == null) {
-      throw new IllegalArgumentException("follow 인스턴스 값이 비어있습니다.");
+      throw new IllegalArgumentException("추출할 인스턴스 값이 비어있습니다.");
     }
     return extractor.apply(instance);
   }
 
   @Override
-  public BooleanExpression buildInequalityPredicate(String rawDirection, String rawCursor) {
+  public BooleanExpression buildInequalityPredicate(Direction direction, String rawCursor) {
     if (rawCursor == null || rawCursor.isBlank()) {
       return null;
     }
-    Direction direction = parseDirectionOrDefault(rawDirection);
     T parsed = parse(rawCursor);
-    if (direction.isDescending()) {
+    if (isDescendingOrDefault(direction)) {
       return path.lt(parsed);
     }
     return path.gt(parsed);
-  }
-
-  @Override
-  public OrderSpecifier<T> buildOrder(String rawDirection, String rawCursor) {
-    Direction direction = parseDirectionOrDefault(rawDirection);
-    if (direction.isDescending()) {
-      return new OrderSpecifier<>(Order.DESC, path);
-    }
-    return new OrderSpecifier<>(Order.ASC, path);
   }
 
   @Override

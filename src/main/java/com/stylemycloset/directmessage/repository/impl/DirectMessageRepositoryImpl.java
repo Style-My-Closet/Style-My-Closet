@@ -11,6 +11,7 @@ import com.stylemycloset.directmessage.repository.cursor.DirectMessageField;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort.Direction;
 
 @RequiredArgsConstructor
 public class DirectMessageRepositoryImpl implements DirectMessageRepositoryCustom {
@@ -25,7 +26,7 @@ public class DirectMessageRepositoryImpl implements DirectMessageRepositoryCusto
       String idAfter,
       Integer limit,
       String sortBy,
-      String sortDirection
+      Direction direction
   ) {
     CursorStrategy<?, DirectMessage> cursorStrategy = DirectMessageField.resolveStrategy(
         sortBy);
@@ -39,14 +40,14 @@ public class DirectMessageRepositoryImpl implements DirectMessageRepositoryCusto
         .join(directMessage.receiver).fetchJoin()
         .where(
             buildConversationCondition(senderId, receiverId),
-            buildPredicate(cursor, idAfter, sortDirection, cursorStrategy, idAfterStrategy),
+            cursorStrategy.buildCursorPredicate(direction, cursor, idAfter, idAfterStrategy),
             directMessage.deletedAt.isNull(),
             directMessage.sender.deletedAt.isNull(),
             directMessage.receiver.deletedAt.isNull()
         )
         .orderBy(
-            cursorStrategy.buildOrder(sortDirection, cursor),
-            idAfterStrategy.buildOrder(sortDirection, idAfter)
+            cursorStrategy.buildOrder(direction),
+            idAfterStrategy.buildOrder(direction)
         )
         .limit(limit + 1)
         .fetch();
@@ -55,26 +56,8 @@ public class DirectMessageRepositoryImpl implements DirectMessageRepositoryCusto
         directMessages,
         limit,
         cursorStrategy,
-        sortDirection
+        direction
     );
-  }
-
-  private BooleanExpression buildPredicate(
-      String cursor,
-      String idAfter,
-      String sortDirection,
-      CursorStrategy<?, DirectMessage> cursorStrategy,
-      CursorStrategy<?, DirectMessage> idAfterStrategy
-  ) {
-    BooleanExpression booleanExpression = cursorStrategy.buildInequalityPredicate(sortDirection,
-        cursor);
-    BooleanExpression buildEq = cursorStrategy.buildEq(cursor);
-    BooleanExpression buildSecondary = idAfterStrategy.buildInequalityPredicate(sortDirection,
-        idAfter);
-    if (buildEq != null && buildSecondary != null) {
-      booleanExpression.or(buildEq.and(buildSecondary));
-    }
-    return booleanExpression;
   }
 
   private BooleanExpression buildConversationCondition(

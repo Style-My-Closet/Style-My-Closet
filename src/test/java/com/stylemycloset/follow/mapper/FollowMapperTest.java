@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 class FollowMapperTest extends IntegrationTestSupport {
@@ -96,7 +97,7 @@ class FollowMapperTest extends IntegrationTestSupport {
         2,
         null,
         "createdAt",
-        "DESC"
+        Direction.DESC
     );
 
     Pageable unsorted = PageRequest.of(0, 2, Sort.unsorted());
@@ -125,7 +126,7 @@ class FollowMapperTest extends IntegrationTestSupport {
         2,
         null,
         "createdAt",
-        "DESC"
+        Direction.DESC
     );
 
     Pageable noSort = PageRequest.of(0, 2);

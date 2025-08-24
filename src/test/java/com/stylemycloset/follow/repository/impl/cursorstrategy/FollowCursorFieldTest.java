@@ -62,10 +62,6 @@ class FollowCursorFieldTest {
             QFollow.follow.createdAt
         ),
         Arguments.of(
-            QFollow.follow.updatedAt.getMetadata().getName(),
-            QFollow.follow.updatedAt
-        ),
-        Arguments.of(
             QFollow.follow.followedAt.getMetadata().getName(),
             QFollow.follow.followedAt
         )

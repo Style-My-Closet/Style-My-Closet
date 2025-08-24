@@ -2,6 +2,7 @@ package com.stylemycloset.follow.repository.impl;
 
 import com.stylemycloset.follow.entity.Follow;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort.Direction;
 
 public interface FollowRepositoryCustom {
 
@@ -12,7 +13,7 @@ public interface FollowRepositoryCustom {
       Integer limit,
       String nameLike,
       String sortBy,
-      String sortDirection
+      Direction direction
   );
 
   Slice<Follow> findFollowersByFolloweeId(
@@ -22,7 +23,7 @@ public interface FollowRepositoryCustom {
       Integer limit,
       String nameLike,
       String sortBy,
-      String sortDirection
+      Direction direction
   );
 
 }
