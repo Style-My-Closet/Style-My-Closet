@@ -71,15 +71,15 @@ public class Clothes extends SoftDeletableEntity {
 
   public void update(
       String name,
-      BinaryContent image,
+      BinaryContent newImage,
       String type,
       List<ClothesAttributeSelectableValue> selectableValues
   ) {
     if (name != null && !name.isBlank()) {
       this.name = name;
     }
-    if (image != null) {
-      this.image = image;
+    if (newImage != null) {
+      this.image = newImage;
     }
     if (type != null && !this.clothesType.name().equals(type)) {
       this.clothesType = ClothesType.from(type);

@@ -6,7 +6,6 @@ import com.stylemycloset.clothes.dto.clothes.request.ClothUpdateRequest;
 import com.stylemycloset.clothes.dto.clothes.request.ClothesCreateRequest;
 import com.stylemycloset.clothes.dto.clothes.request.ClothesSearchCondition;
 import com.stylemycloset.clothes.dto.clothes.response.ClothDtoCursorResponse;
-import com.stylemycloset.clothes.dto.clothes.response.ClothUpdateResponseDto;
 
 public interface ClothService {
 
@@ -17,7 +16,7 @@ public interface ClothService {
 
   ClothDtoCursorResponse getClothes(ClothesSearchCondition clothesSearchCondition);
 
-  ClothUpdateResponseDto updateCloth(
+  ClothesDto updateCloth(
       Long clothId,
       ClothUpdateRequest requestDto,
       ClothBinaryContentRequest imageRequest

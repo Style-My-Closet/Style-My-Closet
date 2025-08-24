@@ -7,7 +7,6 @@ import com.stylemycloset.clothes.dto.clothes.request.ClothUpdateRequest;
 import com.stylemycloset.clothes.dto.clothes.request.ClothesCreateRequest;
 import com.stylemycloset.clothes.dto.clothes.request.ClothesSearchCondition;
 import com.stylemycloset.clothes.dto.clothes.response.ClothDtoCursorResponse;
-import com.stylemycloset.clothes.dto.clothes.response.ClothUpdateResponseDto;
 import com.stylemycloset.clothes.entity.attribute.ClothesAttributeSelectableValue;
 import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.clothes.exception.ClothesNotFoundException;
@@ -16,12 +15,10 @@ import com.stylemycloset.clothes.repository.clothes.ClothesRepository;
 import com.stylemycloset.clothes.service.clothes.ClothService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ClothServiceImpl implements ClothService {
@@ -71,7 +68,7 @@ public class ClothServiceImpl implements ClothService {
 
   @Transactional
   @Override
-  public ClothUpdateResponseDto updateCloth(
+  public ClothesDto updateCloth(
       Long clothId,
       ClothUpdateRequest updateRequest,
       ClothBinaryContentRequest imageRequest
@@ -82,9 +79,9 @@ public class ClothServiceImpl implements ClothService {
     );
     BinaryContent newImage = clothesBinaryContentService.createBinaryContent(imageRequest);
     cloth.update(updateRequest.name(), newImage, updateRequest.type(), selectableValues);
-    Clothes savedCloth = clothesRepository.save(cloth);
+    Clothes savedClothes = clothesRepository.save(cloth);
 
-    return ClothUpdateResponseDto.from(savedCloth);
+    return clothesMapper.toResponse(savedClothes);
   }
 
   @Transactional

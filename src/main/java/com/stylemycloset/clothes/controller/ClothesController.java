@@ -6,7 +6,6 @@ import com.stylemycloset.clothes.dto.clothes.request.ClothUpdateRequest;
 import com.stylemycloset.clothes.dto.clothes.request.ClothesCreateRequest;
 import com.stylemycloset.clothes.dto.clothes.request.ClothesSearchCondition;
 import com.stylemycloset.clothes.dto.clothes.response.ClothDtoCursorResponse;
-import com.stylemycloset.clothes.dto.clothes.response.ClothUpdateResponseDto;
 import com.stylemycloset.clothes.service.clothes.ClothService;
 import com.stylemycloset.clothes.service.extractor.ClothesInfoExtractService;
 import jakarta.validation.Valid;
@@ -53,12 +52,12 @@ public class ClothesController {
   }
 
   @PatchMapping("/{clothesId}")
-  public ResponseEntity<ClothUpdateResponseDto> updateCloth(
-      @PathVariable Long clothesId,
+  public ResponseEntity<ClothesDto> updateCloth(
+      @PathVariable(name = "clothesId") Long clothesId,
       @RequestPart("request") ClothUpdateRequest request,
       @RequestPart(value = "image", required = false) MultipartFile image
   ) {
-    ClothUpdateResponseDto response = clothService.updateCloth(
+    ClothesDto response = clothService.updateCloth(
         clothesId,
         request,
         ClothBinaryContentRequest.from(image)
