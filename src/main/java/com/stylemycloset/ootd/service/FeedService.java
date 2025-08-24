@@ -11,12 +11,13 @@ import com.stylemycloset.ootd.dto.FeedSearchRequest;
 import com.stylemycloset.ootd.dto.FeedUpdateRequest;
 import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.Nullable;
 
 public interface FeedService {
 
   FeedDto createFeed(FeedCreateRequest request);
 
-  FeedDtoCursorResponse getFeeds(FeedSearchRequest request);
+  FeedDtoCursorResponse getFeeds(FeedSearchRequest request, @Nullable Long currentUserId);
 
   FeedDto toggleLike(Long userId, Long feedId);
 

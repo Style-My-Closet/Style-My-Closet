@@ -11,6 +11,9 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.stylemycloset.binarycontent.entity.BinaryContent;
+import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
+import com.stylemycloset.binarycontent.storage.s3.BinaryContentStorage;
 import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.user.dto.data.ProfileDto;
 import com.stylemycloset.user.dto.data.UserDto;
@@ -28,11 +31,14 @@ import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.mapper.UserMapper;
 import com.stylemycloset.user.repository.UserRepository;
 import com.stylemycloset.user.util.MailService;
+import java.lang.reflect.Field;
+import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -41,6 +47,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.util.ReflectionUtils;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,6 +75,12 @@ public class UserServiceTest {
   @Mock
   private MailService mailService;
 
+  @Mock
+  private BinaryContentStorage storage;
+
+  @Mock
+  private BinaryContentRepository binaryContentRepository;
+
   private final UserCreateRequest testUserCreateRequest = new UserCreateRequest("tester",
       "test@naver.com", "testtest123!");
 
@@ -78,7 +92,7 @@ public class UserServiceTest {
     UserDto testUserDto = createTestUserDto(testUser);
     given(userRepository.existsByEmail(testUser.getEmail())).willReturn(false);
     given(userRepository.save(any(User.class))).willReturn(testUser);
-    given(userMapper.UsertoUserDto(testUser)).willReturn(testUserDto);
+    given(userMapper.toUserDto(testUser)).willReturn(testUserDto);
 
     //when
     UserDto result = userService.createUser(testUserCreateRequest);
@@ -99,7 +113,7 @@ public class UserServiceTest {
     final Long userId = 1L;
 
     given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
-    given(userMapper.UsertoUserDto(testUser)).willReturn(testUserDto);
+    given(userMapper.toUserDto(testUser)).willReturn(testUserDto);
     //when
     UserDto result = userService.updateRole(userId, request);
     //then
@@ -161,28 +175,44 @@ public class UserServiceTest {
   }
 
   @Test
-  @DisplayName("프로필 업데이트 테스트")
+  @DisplayName("프로필 업데이트 테스트 - 새 이미지 추가")
   public void updatedProfileTest() throws Exception {
     //given
     final Long userId = 1L;
     User testUser = createTestUser(testUserCreateRequest);
-    ProfileDto testProfileDto = createTestProfileDto(testUser);
+
+    URL expectedUrl = new URL("http://test-bucket.com/test-image.png");
+
     ProfileUpdateRequest request = new ProfileUpdateRequest(
         "tester", Gender.MALE, LocalDate.of(2000, 10, 5), null, 3);
-    given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
-    given(userMapper.UsertoProfileDto(testUser)).willReturn(testProfileDto);
+    MockMultipartFile imageFile = new MockMultipartFile(
+        "image", "image.png", "image/jpeg", "image-bytes".getBytes());
 
-    assertNull(testUser.getGender());
-    assertNull(testUser.getBirthDate());
-    assertNull(testUser.getTemperatureSensitivity());
+    BinaryContent testContent = new BinaryContent("image.png", "image/jpeg", 15L);
+    UUID contentId = UUID.randomUUID();
+    Field idField = BinaryContent.class.getDeclaredField("id");
+    idField.setAccessible(true);
+    ReflectionUtils.setField(idField, testContent, contentId);
+
+    given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
+    given(binaryContentRepository.save(any(BinaryContent.class))).willReturn(testContent);
+
+    given(storage.getUrl(contentId)).willReturn(expectedUrl);
+
+    ProfileDto testProfileDto = createTestProfileDto(testUser, expectedUrl.toString());
+    given(userMapper.toProfileDto(testUser, expectedUrl.toString())).willReturn(testProfileDto);
 
     //when
-    userService.updateProfile(userId, request, null);
+    ProfileDto result = userService.updateProfile(userId, request, imageFile);
 
     //then
     assertEquals(request.gender(), testUser.getGender());
     assertEquals(request.birthDate(), testUser.getBirthDate());
+    assertEquals(expectedUrl.toString(), result.profileImageUrl());
     assertEquals(request.temperatureSensitivity(), testUser.getTemperatureSensitivity());
+
+    // [추가] storage.getUrl이 contentId로 정확히 1번 호출되었는지 검증
+    verify(storage, times(1)).getUrl(contentId);
   }
 
   @Test
@@ -191,9 +221,20 @@ public class UserServiceTest {
     //given
     final Long userId = 1L;
     User testUser = createTestUser(testUserCreateRequest);
-    ProfileDto testProfileDto = createTestProfileDto(testUser);
+    String imageUrl = "http://test-bucket.com/test-image.png";
+    ProfileDto testProfileDto = createTestProfileDto(testUser, imageUrl);
+
+    BinaryContent testContent = new BinaryContent("image.png", "image/jpeg", 15L);
+    UUID contentId = UUID.randomUUID();
+    //reflection으로 binarycontent id 세팅
+    Field idField = BinaryContent.class.getDeclaredField("id");
+    idField.setAccessible(true);
+    ReflectionUtils.setField(idField, testContent, contentId);
+    testUser.updateImage(testContent);
+
     given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
-    given(userMapper.UsertoProfileDto(testUser)).willReturn(testProfileDto);
+    given(storage.getUrl(contentId)).willReturn(new URL(imageUrl));
+    given(userMapper.toProfileDto(testUser, imageUrl)).willReturn(testProfileDto);
 
     //when
     ProfileDto result = userService.getProfile(userId);
@@ -201,7 +242,7 @@ public class UserServiceTest {
     //then
     assertNotNull(result);
     assertEquals(testProfileDto, result);
-
+    assertEquals(imageUrl, result.profileImageUrl());
   }
 
   @Nested
@@ -225,7 +266,7 @@ public class UserServiceTest {
 
       given(userRepository.findUsersByCursor(request)).willReturn(testUsers);
       given(userRepository.countByFilter(request)).willReturn(100);
-      given(userMapper.UsertoUserDto(any(User.class)))
+      given(userMapper.toUserDto(any(User.class)))
           .willAnswer(invocation -> {
             User user = invocation.getArgument(0);
             return new UserDto(user.getId(), user.getCreatedAt(), user.getEmail(), user.getName(),
@@ -261,7 +302,7 @@ public class UserServiceTest {
           null);
 
       given(userRepository.findUsersByCursor(request)).willReturn(testUsers);
-      given(userMapper.UsertoUserDto(any(User.class)))
+      given(userMapper.toUserDto(any(User.class)))
           .willAnswer(invocation -> {
             User user = invocation.getArgument(0);
             return new UserDto(user.getId(), user.getCreatedAt(), user.getEmail(), user.getName(),
@@ -320,7 +361,7 @@ public class UserServiceTest {
     );
   }
 
-  private ProfileDto createTestProfileDto(User user) {
+  private ProfileDto createTestProfileDto(User user, String imageUrl) {
     return new ProfileDto(
         user.getId(),
         user.getName(),
@@ -328,7 +369,7 @@ public class UserServiceTest {
         user.getBirthDate(),
         user.getLocation(),
         user.getTemperatureSensitivity(),
-        null
+        imageUrl
     );
   }
 

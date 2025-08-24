@@ -6,7 +6,7 @@ import com.stylemycloset.notification.event.domain.FeedLikedEvent;
 import com.stylemycloset.notification.service.NotificationService;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.exception.FeedNotFoundException;
-import com.stylemycloset.ootd.repository.FeedRepository;
+import com.stylemycloset.ootd.repo.FeedRepository;
 import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.exception.UserNotFoundException;

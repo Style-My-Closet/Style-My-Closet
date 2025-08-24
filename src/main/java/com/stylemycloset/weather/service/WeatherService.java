@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface WeatherService {
     public List<WeatherDto> getWeatherByCoordinates(double latitude, double longitude);
-    public WeatherAPILocation getLocation(Double latitude, Double longitude);
-    public void checkWeather(Double latitude, Double longitude, Long userId);
+    public WeatherAPILocation getLocation(double latitude, double longitude);
+    public void checkWeather(double latitude, double longitude, Long userId);
 }

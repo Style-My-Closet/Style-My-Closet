@@ -2,9 +2,18 @@ package com.stylemycloset.weather.controller;
 
 import com.stylemycloset.weather.dto.WeatherAPILocation;
 import com.stylemycloset.weather.dto.WeatherDto;
+import com.stylemycloset.weather.service.KakaoApiService;
 import com.stylemycloset.weather.service.WeatherService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,24 +28,30 @@ import org.springframework.web.bind.annotation.RestController;
 public class WeatherController {
 
     private final WeatherService weatherService;
+    private final JobLauncher jobLauncher;
+    private final Job weatherJob;
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<WeatherDto>> getWeathers(
-        @RequestParam double latitude,
         @RequestParam double longitude,
+
+        @RequestParam double latitude,
         @AuthenticationPrincipal(expression = "userId") Long userId
     ) {
-        weatherService.checkWeather(latitude, longitude, userId);
+
         List<WeatherDto> weathers = weatherService.getWeatherByCoordinates(latitude, longitude);
+        //weatherService.checkWeather(latitude, longitude, userId);
         return ResponseEntity.ok(weathers);
     }
 
     @GetMapping("/location")
     public ResponseEntity<WeatherAPILocation> getWeatherLocation(
-        @RequestParam double latitude,
-        @RequestParam double longitude
-    ){
+        @RequestParam double longitude,
+        @RequestParam double latitude
+    )
+        {
+
         WeatherAPILocation location = weatherService.getLocation(latitude,longitude);
         return ResponseEntity.ok(location);
     }

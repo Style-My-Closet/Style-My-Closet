@@ -4,9 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -16,7 +14,6 @@ import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.security.dto.data.JwtObject;
 import com.stylemycloset.security.dto.data.TokenInfo;
 import com.stylemycloset.user.dto.data.UserDto;
-import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.exception.UserNotFoundException;
 import com.stylemycloset.user.mapper.UserMapper;
 import com.stylemycloset.user.repository.UserRepository;
@@ -110,7 +107,7 @@ public class JwtService {
 
     Long userId = parse(refreshToken).userId();
     UserDto userDto = userRepository.findById(userId)
-        .map(userMapper::UsertoUserDto)
+        .map(userMapper::toUserDto)
         .orElseThrow(UserNotFoundException::new);
     JwtObject accessJwtObject = generateJwtObject(userDto, accessTokenValiditySeconds);
     JwtObject refreshJwtObject = generateJwtObject(userDto, refreshTokenValiditySeconds);

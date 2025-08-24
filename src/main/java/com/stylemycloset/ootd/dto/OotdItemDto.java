@@ -1,5 +1,6 @@
 package com.stylemycloset.ootd.dto;
 
+import com.stylemycloset.clothes.dto.clothes.AttributeDto;
 import java.util.List;
 
 public record OotdItemDto(
@@ -7,7 +8,7 @@ public record OotdItemDto(
     String name,
     String imageUrl,
     String type,
-    List<ClothesAttributeWithDefinitionDto> attributes
+    List<AttributeDto> attributes
 ) {
 
 }

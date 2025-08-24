@@ -1,4 +1,4 @@
-package com.stylemycloset.ootd.repository;
+package com.stylemycloset.ootd.repo;
 
 import com.stylemycloset.ootd.entity.Feed;
 import java.util.Optional;

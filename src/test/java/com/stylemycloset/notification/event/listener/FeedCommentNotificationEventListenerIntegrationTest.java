@@ -15,7 +15,7 @@ import com.stylemycloset.notification.repository.NotificationRepository;
 import com.stylemycloset.notification.util.NotificationStubHelper;
 import com.stylemycloset.notification.util.TestUserFactory;
 import com.stylemycloset.ootd.entity.Feed;
-import com.stylemycloset.ootd.repository.FeedRepository;
+import com.stylemycloset.ootd.repo.FeedRepository;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
 import com.stylemycloset.user.entity.User;

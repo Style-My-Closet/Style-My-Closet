@@ -1,4 +1,4 @@
-package com.stylemycloset.ootd.repository;
+package com.stylemycloset.ootd.repo;
 
 import static com.stylemycloset.ootd.entity.QFeedComment.feedComment;
 

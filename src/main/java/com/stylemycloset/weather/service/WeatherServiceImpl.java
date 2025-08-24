@@ -9,11 +9,12 @@ import com.stylemycloset.weather.dto.WeatherAPILocation;
 import com.stylemycloset.weather.dto.WeatherDto;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.entity.Weather.AlertType;
-import com.stylemycloset.weather.mapper.LocationMapper;
+import com.stylemycloset.location.mapper.LocationMapper;
 import com.stylemycloset.weather.mapper.WeatherMapper;
 import com.stylemycloset.weather.repository.WeatherRepository;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
@@ -31,22 +32,30 @@ public class WeatherServiceImpl implements WeatherService {
     private final LocationMapper locationMapper;
     private final LocationRepository locationRepository;
     private final ApplicationEventPublisher eventPublisher;
-
+    private final KakaoApiService kakaoApiService;
+    private final ForecastApiService forecastApiService;
 
     public List<WeatherDto> getWeatherByCoordinates(double latitude, double longitude) {
-        List<Weather> weathers = weatherRepository.findByLocation(latitude, longitude);
+
+        List<Weather> weathers = weatherRepository.findTheNext4DaysByLocation(latitude, longitude, LocalDateTime.now());
+        if(weathers.isEmpty()){
+            Location location = locationRepository.findByLatitudeAndLongitude(latitude,longitude).orElseGet(
+                ()->kakaoApiService.createLocation(longitude,latitude)  );
+            weathers = forecastApiService.fetchData(location);
+            weatherRepository.saveAll(weathers);
+        }
         return weathers.stream()
             .map(weatherMapper::toDto)
             .toList();
     }
 
-    public WeatherAPILocation getLocation(Double latitude, Double longitude) {
-        Location location = locationRepository.findByLatitudeAndLongitude(latitude,longitude).orElseThrow(
-            ()->  new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("weather", "weather")  ));
+    public WeatherAPILocation getLocation(double latitude, double longitude) {
+        Location location = locationRepository.findByLatitudeAndLongitude(latitude,longitude).orElseGet(
+            ()->kakaoApiService.createLocation(longitude,latitude)  );
         return locationMapper.toDto(location);
     }
 
-    public void checkWeather(Double latitude, Double longitude, Long userId) {
+    public void checkWeather(double latitude, double longitude, Long userId) {
 
         Optional<Weather> weather=  getTodayWeatherByLocation(latitude, longitude);
         Weather data = weather.orElseThrow(

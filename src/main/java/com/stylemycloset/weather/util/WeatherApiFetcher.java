@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -18,10 +19,12 @@ import org.springframework.web.client.RestTemplate;
 @Component
 @RequiredArgsConstructor
 @Profile("!test")
+@Slf4j
 public class WeatherApiFetcher {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+    private final WeatherItemsFilterer filterer;
 
     @Value("${external.market-index.service-key}")
     private String serviceKey;
@@ -34,7 +37,7 @@ public class WeatherApiFetcher {
 
     public List<JsonNode> fetchAllPages(String baseDate, String baseTime, Location location) {
         List<JsonNode> allItems = new ArrayList<>();
-        int totalPages = (int) Math.ceil((double) 100 / numOfRows); // TODO: 총 개수 동적으로
+        int totalPages = 4; // TODO: 총 개수 동적으로
 
         for (int page = 1; page <= totalPages; page++) {
             try {
@@ -50,9 +53,25 @@ public class WeatherApiFetcher {
                 if (itemsNode.isMissingNode() || itemsNode.isNull()) continue;
 
                 if (itemsNode.isArray()) {
-                    itemsNode.forEach(allItems::add);
+                    for (JsonNode item : itemsNode) {
+                        String key = filterer.createUniqueKey(item);
+                        if (filterer.seenKeys.add(key)
+                            && filterer.dataCleaning(item, baseDate)) {
+                            try{
+                                allItems.add(item);
+                            }catch(Exception e){
+                                log.error("추가 안되요");
+                                e.printStackTrace();
+                            }
+
+                        }
+                    }
                 } else {
-                    allItems.add(itemsNode);
+                    JsonNode item = itemsNode;
+                    String key = filterer.createUniqueKey(item);
+                    if (filterer.seenKeys.add(key) && filterer.dataCleaning(item,baseDate)) {
+                        allItems.add(item);
+                    }
                 }
 
             } catch (Exception e) {

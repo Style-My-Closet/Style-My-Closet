@@ -22,6 +22,7 @@ public class WindSpeedProcessor implements WeatherCategoryProcessor {
 
     @Override
     public void process(WeatherBuilderHelperContext ctx,String category, String value) {
+
         double current = parseDoubleSafe(value);
         LocalDate today = LocalDate.now();
         LocalDateTime startOfYesterday = today.minusDays(1).atStartOfDay();

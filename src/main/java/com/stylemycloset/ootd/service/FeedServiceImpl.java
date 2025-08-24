@@ -1,7 +1,5 @@
 package com.stylemycloset.ootd.service;
 
-import com.stylemycloset.clothes.entity.attribute.ClothesAttributeDefinition;
-import com.stylemycloset.clothes.entity.attribute.ClothesAttributeSelectableValue;
 import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.clothes.repository.clothes.ClothesRepository;
 import com.stylemycloset.common.exception.ErrorCode;
@@ -9,8 +7,6 @@ import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.notification.event.domain.FeedCommentEvent;
 import com.stylemycloset.notification.event.domain.FeedLikedEvent;
 import com.stylemycloset.notification.event.domain.NewFeedEvent;
-import com.stylemycloset.ootd.dto.AuthorDto;
-import com.stylemycloset.ootd.dto.ClothesAttributeWithDefinitionDto;
 import com.stylemycloset.ootd.dto.CommentCreateRequest;
 import com.stylemycloset.ootd.dto.CommentCursorResponse;
 import com.stylemycloset.ootd.dto.CommentDto;
@@ -20,27 +16,30 @@ import com.stylemycloset.ootd.dto.FeedDto;
 import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
 import com.stylemycloset.ootd.dto.FeedSearchRequest;
 import com.stylemycloset.ootd.dto.FeedUpdateRequest;
-import com.stylemycloset.ootd.dto.OotdItemDto;
 import com.stylemycloset.ootd.entity.Feed;
-import com.stylemycloset.ootd.entity.FeedClothes;
 import com.stylemycloset.ootd.entity.FeedComment;
 import com.stylemycloset.ootd.entity.FeedLike;
-import com.stylemycloset.ootd.repository.FeedCommentRepository;
-import com.stylemycloset.ootd.repository.FeedLikeRepository;
-import com.stylemycloset.ootd.repository.FeedRepository;
+import com.stylemycloset.ootd.repo.FeedClothesRepository;
+import com.stylemycloset.ootd.repo.FeedCommentRepository;
+import com.stylemycloset.ootd.repo.FeedLikeRepository;
+import com.stylemycloset.ootd.repo.FeedRepository;
+import com.stylemycloset.ootd.mapper.OotdItemMapper;
+import com.stylemycloset.ootd.mapper.FeedMapper;
+import com.stylemycloset.ootd.mapper.CommentMapper;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
-import com.stylemycloset.weather.dto.PrecipitationDto;
-import com.stylemycloset.weather.dto.TemperatureDto;
-import com.stylemycloset.weather.dto.WeatherSummaryDto;
+
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.repository.WeatherRepository;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,12 +49,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class FeedServiceImpl implements FeedService {
 
   private final FeedRepository feedRepository;
+  private final FeedClothesRepository feedClothesRepository;
   private final UserRepository userRepository;
   private final ClothesRepository clothRepository;
   private final WeatherRepository weatherRepository;
   private final FeedLikeRepository feedLikeRepository;
   private final FeedCommentRepository feedCommentRepository;
   private final ApplicationEventPublisher publisher;
+  private final OotdItemMapper ootdItemMapper;
+  private final FeedMapper feedMapper;
+  private final CommentMapper commentMapper;
 
   @Override
   @Transactional
@@ -85,9 +88,10 @@ public class FeedServiceImpl implements FeedService {
   }
 
   @Override
-  public FeedDtoCursorResponse getFeeds(FeedSearchRequest request) {
-    // TODO: 이 메서드에도 현재 로그인한 유저 ID를 파라미터로 받아와야 likedByMe를 계산
-    User currentUser = null;
+  public FeedDtoCursorResponse getFeeds(FeedSearchRequest request, @Nullable Long currentUserId) {
+    // 인증된 사용자 정보 조회
+    User currentUser = currentUserId != null ?
+        userRepository.findByIdAndDeletedAtIsNullAndLockedIsFalse(currentUserId).orElse(null) : null;
 
     List<Feed> feeds = feedRepository.findByConditions(request);
 
@@ -97,20 +101,27 @@ public class FeedServiceImpl implements FeedService {
       feeds.remove(limit);
     }
 
+    // 좋아요 수와 상태를 Batch 쿼리로 조회
+    Map<Long, Long> likeCountMap = getLikeCountMap(feeds);
+    Map<Long, Boolean> likedByMeMap = currentUser != null ? getLikedByMeMap(feeds, currentUser) : new HashMap<>();
+
     String nextCursor = null;
     Long nextIdAfter = null;
     if (hasNext && !feeds.isEmpty()) {
       Feed lastFeed = feeds.get(feeds.size() - 1);
       if ("createdAt".equals(request.sortBy()) || request.sortBy() == null) {
         nextCursor = lastFeed.getCreatedAt().toString();
+      } else if ("likeCount".equals(request.sortBy())) {
+        // likeCount 정렬 시 좋아요 수를 cursor로 사용
+        nextCursor = String.valueOf(likeCountMap.getOrDefault(lastFeed.getId(), 0L));
       }
 
       nextIdAfter = lastFeed.getId();
     }
 
-    List<FeedDto> feedDtos = feeds.stream()
-        .map(feed -> mapToFeedResponse(feed, currentUser))
-        .collect(Collectors.toList());
+    // FeedMapper를 사용하여 FeedDto 리스트 생성
+    List<FeedDto> feedDtos = feedMapper.toDtoList(feeds, currentUser, likeCountMap,
+        new HashMap<>(), likedByMeMap); // TODO: commentCount 구현 필요 여부 고민(명세서엔 존재, 프론트엔 없음)
 
     return new FeedDtoCursorResponse(
         feedDtos, nextCursor, nextIdAfter, hasNext, 0L, request.sortBy(), request.sortDirection());
@@ -152,89 +163,56 @@ public class FeedServiceImpl implements FeedService {
   }
 
   private FeedDto mapToFeedResponse(Feed feed, User currentUser) {
-    List<Clothes> clothesList = feed.getFeedClothes().stream()
-        .map(FeedClothes::getClothes)
-        .collect(Collectors.toList());
+    // Batch 쿼리로 좋아요 정보 조회
+    List<Long> feedIds = List.of(feed.getId());
+    Map<Long, Long> likeCountMap = getLikeCountMapByFeedIds(feedIds);
+    Map<Long, Boolean> likedByMeMap = currentUser != null ? getLikedByMeMapByFeedIds(feedIds, currentUser) : new HashMap<>();
 
-    AuthorDto authorDto = toAuthorDto(feed.getAuthor());
-    WeatherSummaryDto weatherDto = toWeatherSummaryDto(feed.getWeather());
-    List<OotdItemDto> ootdItemDtos = toOotdItemDtoList(clothesList);
+    long likeCount = likeCountMap.getOrDefault(feed.getId(), 0L);
+    boolean likedByMe = likedByMeMap.getOrDefault(feed.getId(), false);
 
-    long likeCount = feedLikeRepository.countByFeed(feed);
-    boolean likedByMe =
-        (currentUser != null) && feedLikeRepository.existsByUserAndFeed(currentUser, feed);
-
-    return new FeedDto(
-        feed.getId(),
-        feed.getCreatedAt(),
-        feed.getUpdatedAt(),
-        authorDto,
-        weatherDto,
-        ootdItemDtos,
-        feed.getContent(),
-        likeCount,
-        0,  // TODO: 댓글 수 계산 로직 추가 필요
-        likedByMe
-    );
+    // FeedMapper를 사용하여 FeedDto 생성
+    return feedMapper.toDto(feed, currentUser, likeCount, 0, likedByMe); // TODO: commentCount 구현 필요 (명세서 요구사항)
   }
 
-  private AuthorDto toAuthorDto(User author) {
-    if (author == null) {
-      return null;
+  private FeedDto mapToFeedResponseWithLikeInfo(Feed feed, User currentUser,
+      Map<Long, Long> likeCountMap, Map<Long, Boolean> likedByMeMap) {
+    long likeCount = likeCountMap.getOrDefault(feed.getId(), 0L);
+    boolean likedByMe = likedByMeMap.getOrDefault(feed.getId(), false);
+
+    // FeedMapper를 사용하여 FeedDto 생성
+    return feedMapper.toDto(feed, currentUser, likeCount, 0, likedByMe); // TODO: commentCount 구현 필요 (명세서 요구사항)
+  }
+
+  private Map<Long, Long> getLikeCountMap(List<Feed> feeds) {
+    List<Long> feedIds = feeds.stream().map(Feed::getId).collect(Collectors.toList());
+    if (feedIds.isEmpty()) {
+      return new HashMap<>();
     }
-    return new AuthorDto(author.getId(), author.getName(), null);
+
+    // Batch 쿼리로 좋아요 수 조회
+    List<FeedLikeRepository.FeedLikeCountProjection> results = feedLikeRepository.countByFeedIds(feedIds);
+    return results.stream()
+        .collect(Collectors.toMap(
+            FeedLikeRepository.FeedLikeCountProjection::getFeedId,
+            FeedLikeRepository.FeedLikeCountProjection::getLikeCount
+        ));
   }
 
-  private WeatherSummaryDto toWeatherSummaryDto(Weather weather) {
-    if (weather == null) {
-      return null;
+  private Map<Long, Boolean> getLikedByMeMap(List<Feed> feeds, User currentUser) {
+    List<Long> feedIds = feeds.stream().map(Feed::getId).collect(Collectors.toList());
+    if (feedIds.isEmpty()) {
+      return new HashMap<>();
     }
-    PrecipitationDto precipitationDto = new PrecipitationDto(
-        Weather.AlertType.valueOf(weather.getPrecipitation().getAlertType().name().toUpperCase()),
-        weather.getPrecipitation().getAmount(),
-        weather.getPrecipitation().getProbability()
-    );
-    TemperatureDto temperatureDto = new TemperatureDto(
-        weather.getTemperature().getCurrent(),
-        weather.getTemperature().getComparedToDayBefore(),
-        weather.getTemperature().getMin(),
-        weather.getTemperature().getMax()
-    );
 
-    return new WeatherSummaryDto(weather.getId(), weather.getSkyStatus(), precipitationDto,
-        temperatureDto);
-  }
-
-  private List<OotdItemDto> toOotdItemDtoList(List<Clothes> clothesList) {
-    return clothesList.stream().map(this::toOotdItemDto).collect(Collectors.toList());
-  }
-
-  private OotdItemDto toOotdItemDto(Clothes clothes) {
-    List<ClothesAttributeWithDefinitionDto> attributes = clothes.getSelectedValues()
-        .stream()
-        .map(attributeValue -> {
-          ClothesAttributeDefinition definition = attributeValue.getSelectableValue()
-              .getDefinition();
-          // 해당 속성이 가질 수 있는 모든 선택지
-          List<String> selectableValues = definition.getSelectableValues()
-              .stream()
-              .map(ClothesAttributeSelectableValue::getValue)
-              .collect(Collectors.toList());
-
-          // 이 옷이 선택한 특정 값을 가져옴
-          String chosenValue = attributeValue.getSelectableValue().getValue();
-
-          return new ClothesAttributeWithDefinitionDto(
-              definition.getId(),
-              definition.getName(),
-              selectableValues,
-              chosenValue
-          );
-        })
-        .collect(Collectors.toList());
-
-    return new OotdItemDto(clothes.getId(), clothes.getName(), null, // TODO: 이미지 URL 로직
-        clothes.getClothesType().name(), attributes);
+    // Batch 쿼리로 좋아요 상태 조회
+    List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByUserAndFeedIds(currentUser.getId(), feedIds);
+    HashSet<Long> likedFeedIdSet = new HashSet<>(likedFeedIds); // O(1)
+    return feedIds.stream()
+        .collect(Collectors.toMap(
+            feedId -> feedId,
+            feedId -> likedFeedIdSet.contains(feedId) // O(1)
+        ));
   }
 
   @Override
@@ -295,11 +273,10 @@ public class FeedServiceImpl implements FeedService {
       nextIdAfter = lastComment.getId();
     }
 
-    List<CommentDto> commentDtos = comments.stream()
-        .map(this::toCommentDto) // DTO 변환
-        .collect(Collectors.toList());
+    // CommentMapper를 사용하여 CommentDto 리스트 생성
+    List<CommentDto> commentDtos = commentMapper.toDtoList(comments);
 
-    // TODO: totalCount 로직 추가 필요
+    // TODO: totalCount 구현 필요 (명세서 요구사항)
     return new CommentCursorResponse(commentDtos, nextCursor, nextIdAfter, hasNext, 0L, "createdAt",
         "DESC");
   }
@@ -322,20 +299,45 @@ public class FeedServiceImpl implements FeedService {
     FeedComment newComment = new FeedComment(feed, author, request.content());
     FeedComment savedComment = feedCommentRepository.save(newComment);
 
-    publisher.publishEvent(
-        new FeedCommentEvent(newComment.getId(), newComment.getAuthor().getId()));
+    publisher.publishEvent(new FeedCommentEvent(newComment.getId(), newComment.getAuthor().getId()));
 
-    return toCommentDto(savedComment);
+    return commentMapper.toDto(savedComment);
   }
 
-  private CommentDto toCommentDto(FeedComment comment) {
-    return new CommentDto(
-        comment.getId(),
-        comment.getCreatedAt(),
-        comment.getFeed().getId(),
-        toAuthorDto(comment.getAuthor()),
-        comment.getContent()
-    );
+  // Feed ID 리스트로 좋아요 수 조회 (개별 피드용)
+  private Map<Long, Long> getLikeCountMapByFeedIds(List<Long> feedIds) {
+    if (feedIds.isEmpty()) {
+      return new HashMap<>();
+    }
+
+    // 모든 피드에 대해 기본값 0 설정
+    Map<Long, Long> likeCountMap = feedIds.stream()
+        .collect(Collectors.toMap(feedId -> feedId, feedId -> 0L));
+
+    // Batch 쿼리로 좋아요 수 조회
+    List<FeedLikeRepository.FeedLikeCountProjection> results = feedLikeRepository.countByFeedIds(feedIds);
+    results.forEach(result -> {
+      Long feedId = result.getFeedId();
+      Long count = result.getLikeCount();
+      likeCountMap.put(feedId, count);
+    });
+
+    return likeCountMap;
   }
 
+  // Feed ID 리스트로 좋아요 상태 조회 (개별 피드용)
+  private Map<Long, Boolean> getLikedByMeMapByFeedIds(List<Long> feedIds, User currentUser) {
+    if (feedIds.isEmpty()) {
+      return new HashMap<>();
+    }
+
+    // Batch 쿼리로 좋아요 상태 조회
+    List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByUserAndFeedIds(currentUser.getId(), feedIds);
+    HashSet<Long> likedFeedIdSet = new HashSet<>(likedFeedIds); // O(1)
+    return feedIds.stream()
+        .collect(Collectors.toMap(
+            feedId -> feedId,
+            feedId -> likedFeedIdSet.contains(feedId) // O(1)
+        ));
+  }
 }

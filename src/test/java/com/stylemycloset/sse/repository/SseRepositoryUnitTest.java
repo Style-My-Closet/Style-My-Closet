@@ -4,19 +4,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.stylemycloset.sse.dto.SseInfo;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 public class SseRepositoryUnitTest {
 
-  private static final Logger log = LoggerFactory.getLogger(SseRepositoryUnitTest.class);
   SseRepository sseRepository;
 
   static final int MAX_EMITTER_COUNT = 3;
@@ -102,16 +104,75 @@ public class SseRepositoryUnitTest {
   void addEvent_whenOverMax_shouldRemoveOldestAndAdd() {
     // given
     for (int i = 0; i < MAX_EVENT_COUNT; i++) {
-      sseRepository.addEvent(userId, new SseInfo((long) i, "test", "test" + i, i));
+      sseRepository.addEvent(userId, new SseInfo(i, "test", "test" + i, i));
     }
 
     // when
-    SseInfo newEvent = new SseInfo(3L, "test", "newTest", 3L);
+    SseInfo newEvent = new SseInfo(30L, "test", "newTest", 3L);
     sseRepository.addEvent(userId, newEvent);
 
     // then
     Deque<SseInfo> events = getEvents(userId);
     assertThat(events).hasSize(MAX_EVENT_COUNT);
     assertThat(events.getLast()).isSameAs(newEvent);
+
+    int expectedId = 1;
+    for(SseInfo event : events) {
+      assertThat(event.id()).isEqualTo(expectedId++);
+    }
   }
+
+  @DisplayName("같은 userId에 대해 여러 스레드가 동시에 addEvent()를 호출해도 예외가 발생하지 않고 데이터가 저장된다.")
+  @Test
+  void addEvent_parallelism_observed() throws Exception {
+    // given
+    int loops = 1000;
+
+    ExecutorService pool = Executors.newFixedThreadPool(10);
+    List<Future<?>> futures = new ArrayList<>();
+
+    // when
+    for(int i = 0; i < 1000; i++) {
+      final long eventId = i;
+      futures.add(pool.submit(() ->
+        sseRepository.addEvent(userId, new SseInfo(eventId, "test", "test", 0))));
+    }
+
+    pool.shutdown();
+
+    for(Future<?> future : futures) {
+      future.get();
+    }
+
+    // then
+    Deque<SseInfo> res = getEvents(userId);
+    assertThat(res).hasSize(MAX_EVENT_COUNT);
+    assertThat(res).extracting(SseInfo::id).doesNotHaveDuplicates();
+  }
+
+  @DisplayName("같은 userId에 대해 여러 스레드가 동시에 addEmitter()를 호출해도 예외가 발생하지 않고 데이터가 저장된다.")
+  @Test
+  void addEmitter_differentUserIds_parallelism_observed() throws Exception {
+
+    ExecutorService pool = Executors.newFixedThreadPool(10);
+    List<Future<?>> futures = new ArrayList<>();
+
+    // when
+    for(int i = 0; i < 1000; i++) {
+      futures.add(pool.submit(() -> {
+          SseEmitter emitter = new SseEmitter();
+          sseRepository.addEmitter(userId, emitter);
+      }));
+    }
+
+    pool.shutdown();
+
+    for(Future<?> future : futures) {
+      future.get();
+    }
+
+    Deque<SseEmitter> res = getEmitters(userId);
+    assertThat(res).hasSize(MAX_EMITTER_COUNT);
+  }
+
 }

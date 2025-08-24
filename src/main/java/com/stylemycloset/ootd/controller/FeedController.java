@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import com.stylemycloset.security.ClosetUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-
 @RestController
 @RequestMapping("/api/feeds")
 @RequiredArgsConstructor
@@ -37,8 +37,9 @@ public class FeedController {
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<FeedDto> createFeed(
       @Valid @RequestBody FeedCreateRequest request,
-      @AuthenticationPrincipal(expression = "userId") Long userId
+      @AuthenticationPrincipal ClosetUserDetails userDetails
   ) {
+    Long userId = userDetails.getUserId();
     if (!userId.equals(request.authorId())) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid authorId");
     }
@@ -49,20 +50,21 @@ public class FeedController {
 
   @GetMapping
   public ResponseEntity<FeedDtoCursorResponse> getFeeds(
-      @Valid FeedSearchRequest request
-
+      @Valid FeedSearchRequest request,
+      @AuthenticationPrincipal ClosetUserDetails userDetails
   ) {
-
-    FeedDtoCursorResponse response = feedService.getFeeds(request);
+    Long currentUserId = userDetails != null ? userDetails.getUserId() : null;
+    FeedDtoCursorResponse response = feedService.getFeeds(request, currentUserId);
     return ResponseEntity.ok(response);
   }
 
   @PostMapping("/{feedId}/like")
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<FeedDto> likeFeed(
-      @PathVariable Long feedId,
-      @AuthenticationPrincipal(expression = "userId") Long userId
+      @PathVariable(name = "feedId") Long feedId,
+      @AuthenticationPrincipal ClosetUserDetails userDetails
   ) {
+    Long userId = userDetails.getUserId();
     FeedDto responseDto = feedService.toggleLike(userId, feedId);
     return ResponseEntity.ok(responseDto);
   }
@@ -70,15 +72,16 @@ public class FeedController {
   @DeleteMapping("/{feedId}/like")
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<Void> unlikeFeed(
-      @PathVariable Long feedId,
-      @AuthenticationPrincipal(expression = "userId") Long userId) {
+      @PathVariable(name = "feedId") Long feedId,
+      @AuthenticationPrincipal ClosetUserDetails userDetails) {
+    Long userId = userDetails.getUserId();
     feedService.toggleLike(userId, feedId);
     return ResponseEntity.noContent().build();
   }
 
   @GetMapping("/{feedId}/comments")
   public ResponseEntity<CommentCursorResponse> getComments(
-      @PathVariable Long feedId,
+      @PathVariable(name = "feedId")  Long feedId,
       @Valid CommentSearchRequest request
   ) {
     CommentCursorResponse response = feedService.getComments(feedId, request);
@@ -88,10 +91,11 @@ public class FeedController {
   @PostMapping("/{feedId}/comments")
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<CommentDto> createComment(
-      @PathVariable Long feedId,
+      @PathVariable(name = "feedId")  Long feedId,
       @Valid @RequestBody CommentCreateRequest request,
-      @AuthenticationPrincipal(expression = "userId") Long userId
+      @AuthenticationPrincipal ClosetUserDetails userDetails
   ) {
+    Long userId = userDetails.getUserId();
     if (!feedId.equals(request.feedId())) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid feedId");
     }
@@ -103,9 +107,10 @@ public class FeedController {
   @DeleteMapping("/{feedId}")
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<Void> deleteFeed(
-      @PathVariable Long feedId,
-      @AuthenticationPrincipal(expression = "userId") Long userId
+      @PathVariable(name = "feedId")  Long feedId,
+      @AuthenticationPrincipal ClosetUserDetails userDetails
   ) {
+    Long userId = userDetails.getUserId();
     feedService.deleteFeed(userId, feedId);
 
     return ResponseEntity.noContent().build();
@@ -114,10 +119,11 @@ public class FeedController {
   @PatchMapping("/{feedId}")
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<FeedDto> updateFeed(
-      @PathVariable Long feedId,
+      @PathVariable(name = "feedId") Long feedId,
       @Valid @RequestBody FeedUpdateRequest request,
-      @AuthenticationPrincipal(expression = "userId") Long userId
+      @AuthenticationPrincipal ClosetUserDetails userDetails
   ) {
+    Long userId = userDetails.getUserId();
     FeedDto responseDto = feedService.updateFeed(userId, feedId, request);
 
     return ResponseEntity.ok(responseDto);

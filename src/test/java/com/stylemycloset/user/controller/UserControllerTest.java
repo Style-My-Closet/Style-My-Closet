@@ -94,10 +94,10 @@ public class UserControllerTest extends IntegrationTestSupport {
   @WithMockUser
   void getUsersApiTest() throws Exception {
     //given
-    userRepository.saveAndFlush(
-        new User(userRequest1.name(), userRequest1.email(), userRequest1.password()));
-    userRepository.saveAndFlush(
-        new User(userRequest2.name(), userRequest2.email(), userRequest2.password()));
+    User user1 = createUser(userRequest1.name(), userRequest1.email(), userRequest1.password());
+    User user2 = createUser(userRequest2.name(), userRequest2.email(), userRequest2.password());
+    userRepository.save(user1);
+    userRepository.save(user2);
 
     //when & then
     mockMvc.perform(get("/api/users")
@@ -115,8 +115,8 @@ public class UserControllerTest extends IntegrationTestSupport {
   @WithMockUser(roles = "ADMIN")
   void changeRoleApiTest() throws Exception {
     // given
-    User user = userRepository.save(
-        new User(userRequest1.name(), userRequest1.email(), userRequest1.password()));
+    User user = createUser(userRequest1.name(), userRequest1.email(), userRequest1.password());
+    userRepository.saveAndFlush(user);
     UserRoleUpdateRequest request = new UserRoleUpdateRequest(Role.ADMIN);
     String jsonRequest = objectMapper.writeValueAsString(request);
 
@@ -142,8 +142,8 @@ public class UserControllerTest extends IntegrationTestSupport {
   @WithMockUser(roles = "ADMIN")
   void changePasswordApiTest() throws Exception {
     //given
-    User user = userRepository.save(
-        new User(userRequest1.name(), userRequest1.email(), userRequest1.password()));
+    User user = createUser(userRequest1.name(), userRequest1.email(), userRequest1.password());
+    userRepository.saveAndFlush(user);
     ChangePasswordRequest request = new ChangePasswordRequest("newPassword123!");
     String jsonRequest = objectMapper.writeValueAsString(request);
 
@@ -161,8 +161,8 @@ public class UserControllerTest extends IntegrationTestSupport {
   @WithMockUser(roles = "ADMIN")
   void lockUserApiTest() throws Exception {
     // given
-    User user = userRepository.save(
-        new User(userRequest1.name(), userRequest1.email(), userRequest1.password()));
+    User user = createUser(userRequest1.name(), userRequest1.email(), userRequest1.password());
+    userRepository.saveAndFlush(user);
     UserLockUpdateRequest request = new UserLockUpdateRequest(true);
     String jsonRequest = objectMapper.writeValueAsString(request);
 
@@ -183,8 +183,8 @@ public class UserControllerTest extends IntegrationTestSupport {
   @DisplayName("유저 삭제 API를 호출하면 204 No Content를 반환한다")
   void softDeleteUserApiTest() throws Exception {
     // given
-    User user = userRepository.save(
-        new User(userRequest1.name(), userRequest1.email(), userRequest1.password()));
+    User user = createUser(userRequest1.name(), userRequest1.email(), userRequest1.password());
+    userRepository.saveAndFlush(user);
 
     // when & then
     mockMvc.perform(delete("/api/users/{userId}", user.getId())
@@ -201,8 +201,8 @@ public class UserControllerTest extends IntegrationTestSupport {
   @WithMockUser(roles = "USER")
   void updateProfileApiTest() throws Exception {
     // given
-    User user = userRepository.saveAndFlush(
-        new User(userRequest1.name(), userRequest1.email(), userRequest1.password()));
+    User user = createUser(userRequest1.name(), userRequest1.email(), userRequest1.password());
+    userRepository.saveAndFlush(user);
 
     ProfileUpdateRequest request = new ProfileUpdateRequest("update", Gender.MALE,
         LocalDate.of(2000, 10, 10), null, 3);
@@ -228,8 +228,9 @@ public class UserControllerTest extends IntegrationTestSupport {
   @WithMockUser
   void getProfileApiTest() throws Exception {
     // given
-    User user = new User(userRequest1.name(), userRequest1.email(), userRequest1.password());
-    user.updateProfile(profileRequest);
+    User user = createUser(userRequest1.name(), userRequest1.email(), userRequest1.password());
+    user.updateProfile(profileRequest.name(), profileRequest.gender(), profileRequest.birthDate(),
+        profileRequest.location(), profileRequest.temperatureSensitivity());
     User savedUser = userRepository.saveAndFlush(user);
 
     // when & then
@@ -239,5 +240,9 @@ public class UserControllerTest extends IntegrationTestSupport {
         .andExpect(jsonPath("$.name").value("testName"))
         .andExpect(jsonPath("$.gender").value(Gender.MALE.toString()))
         .andExpect(jsonPath("$.birthDate").value(LocalDate.of(2000, 1, 1).toString()));
+  }
+
+  private User createUser(String name, String email, String password) {
+    return new User(name, email, password);
   }
 }

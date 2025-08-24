@@ -33,6 +33,6 @@ public class ClosetUserDetailsService implements UserDetailsService {
       throw new LockedException("잠긴 계정입니다.");
     }
 
-    return new ClosetUserDetails(userMapper.UsertoUserDto(user), user.getPassword());
+    return new ClosetUserDetails(userMapper.toUserDto(user), user.getPassword());
   }
 }
