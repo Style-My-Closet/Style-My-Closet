@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.binarycontent.dto.BinaryContentRequest;
 import com.stylemycloset.binarycontent.dto.BinaryContentResult;
 import com.stylemycloset.binarycontent.entity.BinaryContent;
@@ -11,8 +12,6 @@ import com.stylemycloset.binarycontent.exception.BinaryContentNotFoundException;
 import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
 import com.stylemycloset.binarycontent.service.BinaryContentService;
 import com.stylemycloset.binarycontent.storage.s3.BinaryContentStorage;
-import com.stylemycloset.security.jwt.JwtSessionRepository;
-import com.stylemycloset.IntegrationTestSupport;
 import java.util.List;
 import java.util.UUID;
 import org.assertj.core.api.Assertions;
@@ -20,7 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 class BinaryContentServiceImplTest extends IntegrationTestSupport {
 
@@ -29,11 +28,8 @@ class BinaryContentServiceImplTest extends IntegrationTestSupport {
   @Autowired
   private BinaryContentService binaryContentService;
 
-  @MockBean
+  @MockitoBean
   private BinaryContentStorage binaryContentStorage;
-  
-  @MockBean
-  private JwtSessionRepository jwtSessionRepository;
 
   @BeforeEach
   void beforeEach() {

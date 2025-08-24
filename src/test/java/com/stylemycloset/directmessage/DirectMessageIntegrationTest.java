@@ -27,9 +27,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
@@ -48,9 +48,9 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class DirectMessageIntegrationTest extends IntegrationTestSupport {
 
-  @MockitoBean
+  @Autowired
   private UserRepository userRepository;
-  @MockitoBean
+  @Autowired
   private DirectMessageRepository messageRepository;
 
   @MockitoBean
@@ -81,21 +81,14 @@ class DirectMessageIntegrationTest extends IntegrationTestSupport {
     // given
     User sender = userRepository.save(new User("alice", "a@a.com", "pwd"));
     User receiver = userRepository.save(new User("bob", "b@b.com", "pwd"));
-    
-    // ID가 제대로 설정되었는지 확인
-    System.out.println("Sender ID: " + sender.getId());
-    System.out.println("Receiver ID: " + receiver.getId());
-    
-    // User가 제대로 저장되었는지 확인
-    User savedSender = userRepository.findById(sender.getId()).orElse(null);
-    User savedReceiver = userRepository.findById(receiver.getId()).orElse(null);
-    System.out.println("Saved Sender: " + savedSender);
-    System.out.println("Saved Receiver: " + savedReceiver);
 
     senderSession = createClientSession();
     receiverSession = createClientSession();
-    BlockingQueue<DirectMessageResult> messageMailbox = createMessageMailbox(receiverSession,
-        sender, receiver);
+    BlockingQueue<DirectMessageResult> messageMailbox = createMessageMailbox(
+        receiverSession,
+        sender,
+        receiver
+    );
 
     // when
     String content = UUID.randomUUID().toString();
@@ -121,6 +114,7 @@ class DirectMessageIntegrationTest extends IntegrationTestSupport {
             DirectMessageResult::content
         )
         .containsExactly(sender.getId(), receiver.getId(), content);
+
     verify(sseService).sendNotification(any(NotificationDto.class));
   }
 
