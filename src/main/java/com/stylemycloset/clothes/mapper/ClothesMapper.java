@@ -5,8 +5,6 @@ import com.stylemycloset.clothes.dto.clothes.AttributeDto;
 import com.stylemycloset.clothes.dto.clothes.ClothesDto;
 import com.stylemycloset.clothes.dto.clothes.response.ClothDtoCursorResponse;
 import com.stylemycloset.clothes.entity.clothes.Clothes;
-import com.stylemycloset.clothes.repository.clothes.cursor.ClothesField;
-import com.stylemycloset.common.repository.CursorStrategy;
 import com.stylemycloset.common.repository.CustomSliceImpl;
 import com.stylemycloset.common.repository.NextCursorInfo;
 import java.util.List;
@@ -38,35 +36,23 @@ public class ClothesMapper {
   }
 
   public ClothDtoCursorResponse toPageResponse(Slice<Clothes> clothes) {
-    List<ClothesDto> content = clothes.getContent()
-        .stream()
-        .map(this::toResponse)
-        .toList();
+    List<ClothesDto> content = getClotheDtos(clothes);
     Order order = CustomSliceImpl.getOrder(clothes);
 
     return ClothDtoCursorResponse.of(
         content,
-        extractNextCursorInfo(clothes, order.getProperty()),
+        NextCursorInfo.clothesCursor(clothes, order.getProperty()),
         clothes.hasNext(),
         null,
         order
     );
   }
 
-  private NextCursorInfo extractNextCursorInfo(Slice<Clothes> clothes, String sortBy) {
-    if (sortBy == null || sortBy.isBlank() ||
-        !clothes.hasNext() || clothes.getContent().isEmpty()
-    ) {
-      return new NextCursorInfo(null, null);
-    }
-
-    Clothes lastMessage = clothes.getContent().get(clothes.getContent().size() - 1);
-
-    CursorStrategy<?, Clothes> clothesCursorStrategy = ClothesField.resolveStrategy(sortBy);
-    String cursor = clothesCursorStrategy.extract(lastMessage).toString();
-    String idAfter = lastMessage.getId().toString();
-
-    return new NextCursorInfo(cursor, idAfter);
+  private List<ClothesDto> getClotheDtos(Slice<Clothes> clothes) {
+    return clothes.getContent()
+        .stream()
+        .map(this::toResponse)
+        .toList();
   }
 
 }

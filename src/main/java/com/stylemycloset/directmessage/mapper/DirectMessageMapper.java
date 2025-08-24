@@ -42,15 +42,12 @@ public class DirectMessageMapper {
   public DirectMessageResponse<DirectMessageResult> toMessageResponse(
       Slice<DirectMessage> messages
   ) {
-    List<DirectMessageResult> messageResults = messages.getContent()
-        .stream()
-        .map(this::toResult)
-        .toList();
+    List<DirectMessageResult> messageResults = getMessageResults(messages);
     Order order = CustomSliceImpl.getOrder(messages);
 
     return DirectMessageResponse.of(
         messageResults,
-        extractNextCursorInfo(messages, order.getProperty()),
+        NextCursorInfo.directMessageCursor(messages, order.getProperty()),
         messages.hasNext(),
         null,
         order.getProperty(),
@@ -58,20 +55,11 @@ public class DirectMessageMapper {
     );
   }
 
-  private NextCursorInfo extractNextCursorInfo(Slice<DirectMessage> messages, String sortBy) {
-    if (sortBy == null || sortBy.isBlank() ||
-        !messages.hasNext() || messages.getContent().isEmpty()
-    ) {
-      return new NextCursorInfo(null, null);
-    }
-
-    DirectMessage lastMessage = messages.getContent().get(messages.getContent().size() - 1);
-
-    CursorStrategy<?, DirectMessage> cursorStrategy = DirectMessageField.resolveStrategy(sortBy);
-    String cursor = cursorStrategy.extract(lastMessage).toString();
-    String idAfter = lastMessage.getId().toString();
-
-    return new NextCursorInfo(cursor, idAfter);
+  private List<DirectMessageResult> getMessageResults(Slice<DirectMessage> messages) {
+    return messages.getContent()
+        .stream()
+        .map(this::toResult)
+        .toList();
   }
 
 }

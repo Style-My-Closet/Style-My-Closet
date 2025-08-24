@@ -1,14 +1,12 @@
 package com.stylemycloset.follow.mapper;
 
 import com.stylemycloset.binarycontent.mapper.BinaryContentMapper;
-import com.stylemycloset.common.repository.CursorStrategy;
 import com.stylemycloset.common.repository.CustomSliceImpl;
 import com.stylemycloset.common.repository.NextCursorInfo;
 import com.stylemycloset.follow.dto.FollowListResponse;
 import com.stylemycloset.follow.dto.FollowResult;
 import com.stylemycloset.follow.dto.FollowUserInfo;
 import com.stylemycloset.follow.entity.Follow;
-import com.stylemycloset.follow.repository.cursor.FollowCursorField;
 import com.stylemycloset.user.entity.User;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -40,15 +38,12 @@ public class FollowMapper {
   }
 
   public FollowListResponse<FollowResult> toFollowResponse(Slice<Follow> follows) {
-    List<FollowResult> followResults = follows.getContent()
-        .stream()
-        .map(this::toResult)
-        .toList();
+    List<FollowResult> followResults = getFollowResults(follows);
     Order order = CustomSliceImpl.getOrder(follows);
 
     return FollowListResponse.of(
         followResults,
-        extractNextCursorInfo(follows, order.getProperty()),
+        NextCursorInfo.followCursor(follows, order.getProperty()),
         follows.hasNext(),
         null,
         order.getProperty(),
@@ -56,19 +51,11 @@ public class FollowMapper {
     );
   }
 
-  private NextCursorInfo extractNextCursorInfo(Slice<Follow> follows, String sortBy) {
-    if (sortBy == null || sortBy.isBlank() ||
-        !follows.hasNext() || follows.getContent().isEmpty()
-    ) {
-      return new NextCursorInfo(null, null);
-    }
-
-    Follow lastFollow = follows.getContent().get(follows.getContent().size() - 1);
-    CursorStrategy<?, Follow> cursorStrategy = FollowCursorField.resolveStrategy(sortBy);
-    String cursor = cursorStrategy.extract(lastFollow).toString();
-    String idAfter = lastFollow.getId().toString();
-
-    return new NextCursorInfo(cursor, idAfter);
+  private List<FollowResult> getFollowResults(Slice<Follow> follows) {
+    return follows.getContent()
+        .stream()
+        .map(this::toResult)
+        .toList();
   }
 
 }
