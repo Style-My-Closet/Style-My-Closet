@@ -81,9 +81,9 @@ CREATE TABLE clothes
 (
     id           BIGSERIAL PRIMARY KEY,
     owner_id     BIGINT                   NOT NULL,
-    name         VARCHAR(100)             NOT NULL,
+    name         VARCHAR(500)             NOT NULL,
     image_id     UUID,
-    clothes_type varchar(50)              NOT NULL,
+    clothes_type varchar(100)              NOT NULL,
     deleted_at   TIMESTAMP WITH TIME ZONE,
     created_at   TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at   TIMESTAMP WITH TIME ZONE
@@ -93,7 +93,7 @@ CREATE TABLE clothes
 CREATE TABLE clothes_attribute_definition
 (
     id         BIGSERIAL PRIMARY KEY,
-    name       VARCHAR(100)             NOT NULL,
+    name       VARCHAR(200)             NOT NULL,
     deleted_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE
@@ -104,7 +104,7 @@ CREATE TABLE clothes_attribute_selectable_value
 (
     id                      BIGSERIAL PRIMARY KEY,
     attribute_definition_id BIGINT                   NOT NULL,
-    value                   VARCHAR(50)              NOT NULL,
+    value                   VARCHAR(200)              NOT NULL,
     deleted_at              TIMESTAMP WITH TIME ZONE,
     created_at              TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at              TIMESTAMP WITH TIME ZONE
@@ -127,7 +127,7 @@ CREATE TABLE clothes_attribute_selected_value
 CREATE TABLE binary_contents
 (
     id           UUID PRIMARY KEY,
-    original_name    varchar(200)             NOT NULL,
+    original_name    varchar(300)             NOT NULL,
     content_type VARCHAR(100),
     size         BIGINT                   NOT NULL,
     created_at   TIMESTAMP WITH TIME ZONE NOT NULL

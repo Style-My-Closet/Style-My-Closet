@@ -1,7 +1,7 @@
 spring:
   flyway:
     enabled: true
-    baseline-on-migrate: false
+    baseline-on-migrate: true
   config:
     import: optional:file:.env[.properties]
   profiles:

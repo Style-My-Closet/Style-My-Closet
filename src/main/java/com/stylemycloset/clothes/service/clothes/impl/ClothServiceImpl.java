@@ -34,7 +34,7 @@ public class ClothServiceImpl implements ClothService {
   private final ClothesBinaryContentService clothesBinaryContentService;
   private final ClothesMapper clothesMapper;
 
-  @CacheEvict(value = CLOTHES_CACHE, key = "#result.ownerId()")
+  @CacheEvict(value = CLOTHES_CACHE, key = "#result.ownerId() + '_' + #result.type()")
   @Transactional
   @Override
   public ClothesDto createCloth(
@@ -57,7 +57,7 @@ public class ClothServiceImpl implements ClothService {
     return clothesMapper.toResponse(savedClothes);
   }
 
-  @Cacheable(value = CLOTHES_CACHE, key = "#p0.ownerId()")
+  @Cacheable(value = CLOTHES_CACHE, key = "#p0.ownerId()+'_'+#p0.typeEqual()")
   @Transactional(readOnly = true)
   @Override
   public ClothDtoCursorResponse getClothes(ClothesSearchCondition condition) {
@@ -74,7 +74,7 @@ public class ClothServiceImpl implements ClothService {
     return clothesMapper.toPageResponse(clothes);
   }
 
-  @CacheEvict(value = CLOTHES_CACHE, key = "#result.ownerId()")
+  @CacheEvict(value = CLOTHES_CACHE, key = "#result.ownerId() + '_' + #result.type()")
   @Transactional
   @Override
   public ClothesDto updateCloth(

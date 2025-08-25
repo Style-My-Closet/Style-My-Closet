@@ -38,9 +38,9 @@ public class ClothesRepositoryImpl implements ClothesRepositoryCustom {
     List<Clothes> content = queryFactory
         .selectFrom(clothes)
         .leftJoin(clothes.image).fetchJoin()
-        .join(clothes.selectedValues, clothesAttributeSelectedValue).fetchJoin()
-        .join(clothesAttributeSelectedValue.selectableValue).fetchJoin()
-        .join(clothesAttributeSelectedValue.selectableValue.definition).fetchJoin()
+        .leftJoin(clothes.selectedValues, clothesAttributeSelectedValue).fetchJoin()
+        .leftJoin(clothesAttributeSelectedValue.selectableValue).fetchJoin()
+        .leftJoin(clothesAttributeSelectedValue.selectableValue.definition).fetchJoin()
         .where(
             buildOwnerIdPredicate(ownerId),
             buildTypeEqualPredicate(typeEqual),
