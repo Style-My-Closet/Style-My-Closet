@@ -2,7 +2,6 @@ package com.stylemycloset.sse.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.stylemycloset.sse.dto.SseInfo;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -22,7 +21,6 @@ public class SseRepositoryUnitTest {
   SseRepository sseRepository;
 
   static final int MAX_EMITTER_COUNT = 3;
-  static final int MAX_EVENT_COUNT = 30;
   Long userId = 100L;
 
   @BeforeEach
@@ -35,13 +33,6 @@ public class SseRepositoryUnitTest {
     Map<Long, Deque<SseEmitter>> userEmitters =
         (Map<Long, Deque<SseEmitter>>) ReflectionTestUtils.getField(sseRepository, "userEmitters");
     return userEmitters.getOrDefault(userId, new ArrayDeque<>());
-  }
-
-  @SuppressWarnings("unchecked")
-  Deque<SseInfo> getEvents(Long userId) {
-    Map<Long, Deque<SseInfo>> userEvents =
-        (Map<Long, Deque<SseInfo>>) ReflectionTestUtils.getField(sseRepository, "userEvents");
-    return userEvents.getOrDefault(userId, new ArrayDeque<>());
   }
 
   @DisplayName("Emitter 개수가 MAX_EMITTER_COUNT 미만이면 바로 Emitter를 저장하고 null을 반환한다.")

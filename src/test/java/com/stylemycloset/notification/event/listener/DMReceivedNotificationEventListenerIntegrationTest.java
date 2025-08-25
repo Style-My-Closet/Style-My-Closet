@@ -28,8 +28,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 @ExtendWith(OutputCaptureExtension.class)
 public class DMReceivedNotificationEventListenerIntegrationTest extends IntegrationTestSupport {
 
-  private static final Logger log = LogManager.getLogger(
-      DMReceivedNotificationEventListenerIntegrationTest.class);
   @Autowired
   DMReceivedNotificationEventListener listener;
   @Autowired

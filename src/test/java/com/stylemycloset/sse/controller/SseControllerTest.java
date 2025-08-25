@@ -10,7 +10,6 @@ import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.security.jwt.JwtSession;
 import com.stylemycloset.sse.cache.SseNotificationInfoCache;
-import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.mapper.UserMapper;
@@ -39,22 +38,14 @@ public class SseControllerTest extends IntegrationTestSupport {
 
   @LocalServerPort
   private int port;
-
-  @Autowired
-  SseRepository sseRepository;
-
   @Autowired
   private UserRepository userRepository;
-
   @Autowired
   JwtService jwtService;
-
   @Autowired
   UserMapper userMapper;
-
   @Autowired
   SseNotificationInfoCache cache;
-
   @Autowired
   RedisConnectionFactory connectionFactory;
 
