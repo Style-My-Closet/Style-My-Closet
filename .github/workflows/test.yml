@@ -41,6 +41,9 @@ jobs:
       - name: Checkout source code 
         uses: actions/checkout@v4
 
+      - name: Pull pgvector image
+        run: docker pull pgvector/pgvector:pg16
+      
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
