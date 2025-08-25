@@ -32,6 +32,9 @@ jobs:
           distribution: 'corretto'
           cache: gradle
 
+      - name: Pull pgvector image
+        run: docker pull pgvector/pgvector:pg16
+      
       - name:  Run tests
         run: ./gradlew clean test
 
