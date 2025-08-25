@@ -1,95 +1,95 @@
 package com.stylemycloset.notification.event.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.Mockito.verify;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.directmessage.entity.DirectMessage;
 import com.stylemycloset.directmessage.repository.DirectMessageRepository;
-import com.stylemycloset.notification.entity.Notification;
-import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.notification.event.domain.DMSentEvent;
-import com.stylemycloset.notification.repository.NotificationRepository;
-import com.stylemycloset.notification.util.NotificationStubHelper;
 import com.stylemycloset.notification.util.TestUserFactory;
-import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Optional;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
+@ExtendWith(OutputCaptureExtension.class)
 public class DMReceivedNotificationEventListenerIntegrationTest extends IntegrationTestSupport {
 
+  private static final Logger log = LogManager.getLogger(
+      DMReceivedNotificationEventListenerIntegrationTest.class);
   @Autowired
   DMReceivedNotificationEventListener listener;
-
-  @MockitoBean
-  NotificationRepository notificationRepository;
-
-  @MockitoBean
+  @Autowired
   UserRepository userRepository;
-
-  @MockitoBean
+  @Autowired
   DirectMessageRepository messageRepository;
-
   @Autowired
   SseServiceImpl sseService;
+  @Autowired
+  RedisConnectionFactory connectionFactory;
+  @Autowired
+  StringRedisTemplate template;
 
-  @MockitoBean
-  SseRepository sseRepository;
+  String NOTIFICATION_KEY = "notification:";
 
-  @DisplayName("DM 이벤트가 호출되면 알림을 생성하고 SSE로 전송 후 로그를 띄운다")
+  @BeforeEach
+  void beforeEach() {
+    clearAll();
+  }
+
+  @AfterEach
+  void afterEach() {
+    clearAll();
+  }
+
+  void clearAll() {
+    userRepository.deleteAllInBatch();
+    messageRepository.deleteAllInBatch();
+    try (var connection = connectionFactory.getConnection()) {
+      connection.serverCommands().flushAll();
+    }
+  }
+
+  @DisplayName("DM 이벤트가 호출되면 알림을 생성하고 캐시에 저장 후, SSE 전송을 한다.")
   @Test
-  void handleDMReceivedNotificationEvent_sendSseMessage() throws Exception {
+  void handleDMReceivedNotificationEvent_sendSseMessage(CapturedOutput output) {
     // given
-    User dmSender = TestUserFactory.createUser("dmSenderUser", "dmSenderUser@test.test", 16L);
-    User dmReceiver = TestUserFactory.createUser("dmReceiverUser", "dmReceiverUser@test.test",
-        160L);
-    DirectMessage message = new DirectMessage(dmSender, dmReceiver, "test");
-    ReflectionTestUtils.setField(message, "id", 1L);
+    User user1 = TestUserFactory.createUser(userRepository, "user1", "user1@test.test");
+    User user2 = TestUserFactory.createUser(userRepository, "user2", "user2@test.test");
+    Long user2Id = user2.getId();
 
-    given(messageRepository.findWithReceiverById(message.getId())).willReturn(Optional.of(message));
-    NotificationStubHelper.stubSave(notificationRepository);
-
-    Deque<SseEmitter> list1 = new ArrayDeque<>();
-
-    willAnswer(inv -> {
-      list1.add(inv.getArgument(1));
-      return null;
-    }).given(sseRepository).addEmitter(eq(dmReceiver.getId()), any(SseEmitter.class));
-    given(sseRepository.findOrCreateEmitters(dmReceiver.getId())).willReturn(list1);
-
+    DirectMessage message = new DirectMessage(user1, user2, "test");
+    messageRepository.save(message);
     String now = String.valueOf(System.currentTimeMillis());
-    sseService.connect(dmReceiver.getId(), now, null);
+    sseService.connect(user2Id, now + "-0", null);
 
-    DMSentEvent dmSentEvent = new DMSentEvent(message.getId(), "user");
+    DMSentEvent dmSentEvent = new DMSentEvent(message.getId(), "user1");
 
     // when
     listener.handler(dmSentEvent);
 
     // then
-    ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
-    verify(notificationRepository).save(captor.capture());
-
-    Notification saved = captor.getValue();
-    assertThat(saved.getReceiverId()).isEqualTo(dmReceiver.getId());
-    assertThat(saved.getId()).isNotNull();
-    assertThat(saved.getCreatedAt()).isNotNull();
-    assertThat(saved.getTitle()).isEqualTo("[DM] user");
-    assertThat(saved.getLevel()).isEqualTo(NotificationLevel.INFO);
+    var user2Records = template.opsForStream().range(NOTIFICATION_KEY + user2Id, Range.unbounded());
+    assertThat(user2Records).hasSize(1);
+    String user2EventId = user2Records.getFirst().getId().getValue();
+    await().untilAsserted(() -> {
+      String logs = output.getOut();
+      assertThat(logs).contains(String.format("[%d] %s SSE 이벤트 전송 성공 (eventId: %s)",
+          user2Id, "notifications", user2EventId));
+    });
   }
 
 }

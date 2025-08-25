@@ -1,83 +1,83 @@
 package com.stylemycloset.notification.event.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.Mockito.verify;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import com.stylemycloset.IntegrationTestSupport;
-import com.stylemycloset.notification.entity.Notification;
-import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.notification.event.domain.WeatherAlertEvent;
-import com.stylemycloset.notification.repository.NotificationRepository;
-import com.stylemycloset.notification.util.NotificationStubHelper;
 import com.stylemycloset.notification.util.TestUserFactory;
-import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
+@ExtendWith(OutputCaptureExtension.class)
 public class WeatherAlertNotificationEventListenerIntegrationTest extends IntegrationTestSupport {
 
   @Autowired
   WeatherAlertNotificationEventListener listener;
-
-  @MockitoBean
-  NotificationRepository notificationRepository;
-
-  @MockitoBean
+  @Autowired
   UserRepository userRepository;
-
   @Autowired
   SseServiceImpl sseService;
+  @Autowired
+  RedisConnectionFactory connectionFactory;
+  @Autowired
+  StringRedisTemplate template;
 
-  @MockitoBean
-  SseRepository sseRepository;
+  String NOTIFICATION_KEY = "notification:";
 
-  @DisplayName("날씨 변화 이벤트가 호출되면 알림을 생성하고 SSE로 전송 후 로그를 띄운다")
+  @BeforeEach
+  void beforeEach() {
+    clearAll();
+  }
+
+  @AfterEach
+  void afterEach() {
+    clearAll();
+  }
+
+  void clearAll() {
+    userRepository.deleteAllInBatch();
+    try (var connection = connectionFactory.getConnection()) {
+      connection.serverCommands().flushAll();
+    }
+  }
+
+  @DisplayName("날씨 변화 이벤트가 호출되면 알림을 생성하고 캐시에 저장 후, SSE 전송을 한다.")
   @Test
-  void handleWeatherAlertNotificationEvent_sendSseMessage() throws Exception {
+  void handleWeatherAlertNotificationEvent_sendSseMessage(CapturedOutput output) {
     // given
-    User weatherSender = TestUserFactory.createUser("weatherSender", "weatherSender@test.test", 17L);
-
-    given(userRepository.findById(weatherSender.getId())).willReturn(Optional.of(weatherSender));
-    NotificationStubHelper.stubSave(notificationRepository);
-
-    Deque<SseEmitter> list1 = new ArrayDeque<>();
-
-    willAnswer(inv -> { list1.add(inv.getArgument(1)); return null; })
-        .given(sseRepository).addEmitter(eq(weatherSender.getId()), any(SseEmitter.class));
-    given(sseRepository.findOrCreateEmitters(weatherSender.getId())).willReturn(list1);
+    User weatherSender = TestUserFactory.createUser(userRepository, "weatherSender", "weatherSender@test.test");
+    Long senderId = weatherSender.getId();
 
     String now = String.valueOf(System.currentTimeMillis());
-    sseService.connect(weatherSender.getId(), now, null);
+    sseService.connect(senderId, now, null);
 
-    WeatherAlertEvent weatherAlertEvent = new WeatherAlertEvent(weatherSender.getId(), 1L, "날씨 변화 테스트");
+    WeatherAlertEvent weatherAlertEvent = new WeatherAlertEvent(senderId, 1L, "날씨 변화 테스트");
 
     // when
     listener.handler(weatherAlertEvent);
 
     // then
-    ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
-    verify(notificationRepository).save(captor.capture());
+    var user1Records = template.opsForStream().range(NOTIFICATION_KEY + senderId, Range.unbounded());
+    assertThat(user1Records).hasSize(1);
+    String user1EventId = user1Records.getFirst().getId().getValue();
 
-    Notification saved = captor.getValue();
-    assertThat(saved.getReceiverId()).isEqualTo(weatherSender.getId());
-    assertThat(saved.getId()).isNotNull();
-    assertThat(saved.getCreatedAt()).isNotNull();
-    assertThat(saved.getTitle()).isEqualTo("급격한 날씨 변화가 발생했습니다.");
-    assertThat(saved.getContent()).isEqualTo("날씨 변화 테스트");
-    assertThat(saved.getLevel()).isEqualTo(NotificationLevel.WARNING);
+    await().untilAsserted(() -> {
+      String logs = output.getOut();
+      assertThat(logs).contains(String.format("[%d] %s SSE 이벤트 전송 성공 (eventId: %s)",
+          senderId, "notifications", user1EventId));
+    });
   }
 }

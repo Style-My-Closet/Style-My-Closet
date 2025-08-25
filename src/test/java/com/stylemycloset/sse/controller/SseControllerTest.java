@@ -5,9 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.stylemycloset.IntegrationTestSupport;
+import com.stylemycloset.notification.dto.NotificationDto;
+import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.security.jwt.JwtSession;
-import com.stylemycloset.sse.dto.SseInfo;
+import com.stylemycloset.sse.cache.SseNotificationInfoCache;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.entity.User;
@@ -21,6 +23,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import org.jline.utils.InputStreamReader;
 import org.junit.jupiter.api.AfterEach;
@@ -29,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class SseControllerTest extends IntegrationTestSupport {
@@ -48,9 +52,18 @@ public class SseControllerTest extends IntegrationTestSupport {
   @Autowired
   UserMapper userMapper;
 
+  @Autowired
+  SseNotificationInfoCache cache;
+
+  @Autowired
+  RedisConnectionFactory connectionFactory;
+
   @AfterEach
   void tearDown() {
     userRepository.deleteAllInBatch();
+    try (var connection = connectionFactory.getConnection()) {
+      connection.serverCommands().flushAll();
+    }
   }
 
   User user;
@@ -89,18 +102,19 @@ public class SseControllerTest extends IntegrationTestSupport {
   @Test
   public void sseReconnect_shouldReplayMissedEvents() throws Exception {
     String accessToken = createUser();
+    Long userId = user.getId();
 
-    var sseInfos = List.of(
-        new SseInfo(1854037511000L, "notification", "데이터A", System.currentTimeMillis()),
-        new SseInfo(1954037511000L, "notification", "데이터B", System.currentTimeMillis())
-    );
-    sseRepository.findOrCreateEvents(user.getId()).addAll(sseInfos);
-
+    NotificationDto notificationDto = new NotificationDto(10L, Instant.now(), userId, "데이터A", "데이터A", NotificationLevel.INFO);
+    NotificationDto notificationDto2 = new NotificationDto(11L, Instant.now(), userId, "데이터B", "데이터B", NotificationLevel.INFO);
+    List<NotificationDto> dtoList = List.of(notificationDto, notificationDto2);
+    for(NotificationDto i : dtoList) {
+      cache.addNotificationInfo(userId, i);
+    }
 
     HttpClient client = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(5))
         .build();
-    URI url = URI.create("http://localhost:" + port + "/api/sse?LastEventId=1754037511000");
+    URI url = URI.create("http://localhost:" + port + "/api/sse?LastEventId=1754037511000-0");
 
     HttpRequest req = HttpRequest.newBuilder(url)
         .header("Accept", "text/event-stream")
