@@ -35,16 +35,12 @@ public class SseControllerTest extends IntegrationTestSupport {
 
   @LocalServerPort
   private int port;
-
   @Autowired
   SseRepository sseRepository;
-
   @Autowired
   private UserRepository userRepository;
-
   @Autowired
   JwtService jwtService;
-
   @Autowired
   UserMapper userMapper;
 
