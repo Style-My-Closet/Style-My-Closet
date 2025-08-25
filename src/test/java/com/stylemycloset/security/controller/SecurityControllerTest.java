@@ -108,13 +108,15 @@ class SecurityControllerTest extends IntegrationTestSupport {
   void refreshToken_Success() throws Exception {
     //given
     ResponseEntity<String> loginResponse = performLogin();
-    String refreshTokenCookie = loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+    String setTokenCookie = loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
 
     ResponseEntity<String> csrfResponse = restTemplate.getForEntity("/api/auth/csrf-token",
         String.class);
     String csrfResponseBody = csrfResponse.getBody();
     String csrfCookieHeader = csrfResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
     Map<String, String> csrfTokenMap = objectMapper.readValue(csrfResponseBody, Map.class);
+
+    String refreshTokenCookie = setTokenCookie.split(";")[0];
 
     HttpHeaders headers = new HttpHeaders();
     headers.add("Cookie", refreshTokenCookie);
@@ -137,12 +139,14 @@ class SecurityControllerTest extends IntegrationTestSupport {
   void signOut_Success() throws Exception {
     //given
     ResponseEntity<String> loginResponse = performLogin();
+    String accessToken = loginResponse.getBody();
     String setTokenCookie = loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
 
     String refreshTokenCookie = setTokenCookie.split(";")[0];
 
     HttpHeaders headers = new HttpHeaders();
     headers.add("Cookie", refreshTokenCookie);
+    headers.setBearerAuth(accessToken);
     HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
     //when
