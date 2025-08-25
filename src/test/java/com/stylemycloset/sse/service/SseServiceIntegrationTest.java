@@ -98,7 +98,6 @@ public class SseServiceIntegrationTest extends IntegrationTestSupport {
   @Test
   void sendNotification_storeToCache_and_sendToEmitters(CapturedOutput output) throws Exception {
     // given
-    String streamKey = NOTIFICATION_KEY + userId;
     sseService.connect(userId, System.currentTimeMillis() + "-0", null);
     NotificationDto dto = new NotificationDto(10L, Instant.now(), userId, "test", "test", NotificationLevel.INFO);
 
