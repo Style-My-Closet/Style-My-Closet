@@ -9,7 +9,7 @@ services:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     ports:
-      - "${DB_PORT}:5432"
+      - "${DB_PORT}:{DB_PORT}"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
@@ -17,7 +17,7 @@ services:
 
   redis:
     image: redis:7.2
-    command: [ "redis-server" ]
+    command: ["redis-server"]
     container_name: closet_redis
     volumes:
       - redis-data:/data

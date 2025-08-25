@@ -24,7 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import org.jline.utils.InputStreamReader;
+import java.io.InputStreamReader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,7 +53,7 @@ public class SseControllerTest extends IntegrationTestSupport {
   void tearDown() {
     userRepository.deleteAllInBatch();
     try (var connection = connectionFactory.getConnection()) {
-      connection.serverCommands().flushAll();
+      connection.serverCommands().flushDb();
     }
   }
 

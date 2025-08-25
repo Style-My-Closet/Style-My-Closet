@@ -1,7 +1,7 @@
 package com.stylemycloset.notification.event.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.await;
 
 import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.directmessage.entity.DirectMessage;
@@ -11,8 +11,6 @@ import com.stylemycloset.notification.util.TestUserFactory;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -57,7 +55,7 @@ public class DMReceivedNotificationEventListenerIntegrationTest extends Integrat
     userRepository.deleteAllInBatch();
     messageRepository.deleteAllInBatch();
     try (var connection = connectionFactory.getConnection()) {
-      connection.serverCommands().flushAll();
+      connection.serverCommands().flushDb();
     }
   }
 

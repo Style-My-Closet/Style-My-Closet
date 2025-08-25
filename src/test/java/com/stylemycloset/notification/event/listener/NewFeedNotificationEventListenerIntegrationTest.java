@@ -1,7 +1,7 @@
 package com.stylemycloset.notification.event.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.await;
 
 import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.follow.entity.Follow;
@@ -60,7 +60,7 @@ public class NewFeedNotificationEventListenerIntegrationTest extends Integration
     followRepository.deleteAllInBatch();
     feedRepository.deleteAllInBatch();
     try (var connection = connectionFactory.getConnection()) {
-      connection.serverCommands().flushAll();
+      connection.serverCommands().flushDb();
     }
   }
 

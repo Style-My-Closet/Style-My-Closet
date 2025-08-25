@@ -45,7 +45,7 @@ public class RedisConfig {
 
   @Bean
   public RedisScript<Long> redisScript() {
-    Resource script = new ClassPathResource("/redis/redis-trim.lua");
+    Resource script = new ClassPathResource("redis/redis-trim.lua");
     return RedisScript.of(script, Long.class);
   }
 }

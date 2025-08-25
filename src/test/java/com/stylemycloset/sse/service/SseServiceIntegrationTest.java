@@ -1,6 +1,7 @@
 package com.stylemycloset.sse.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.IntegrationTestSupport;
@@ -84,11 +85,13 @@ public class SseServiceIntegrationTest extends IntegrationTestSupport {
 
     // then
     String logs = output.getOut();
-    assertThat(logs).contains("놓친 알림 이벤트 개수=2");
-    assertThat(logs).contains(String.format("[%d] %s SSE 이벤트 전송 성공 (eventId: %s)",
-        userId, "notifications", firstId));
-    assertThat(logs).contains(String.format("[%d] %s SSE 이벤트 전송 성공 (eventId: %s)",
-        userId, "notifications", secondId));
+    await().untilAsserted(() -> {
+      assertThat(logs).contains("놓친 알림 이벤트 개수=2");
+      assertThat(logs).contains(String.format("[%d] %s SSE 이벤트 전송 성공 (eventId: %s)",
+          userId, "notifications", firstId));
+      assertThat(logs).contains(String.format("[%d] %s SSE 이벤트 전송 성공 (eventId: %s)",
+          userId, "notifications", secondId));
+    });
   }
 
   @DisplayName("sendNotification() 호출 시 알림 데이터를 캐시에 저장하고 SSE로 전송한다.")
@@ -112,8 +115,10 @@ public class SseServiceIntegrationTest extends IntegrationTestSupport {
     assertThat(stored).isEqualTo(dto);
 
     String logs = output.getOut();
-    assertThat(logs).contains(String.format("[%d] %s SSE 이벤트 전송 성공 (eventId: %s)",
-        userId, "notifications", latest.getId()));
+    await().untilAsserted(() ->
+        assertThat(logs).contains(String.format("[%d] %s SSE 이벤트 전송 성공 (eventId: %s)",
+            userId, "notifications", latest.getId()))
+    );
   }
 
   private String addToStream(String key, NotificationDto dto) throws Exception {

@@ -1,7 +1,7 @@
 package com.stylemycloset.notification.event.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.await;
 
 import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.notification.event.domain.NewClothAttributeEvent;
@@ -50,7 +50,7 @@ public class NewClothAttributeNotificationEventListenerIntegrationTest extends I
   void clearAll() {
     userRepository.deleteAllInBatch();
     try (var connection = connectionFactory.getConnection()) {
-      connection.serverCommands().flushAll();
+      connection.serverCommands().flushDb();
     }
   }
   @DisplayName("의상 속성 추가 이벤트가 호출되면 알림을 생성하고 SSE로 전송 후 로그를 띄운다")

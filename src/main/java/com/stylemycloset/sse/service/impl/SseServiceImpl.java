@@ -50,19 +50,19 @@ public class SseServiceImpl implements SseService {
       computeEmitter.complete();
     }
 
+    if (lastEventId != null && !lastEventId.isEmpty() && !isValidStreamsId(lastEventId)) {
+      log.info("유효하지 않은 LastEventId로 요청. userId={}, lastEventId={}", userId, lastEventId);
+      throw new StyleMyClosetException(ErrorCode.INVALID_INPUT_VALUE, Map.of("lastEventId", lastEventId));
+    }
+
     sseSender.sendToClient(userId, emitter, eventId, "connect", "Sse Connected");
 
     if(lastEventId != null &&  !lastEventId.isEmpty()) {
-      if(isValidStreamsId(lastEventId)) {
-        List<NotificationDtoWithId> missedInfo = cache.getNotificationInfo(userId, lastEventId);
-        log.debug("놓친 알림 이벤트 개수={}", missedInfo.size());
+      List<NotificationDtoWithId> missedInfo = cache.getNotificationInfo(userId, lastEventId);
+      log.debug("놓친 알림 이벤트 개수={}", missedInfo.size());
 
-        for (NotificationDtoWithId info : missedInfo) {
-          sseSender.sendToClient(userId, emitter, info.eventId(), EVENT_NAME, info.dto());
-        }
-      } else {
-        log.info("유효하지 않은 LastEventId로 요청. userId={}, lastEventId={}", userId, lastEventId);
-        throw new StyleMyClosetException(ErrorCode.INVALID_INPUT_VALUE, Map.of("lastEventId", lastEventId));
+      for (NotificationDtoWithId info : missedInfo) {
+        sseSender.sendToClient(userId, emitter, info.eventId(), EVENT_NAME, info.dto());
       }
     }
 
@@ -78,7 +78,7 @@ public class SseServiceImpl implements SseService {
     Long receiverId = notificationDto.receiverId();
     Deque<SseEmitter> sseEmitters = sseRepository.findOrCreateEmitters(receiverId);
     if(sseEmitters == null || sseEmitters.isEmpty()) {
-      log.info("SSE 연결이 없어 알림 전송 실패 : id={}, notificationId={}",
+      log.debug("SSE 연결이 없어 알림 전송 실패 : id={}, notificationId={}",
           receiverId, notificationDto.id());
       return;
     }
@@ -91,7 +91,7 @@ public class SseServiceImpl implements SseService {
           receiverId, notificationDto.id(), eventId, e.getClass().getName(), e.getMessage());
     }
 
-    for(SseEmitter sseEmitter : sseEmitters) {
+    for(SseEmitter sseEmitter : List.copyOf(sseEmitters)) {
       sseSender.sendToClientAsync(receiverId, sseEmitter, eventId, EVENT_NAME, notificationDto);
     }
   }

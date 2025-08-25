@@ -110,5 +110,4 @@ public class SseServiceUnitTest {
     verify(cache).addNotificationInfo(userId, dto);
     verify(sseSender).sendToClientAsync(eq(userId), eq(emitterA), eq(recordId), anyString(), eq(dto));
   }
-
 }
