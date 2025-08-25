@@ -21,6 +21,7 @@ import ml.dmlc.xgboost4j.java.XGBoostError;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +35,7 @@ public class RecommendationService {
   private final RecommendationMapper recommendationMapper;
   private final ClothesMapper clothesMapper;
 
+  @Transactional
   public RecommendationDto recommendation(Long weatherId) throws XGBoostError {
     ClosetUserDetails userDetails = getCurrentUser();
     User user = null;
@@ -52,7 +54,8 @@ public class RecommendationService {
     List<Clothes> clothes = clothRepository.findAll();
 
     RecommendationDto result = new RecommendationDto(weatherId, user.getId(), new ArrayList<>());
-    RecommendationDto current = recommendationMapper.parseToRecommendationDto(clothes, weather, user);
+    RecommendationDto current = recommendationMapper.parseToRecommendationDto(clothes, weather,
+        user);
 
     if (clothes.size() < 10) {
       for (Clothes c : clothes) {
