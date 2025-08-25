@@ -19,6 +19,8 @@ public interface ClothAttributeService {
       ClothesAttributeUpdateRequest request
   );
 
+  void softDeleteAttributeById(Long definitionId);
+
   void deleteAttributeById(Long definitionId);
 
 }

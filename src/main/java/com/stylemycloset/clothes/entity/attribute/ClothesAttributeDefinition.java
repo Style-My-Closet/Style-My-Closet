@@ -58,6 +58,14 @@ public class ClothesAttributeDefinition extends SoftDeletableEntity {
     }
   }
 
+  @Override
+  public void softDelete() {
+    super.softDelete();
+    for (ClothesAttributeSelectableValue selectableValue : selectableValues) {
+      selectableValue.softDelete();
+    }
+  }
+
   private List<ClothesAttributeSelectableValue> convertToSelectableValues(
       List<String> selectableValues
   ) {

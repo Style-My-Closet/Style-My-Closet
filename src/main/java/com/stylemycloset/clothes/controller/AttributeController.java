@@ -60,7 +60,7 @@ public class AttributeController {
   public ResponseEntity<Void> deleteAttribute(
       @PathVariable("definitionId") Long definitionId
   ) {
-    clothAttributeService.deleteAttributeById(definitionId);
+    clothAttributeService.softDeleteAttributeById(definitionId);
     return ResponseEntity.ok().build();
   }
 

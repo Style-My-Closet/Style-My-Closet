@@ -1,5 +1,7 @@
 package com.stylemycloset.clothes.service.clothes.impl;
 
+import static com.stylemycloset.common.config.CacheConfig.CLOTHES_CACHE;
+
 import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.clothes.dto.clothes.ClothesDto;
 import com.stylemycloset.clothes.dto.clothes.request.ClothBinaryContentRequest;
@@ -15,10 +17,14 @@ import com.stylemycloset.clothes.repository.clothes.ClothesRepository;
 import com.stylemycloset.clothes.service.clothes.ClothService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ClothServiceImpl implements ClothService {
@@ -28,6 +34,7 @@ public class ClothServiceImpl implements ClothService {
   private final ClothesBinaryContentService clothesBinaryContentService;
   private final ClothesMapper clothesMapper;
 
+  @CacheEvict(value = CLOTHES_CACHE, key = "#result.ownerId()")
   @Transactional
   @Override
   public ClothesDto createCloth(
@@ -50,6 +57,7 @@ public class ClothServiceImpl implements ClothService {
     return clothesMapper.toResponse(savedClothes);
   }
 
+  @Cacheable(value = CLOTHES_CACHE, key = "#p0.ownerId()")
   @Transactional(readOnly = true)
   @Override
   public ClothDtoCursorResponse getClothes(ClothesSearchCondition condition) {
@@ -66,6 +74,7 @@ public class ClothServiceImpl implements ClothService {
     return clothesMapper.toPageResponse(clothes);
   }
 
+  @CacheEvict(value = CLOTHES_CACHE, key = "#result.ownerId()")
   @Transactional
   @Override
   public ClothesDto updateCloth(
@@ -84,6 +93,7 @@ public class ClothServiceImpl implements ClothService {
     return clothesMapper.toResponse(savedClothes);
   }
 
+  @CacheEvict(value = CLOTHES_CACHE, allEntries = true)
   @Transactional
   @Override
   public void softDeleteCloth(Long clothId) {
@@ -92,6 +102,7 @@ public class ClothServiceImpl implements ClothService {
     clothesRepository.save(clothes);
   }
 
+  @CacheEvict(value = CLOTHES_CACHE, allEntries = true)
   @Transactional
   @Override
   public void deleteCloth(Long clothId) {

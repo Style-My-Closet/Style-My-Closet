@@ -1,5 +1,9 @@
 package com.stylemycloset.clothes.service.attribute.impl;
 
+import static com.stylemycloset.common.config.CacheConfig.CLOTHES_ATTRIBUTES_KEY;
+import static com.stylemycloset.common.config.CacheConfig.CLOTHES_ATTRIBUTE_CACHE;
+import static com.stylemycloset.common.config.CacheConfig.CLOTHES_CACHE;
+
 import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDtoCursorResponse;
 import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDto;
 import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeCreateRequest;
@@ -15,6 +19,8 @@ import com.stylemycloset.notification.event.domain.ClothAttributeChangedEvent;
 import com.stylemycloset.notification.event.domain.NewClothAttributeEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -29,6 +35,7 @@ public class ClothAttributeServiceImpl implements ClothAttributeService {
   private final AttributeMapper attributeMapper;
   private final ApplicationEventPublisher eventPublisher;
 
+  @CacheEvict(value = CLOTHES_ATTRIBUTE_CACHE, key = CLOTHES_ATTRIBUTES_KEY)
   @Transactional
   @Override
   public ClothesAttributeDefinitionDto createAttribute(
@@ -46,6 +53,7 @@ public class ClothAttributeServiceImpl implements ClothAttributeService {
     return ClothesAttributeDefinitionDto.from(savedAttribute);
   }
 
+  @Cacheable(value = CLOTHES_ATTRIBUTE_CACHE, key = CLOTHES_ATTRIBUTES_KEY)
   @Transactional(readOnly = true)
   @Override
   public ClothesAttributeDefinitionDtoCursorResponse getAttributes(
@@ -63,6 +71,7 @@ public class ClothAttributeServiceImpl implements ClothAttributeService {
     return attributeMapper.toPageResponse(attributes);
   }
 
+  @CacheEvict(value = CLOTHES_ATTRIBUTE_CACHE, key = CLOTHES_ATTRIBUTES_KEY)
   @Transactional
   @Override
   public ClothesAttributeDefinitionDto updateAttribute(
@@ -79,6 +88,16 @@ public class ClothAttributeServiceImpl implements ClothAttributeService {
     return ClothesAttributeDefinitionDto.from(savedAttribute);
   }
 
+  @CacheEvict(value = CLOTHES_ATTRIBUTE_CACHE, key = CLOTHES_ATTRIBUTES_KEY)
+  @Transactional
+  @Override
+  public void softDeleteAttributeById(Long definitionId) {
+    ClothesAttributeDefinition attribute = getAttribute(definitionId);
+    attribute.softDelete();
+    clothesAttributeDefinitionRepository.save(attribute);
+  }
+
+  @CacheEvict(value = CLOTHES_ATTRIBUTE_CACHE, key = CLOTHES_ATTRIBUTES_KEY)
   @Transactional
   @Override
   public void deleteAttributeById(Long definitionId) {

@@ -11,12 +11,10 @@ import com.stylemycloset.common.repository.CursorStrategy;
 import com.stylemycloset.common.repository.CustomSliceImpl;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort.Direction;
 
 
-@Slf4j
 @RequiredArgsConstructor
 public class ClothesRepositoryImpl implements ClothesRepositoryCustom {
 
@@ -38,8 +36,9 @@ public class ClothesRepositoryImpl implements ClothesRepositoryCustom {
 
     List<Clothes> content = queryFactory
         .selectFrom(clothes)
-        .join(clothes.image).fetchJoin()
+        .leftJoin(clothes.image).fetchJoin()
         .where(
+            buildOwnerIdPredicate(ownerId),
             buildTypeEqualPredicate(typeEqual),
             primaryCursorStrategy.buildCursorPredicate(direction, cursor, idAfter,
                 idAfterCursorStrategy)
@@ -59,6 +58,13 @@ public class ClothesRepositoryImpl implements ClothesRepositoryCustom {
       return null;
     }
     return clothes.clothesType.eq(typeEqual);
+  }
+
+  private BooleanExpression buildOwnerIdPredicate(Long ownerId) {
+    if (ownerId == null) {
+      return null;
+    }
+    return clothes.ownerId.eq(ownerId);
   }
 
 }
