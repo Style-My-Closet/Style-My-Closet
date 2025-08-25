@@ -35,9 +35,11 @@ public class WeatherController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<WeatherDto>> getWeathers(
         @RequestParam double longitude,
+
         @RequestParam double latitude,
         @AuthenticationPrincipal(expression = "userId") Long userId
     ) {
+
         List<WeatherDto> weathers = weatherService.getWeatherByCoordinates(latitude, longitude);
         weatherService.checkWeather(latitude, longitude, userId);
         return ResponseEntity.ok(weathers);

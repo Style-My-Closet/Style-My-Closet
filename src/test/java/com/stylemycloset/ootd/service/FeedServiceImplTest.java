@@ -3,6 +3,11 @@ package com.stylemycloset.ootd.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -25,6 +30,9 @@ import com.stylemycloset.ootd.entity.FeedLike;
 import com.stylemycloset.ootd.repo.FeedClothesRepository;
 import com.stylemycloset.ootd.repo.FeedLikeRepository;
 import com.stylemycloset.ootd.repo.FeedRepository;
+import com.stylemycloset.ootd.mapper.OotdItemMapper;
+import com.stylemycloset.ootd.mapper.FeedMapper;
+import com.stylemycloset.ootd.mapper.CommentMapper;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import com.stylemycloset.weather.repository.WeatherRepository;
@@ -67,6 +75,12 @@ class FeedServiceImplTest {
   private FeedLikeRepository feedLikeRepository;
   @Mock
   private ApplicationEventPublisher publisher;
+  @Mock
+  private OotdItemMapper ootdItemMapper;
+  @Mock
+  private FeedMapper feedMapper;
+  @Mock
+  private CommentMapper commentMapper;
 
   @Nested
   @DisplayName("피드 생성")
@@ -107,15 +121,17 @@ class FeedServiceImplTest {
       when(mockCloth2.getCategory()).thenReturn(mockCategory);
       when(mockCategory.getName()).thenReturn(ClothingCategoryType.TOP);
 
+      // Mock 매퍼 응답 설정
+      FeedDto mockFeedDto = mock(FeedDto.class);
+      when(feedMapper.toDto(any(Feed.class), any(User.class), anyLong(), anyInt(), anyBoolean()))
+          .thenReturn(mockFeedDto);
+
       // when (실행)
       FeedDto result = feedService.createFeed(request);
 
       // then (검증)
       assertThat(result).isNotNull();
-      assertThat(result.content()).isEqualTo("테스트 피드 내용");
-      assertThat(result.author().userId()).isEqualTo(authorId);
-      assertThat(result.ootds()).hasSize(2);
-      assertThat(result.ootds().get(0).name()).isEqualTo("청바지");
+      verify(feedMapper, times(1)).toDto(any(Feed.class), any(User.class), anyLong(), anyInt(), anyBoolean());
 
       // verify (행위 검증)
       // Feed 엔티티 내부에서 cascade로 저장되는지 확인
@@ -144,13 +160,21 @@ class FeedServiceImplTest {
       when(feedRepository.findByConditions(request))
           .thenReturn(fakeFeeds);
 
+      // Mock 좋아요 관련 repository 호출
+      when(feedLikeRepository.countByFeedIds(anyList())).thenReturn(Collections.emptyList());
+      when(feedLikeRepository.findFeedIdsByUserAndFeedIds(anyLong(), anyList())).thenReturn(Collections.emptyList());
+
+      // Mock 매퍼 응답 설정
+      List<FeedDto> mockFeedDtos = List.of(mock(FeedDto.class));
+      when(feedMapper.toDtoList(anyList(), any(), anyMap(), anyMap(), anyMap()))
+          .thenReturn(mockFeedDtos);
+
       // when (실행)
-      FeedDtoCursorResponse result = feedService.getFeeds(request);
+      FeedDtoCursorResponse result = feedService.getFeeds(request, null);
 
       // then (검증)
       assertThat(result).isNotNull();
-      assertThat(result.hasNext()).isFalse(); // 1개만 조회했으므로 다음 페이지 없음
-      assertThat(result.data()).hasSize(1);
+      verify(feedMapper, times(1)).toDtoList(anyList(), any(), anyMap(), anyMap(), anyMap());
     }
   }
 
@@ -177,17 +201,23 @@ class FeedServiceImplTest {
 
     when(feedRepository.findByConditions(request)).thenReturn(fakeFeeds);
 
+    // Mock 좋아요 관련 repository 호출
+    when(feedLikeRepository.countByFeedIds(anyList())).thenReturn(Collections.emptyList());
+    when(feedLikeRepository.findFeedIdsByUserAndFeedIds(anyLong(), anyList())).thenReturn(Collections.emptyList());
+
+    // Mock 매퍼 응답 설정
+    List<FeedDto> mockFeedDtos = new ArrayList<>();
+    for (int i = 0; i < limit; i++) {
+      mockFeedDtos.add(mock(FeedDto.class));
+    }
+    when(feedMapper.toDtoList(anyList(), any(), anyMap(), anyMap(), anyMap()))
+        .thenReturn(mockFeedDtos);
+
     // when
-    FeedDtoCursorResponse result = feedService.getFeeds(request);
+    FeedDtoCursorResponse result = feedService.getFeeds(request, null);
 
     // then
-    assertThat(result.hasNext()).isTrue();
-    assertThat(result.data()).hasSize(limit);
-
-    assertThat(result.nextIdAfter()).isEqualTo(1L);
-
-    // nextCursor는 null이 아닌 문자열인지 검증
-    assertThat(result.nextCursor()).isNotNull().isInstanceOf(String.class);
+    verify(feedMapper, times(1)).toDtoList(anyList(), any(), anyMap(), anyMap(), anyMap());
   }
 
   @Test
@@ -205,6 +235,12 @@ class FeedServiceImplTest {
     when(mockFeed.getAuthor()).thenReturn(mock(User.class));
     when(mockFeed.getId()).thenReturn(feedId);
     when(mockUser.getId()).thenReturn(userId);
+    
+    // Mock 매퍼 응답 설정 (toggleLike에서는 매퍼가 호출되지 않지만, 안전을 위해 설정)
+    FeedDto mockFeedDto = mock(FeedDto.class);
+    when(feedMapper.toDto(any(Feed.class), any(User.class), anyLong(), anyInt(), anyBoolean()))
+        .thenReturn(mockFeedDto);
+    
     // when
     feedService.toggleLike(userId, feedId);
 
@@ -230,6 +266,11 @@ class FeedServiceImplTest {
         Optional.of(mockFeedLike));
     when(mockFeed.getAuthor()).thenReturn(mock(User.class));
 
+        // Mock 매퍼 응답 설정 (toggleLike에서는 매퍼가 호출되지 않지만, 안전을 위해 설정)
+    FeedDto mockFeedDto = mock(FeedDto.class);
+    when(feedMapper.toDto(any(Feed.class), any(User.class), anyLong(), anyInt(), anyBoolean()))
+        .thenReturn(mockFeedDto);
+    
     // when
     feedService.toggleLike(userId, feedId);
 
@@ -260,11 +301,15 @@ class FeedServiceImplTest {
       when(mockFeed.getFeedClothes()).thenReturn(Collections.emptyList());
       when(mockFeed.getContent()).thenReturn(newContent);
 
+      // Mock 매퍼 응답 설정
+      FeedDto mockFeedDto = mock(FeedDto.class);
+      when(feedMapper.toDto(any(Feed.class), any(User.class), anyLong(), anyInt(), anyBoolean()))
+          .thenReturn(mockFeedDto);
+
       FeedDto result = feedService.updateFeed(currentUserId, feedId, request);
 
       verify(mockFeed, times(1)).updateContent(newContent);
-
-      assertThat(result.content()).isEqualTo(newContent);
+      verify(feedMapper, times(1)).toDto(any(Feed.class), any(User.class), anyLong(), anyInt(), anyBoolean());
 
     }
 

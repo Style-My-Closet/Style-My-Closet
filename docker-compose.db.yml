@@ -16,8 +16,18 @@ services:
     networks:
       - my-network
 
+  redis:
+    image: redis:7.2
+    command: [ "redis-server" ]
+    container_name: closet_redis
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+
 volumes:
   postgres-data:
+  redis-data:
 
 networks:
   my-network:

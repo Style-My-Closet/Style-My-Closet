@@ -48,7 +48,7 @@ public class NotificationControllerTest extends IntegrationTestSupport {
   @MockitoBean
   UserMapper userMapper;
 
-  Long userId  = 1L;
+  Long userId = 1L;
 
   @BeforeEach
   void setup() {
@@ -66,27 +66,27 @@ public class NotificationControllerTest extends IntegrationTestSupport {
 
     given(userRepository.findByEmail("testuser@test.com"))
         .willReturn(Optional.of(user));
-    given(userMapper.UsertoUserDto(user)).willReturn(dto);
+    given(userMapper.toUserDto(user)).willReturn(dto);
   }
 
   @DisplayName("알림 삭제 요청을 보낼 시 204응답이 온다")
   @WithUserDetails(value = "testuser@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
   @Test
-  void deleteNotifications_ReturnIsNoContent() throws Exception{
+  void deleteNotifications_ReturnIsNoContent() throws Exception {
     // given
     Notification notification = notificationRepository.save(
         new Notification(userId, "testTitle", "testContent", NotificationLevel.INFO));
 
     // when & then
     mockMvc.perform(
-        delete("/api/notifications/{notificationId}", notification.getId()))
+            delete("/api/notifications/{notificationId}", notification.getId()))
         .andExpect(status().isNoContent());
   }
 
   @DisplayName("알림 조회 요청을 보낼 시 NotificationDtoCursorResponse가 응답으로 온다")
   @WithUserDetails(value = "testuser@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
   @Test
-  void findAllByReceiverId_shouldReturnNotificationDtoCursorResponse() throws Exception{
+  void findAllByReceiverId_shouldReturnNotificationDtoCursorResponse() throws Exception {
     // given
     notificationRepository.save(
         new Notification(userId, "testTitle", "testContent", NotificationLevel.INFO));
@@ -99,9 +99,9 @@ public class NotificationControllerTest extends IntegrationTestSupport {
 
     // when & then
     mockMvc.perform(
-        get("/api/notifications")
-            .param("limit", String.valueOf(2))
-    ).andExpect(status().isOk())
+            get("/api/notifications")
+                .param("limit", String.valueOf(2))
+        ).andExpect(status().isOk())
         .andExpect(jsonPath("$.hasNext").value(true))
         .andExpect(jsonPath("$.totalCount").value(3));
   }
