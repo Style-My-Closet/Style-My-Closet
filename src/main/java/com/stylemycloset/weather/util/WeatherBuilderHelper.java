@@ -12,6 +12,7 @@ import com.stylemycloset.weather.processor.WeatherCategoryProcessor;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class WeatherBuilderHelper {
 
+    @Getter
     private final WeatherBuilderHelperContext context;
     private final List<WeatherCategoryProcessor> processors;
 
@@ -52,7 +54,6 @@ public class WeatherBuilderHelper {
             .temperature(context.temperature)
             .humidity(context.humidity)
             .windSpeed(context.windSpeed)
-            .isAlertTriggered(context.isAlertTriggered)
             .alertType(context.alertType)
             .build();
     }

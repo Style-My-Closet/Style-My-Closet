@@ -16,18 +16,19 @@ public class RandomDummyGenerator {
     private static final Random random = new Random();
 
     public static ClothingCondition generateRandomCondition() {
-        ClothingCondition cc = new ClothingCondition();
-        cc.setTemperature(15 + random.nextDouble() * 15); // 15~30도
-        cc.setWindSpeed(random.nextDouble() * 10);       // 0~10 m/s
-        cc.setHumidity(30 + random.nextDouble() * 70);   // 30~100%
-        cc.setGender(random.nextBoolean() ? Gender.MALE : Gender.FEMALE);
-        cc.setTemperatureSensitivity(random.nextInt(3)); // 0,1,2
-        cc.setSkyStatus(SkyStatus.values()[random.nextInt(SkyStatus.values().length)]);
-        cc.setWeatherType(AlertType.values()[random.nextInt(AlertType.values().length)]);
-        cc.setColor(Color.values()[random.nextInt(Color.values().length)]);
-        cc.setSleeveLength(SleeveLength.values()[random.nextInt(SleeveLength.values().length)]);
-        cc.setPantsLength(PantsLength.values()[random.nextInt(PantsLength.values().length)]);
-        cc.setLabel(random.nextBoolean()); // 추천 여부
+        ClothingCondition cc = ClothingCondition.builder()
+            .temperature(15 + random.nextDouble() * 15) // 15~30도
+            .windSpeed(random.nextDouble() * 10)    // 0~10 m/s
+            .humidity(30 + random.nextDouble() * 70)   // 30~100%
+            .gender(random.nextBoolean() ? Gender.MALE : Gender.FEMALE)
+            .temperatureSensitivity(random.nextInt(3)) // 0,1,2
+            .skyStatus(SkyStatus.values()[random.nextInt(SkyStatus.values().length)])
+            .weatherType(AlertType.values()[random.nextInt(AlertType.values().length)])
+            .color(Color.values()[random.nextInt(Color.values().length)])
+            .sleeveLength(SleeveLength.values()[random.nextInt(SleeveLength.values().length)])
+            .pantsLength(PantsLength.values()[random.nextInt(PantsLength.values().length)])
+            .label(random.nextBoolean()) // 추천 여부
+            .build();
         return cc;
     }
 

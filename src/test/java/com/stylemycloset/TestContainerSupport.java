@@ -24,7 +24,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 abstract class TestContainerSupport {
 
   private static final PostgreSQLContainer<?> POSTGRES_CONTAINER = new PostgreSQLContainer<>(
-      DockerImageName.parse("postgres:16-alpine"))
+      DockerImageName.parse("pgvector/pgvector:pg16"))
       .withDatabaseName("testdb")
       .withUsername("testuser")
       .withPassword("testpass")

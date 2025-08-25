@@ -16,12 +16,15 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +40,8 @@ public class WeatherServiceImpl implements WeatherService {
 
     public List<WeatherDto> getWeatherByCoordinates(double latitude, double longitude) {
 
-        List<Weather> weathers = weatherRepository.findTheNext4DaysByLocation(latitude, longitude, LocalDateTime.now());
+
+        List<Weather> weathers = getTheNext5DaysByLocation(latitude, longitude);
         if(weathers.isEmpty()){
             Location location = locationRepository.findByLatitudeAndLongitude(latitude,longitude).orElseGet(
                 ()->kakaoApiService.createLocation(longitude,latitude)  );
@@ -55,12 +59,16 @@ public class WeatherServiceImpl implements WeatherService {
         return locationMapper.toDto(location);
     }
 
+
+    @Transactional
     public void checkWeather(double latitude, double longitude, Long userId) {
 
-        Optional<Weather> weather=  getTodayWeatherByLocation(latitude, longitude);
+        Optional<Weather> weather= getTodayWeatherByLocation(latitude, longitude);
         Weather data = weather.orElseThrow(
             ()->new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("weather", "weather")  )
         );
+
+
         if (data.getIsAlertTriggered()) {
             StringBuilder messageBuilder = new StringBuilder("특수한 날씨입니다: ");
 
@@ -87,6 +95,7 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
 
+
     public Optional<Weather> getTodayWeatherByLocation(double latitude, double longitude) {
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul")); // 또는 시스템 기본 시간대
         Instant startOfDay = today.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
@@ -99,6 +108,27 @@ public class WeatherServiceImpl implements WeatherService {
                 return !createdAt.isBefore(startOfDay) && createdAt.isBefore(endOfDay);
             })
             .findFirst(); // 또는 필요에 따라 collect(Collectors.toList())
+    }
+
+    public List<Weather> getTheNext5DaysByLocation(Double latitude, Double longitude) {
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul")); // 한국 기준 오늘 날짜
+        ZonedDateTime kstMidnight = today.atStartOfDay(ZoneId.of("Asia/Seoul")); // 한국 자정
+        ZonedDateTime utcZoned = kstMidnight.withZoneSameInstant(ZoneOffset.UTC); // UTC 변환
+        LocalDateTime utcTime = utcZoned.toLocalDateTime(); // DB에 넣을 값
+
+        Instant startOfDay = today.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
+        Instant endOfDay = today.plusDays(1).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
+
+        List<Weather> ws1 =  weatherRepository.findTheNext5DaysByLocation(latitude, longitude, utcTime);
+
+        List<Weather> ws2 = ws1.stream()
+            .filter(weather -> {
+                Instant createdAt = weather.getCreatedAt();
+                return !createdAt.isBefore(startOfDay) && createdAt.isBefore(endOfDay);
+            })
+            .toList();
+
+        return ws2;
     }
 }
 

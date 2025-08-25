@@ -18,7 +18,6 @@ import com.stylemycloset.user.repository.UserRepository;
 import com.stylemycloset.user.service.CustomOAuth2UserService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -31,7 +30,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
@@ -55,7 +53,9 @@ public class SecurityConfig {
     http
         .authenticationProvider(daoAuthenticationProvider)
         .authorizeHttpRequests(authorize -> authorize
+            .requestMatchers(SecurityMatchers.SSE_ASYNC, SecurityMatchers.SSE_ERROR).permitAll()
             .requestMatchers(SecurityMatchers.PUBLIC_MATCHERS).permitAll()
+            .requestMatchers("/api/sse").authenticated()
             .anyRequest().hasRole(Role.USER.name())
         )
         .exceptionHandling(exception -> exception
