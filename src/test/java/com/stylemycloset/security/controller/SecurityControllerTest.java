@@ -107,34 +107,41 @@ class SecurityControllerTest extends IntegrationTestSupport {
   @DisplayName("토큰 재발급 성공")
   void refreshToken_Success() throws Exception {
     //given
-    ResponseEntity<String> csrfResponse = restTemplate.getForEntity("/api/auth/csrf-token",
+    ResponseEntity<String> initialCsrfResponse = restTemplate.getForEntity("/api/auth/csrf-token",
         String.class);
-    String csrfResponseBody = csrfResponse.getBody();
-    String csrfCookieHeader = csrfResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
-    Map<String, String> csrfTokenMap = objectMapper.readValue(csrfResponseBody, Map.class);
+    String initialCsrfCookie = initialCsrfResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+    Map<String, String> initialCsrfTokenMap = objectMapper.readValue(initialCsrfResponse.getBody(),
+        Map.class);
 
     SignInRequest signinRequest = new SignInRequest(TEST_EMAIL, TEST_PASSWORD);
     HttpHeaders loginHeaders = new HttpHeaders();
     loginHeaders.setContentType(MediaType.APPLICATION_JSON);
-    loginHeaders.add("Cookie", csrfCookieHeader);
-    loginHeaders.add(csrfTokenMap.get("headerName"), csrfTokenMap.get("token"));
+    loginHeaders.add("Cookie", initialCsrfCookie);
+    loginHeaders.add(initialCsrfTokenMap.get("headerName"), initialCsrfTokenMap.get("token"));
     HttpEntity<SignInRequest> loginRequestEntity = new HttpEntity<>(signinRequest, loginHeaders);
-
     ResponseEntity<String> loginResponse = restTemplate.postForEntity("/api/auth/sign-in",
         loginRequestEntity, String.class);
-    String refreshTokenCookie = loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE)
-        .split(";")[0];
+    String refreshTokenCookie = loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+
+    HttpHeaders authenticatedHeaders = new HttpHeaders();
+    authenticatedHeaders.add("Cookie", refreshTokenCookie);
+    HttpEntity<Void> authenticatedCsrfRequest = new HttpEntity<>(authenticatedHeaders);
+    ResponseEntity<String> finalCsrfResponse = restTemplate.exchange("/api/auth/csrf-token",
+        HttpMethod.GET, authenticatedCsrfRequest, String.class);
+    Map<String, String> finalCsrfTokenMap = objectMapper.readValue(finalCsrfResponse.getBody(),
+        Map.class);
+    String finalCsrfCookie = finalCsrfResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
 
     HttpHeaders refreshHeaders = new HttpHeaders();
-    refreshHeaders.add("Cookie", refreshTokenCookie + "; " + csrfCookieHeader.split(";")[0]);
-    refreshHeaders.add(csrfTokenMap.get("headerName"), csrfTokenMap.get("token"));
+    refreshHeaders.add("Cookie", refreshTokenCookie + "; " + finalCsrfCookie);
+    refreshHeaders.add(finalCsrfTokenMap.get("headerName"), finalCsrfTokenMap.get("token"));
     HttpEntity<Void> requestEntity = new HttpEntity<>(refreshHeaders);
 
-    //when
+    // when
     ResponseEntity<String> refreshResponse = restTemplate.postForEntity("/api/auth/refresh",
         requestEntity, String.class);
 
-    //then
+    // then
     assertThat(refreshResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(refreshResponse.getBody()).isNotNull();
   }
@@ -143,38 +150,43 @@ class SecurityControllerTest extends IntegrationTestSupport {
   @DisplayName("로그아웃 성공")
   void signOut_Success() throws Exception {
     //given
-    ResponseEntity<String> csrfResponse = restTemplate.getForEntity("/api/auth/csrf-token",
+    ResponseEntity<String> initialCsrfResponse = restTemplate.getForEntity("/api/auth/csrf-token",
         String.class);
-    String csrfResponseBody = csrfResponse.getBody();
-    String csrfCookieHeader = csrfResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
-    Map<String, String> csrfTokenMap = objectMapper.readValue(csrfResponseBody, Map.class);
+    String initialCsrfCookie = initialCsrfResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+    Map<String, String> initialCsrfTokenMap = objectMapper.readValue(initialCsrfResponse.getBody(),
+        Map.class);
 
     SignInRequest signinRequest = new SignInRequest(TEST_EMAIL, TEST_PASSWORD);
     HttpHeaders loginHeaders = new HttpHeaders();
     loginHeaders.setContentType(MediaType.APPLICATION_JSON);
-    loginHeaders.add("Cookie", csrfCookieHeader);
-    loginHeaders.add(csrfTokenMap.get("headerName"), csrfTokenMap.get("token"));
+    loginHeaders.add("Cookie", initialCsrfCookie);
+    loginHeaders.add(initialCsrfTokenMap.get("headerName"), initialCsrfTokenMap.get("token"));
     HttpEntity<SignInRequest> loginRequestEntity = new HttpEntity<>(signinRequest, loginHeaders);
-
     ResponseEntity<String> loginResponse = restTemplate.postForEntity("/api/auth/sign-in",
         loginRequestEntity, String.class);
+    String refreshTokenCookie = loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+
+    HttpHeaders authenticatedHeaders = new HttpHeaders();
+    authenticatedHeaders.add("Cookie", refreshTokenCookie);
+    HttpEntity<Void> authenticatedCsrfRequest = new HttpEntity<>(authenticatedHeaders);
+    ResponseEntity<String> finalCsrfResponse = restTemplate.exchange("/api/auth/csrf-token",
+        HttpMethod.GET, authenticatedCsrfRequest, String.class);
+    Map<String, String> finalCsrfTokenMap = objectMapper.readValue(finalCsrfResponse.getBody(),
+        Map.class);
+    String finalCsrfCookie = finalCsrfResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
 
     String accessToken = loginResponse.getBody();
-    String refreshTokenCookie = loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE)
-        .split(";")[0];
-    String csrfCookie = csrfCookieHeader.split(";")[0];
-
     HttpHeaders logoutHeaders = new HttpHeaders();
-    logoutHeaders.add("Cookie", refreshTokenCookie + "; " + csrfCookie);
+    logoutHeaders.add("Cookie", refreshTokenCookie + "; " + finalCsrfCookie);
     logoutHeaders.setBearerAuth(accessToken);
-    logoutHeaders.add(csrfTokenMap.get("headerName"), csrfTokenMap.get("token"));
+    logoutHeaders.add(finalCsrfTokenMap.get("headerName"), finalCsrfTokenMap.get("token"));
     HttpEntity<Void> requestEntity = new HttpEntity<>(logoutHeaders);
 
-    //when
+    // when
     ResponseEntity<Void> logoutResponse = restTemplate.postForEntity("/api/auth/sign-out",
         requestEntity, Void.class);
 
-    //then
+    // then
     assertThat(logoutResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(logoutResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE)).contains("Max-Age=0");
   }
