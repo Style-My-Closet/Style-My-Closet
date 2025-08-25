@@ -1,5 +1,6 @@
 package com.stylemycloset.ootd.mapper;
 
+import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
 import com.stylemycloset.cloth.entity.AttributeOption;
 import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingAttribute;
@@ -8,11 +9,18 @@ import com.stylemycloset.ootd.dto.OotdItemDto;
 import com.stylemycloset.ootd.tempEnum.ClothesType;
 import org.springframework.stereotype.Component;
 
+import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
 public class OotdItemMapper {
+
+    private final BinaryContentStorage binaryContentStorage;
+
+    public OotdItemMapper(BinaryContentStorage binaryContentStorage) {
+        this.binaryContentStorage = binaryContentStorage;
+    }
 
     public OotdItemDto toDto(Cloth cloth) {
         if (cloth == null) {
@@ -24,7 +32,7 @@ public class OotdItemMapper {
         return new OotdItemDto(
                 cloth.getId(),
                 cloth.getName(),
-                null, // TODO: 이미지 URL 로직 구현 필요
+                getImageUrl(cloth),
                 mapClothesType(cloth),
                 attributes);
     }
@@ -61,5 +69,13 @@ public class OotdItemMapper {
 
     private ClothesType mapClothesType(Cloth cloth) {
         return ClothesType.valueOf(cloth.getCategory().getName().name());
+    }
+
+    private String getImageUrl(Cloth cloth) {
+        if (cloth.getBinaryContent() != null) {
+            URL url = binaryContentStorage.getUrl(cloth.getBinaryContent().getId());
+            return url != null ? url.toString() : null;
+        }
+        return null;
     }
 }
