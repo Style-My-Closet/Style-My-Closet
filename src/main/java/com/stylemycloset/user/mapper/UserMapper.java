@@ -1,12 +1,18 @@
 package com.stylemycloset.user.mapper;
 
+import com.stylemycloset.location.mapper.LocationMapper;
 import com.stylemycloset.user.dto.data.ProfileDto;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.entity.User;
+import com.stylemycloset.weather.dto.WeatherAPILocation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class UserMapper {
+
+  private final LocationMapper locationMapper;
 
   public UserDto toUserDto(User user) {
     if (user == null) {
@@ -26,12 +32,16 @@ public class UserMapper {
     if (user == null) {
       return null;
     }
+    WeatherAPILocation locationDto = null;
+    if (user.getLocation() != null) {
+      locationDto = locationMapper.toDto(user.getLocation());
+    }
 
     return new ProfileDto(user.getId(),
         user.getName(),
         user.getGender(),
         user.getBirthDate(),
-        user.getLocation(),
+        locationDto,
         user.getTemperatureSensitivity(),
         profileImageUrl
     );
