@@ -1,13 +1,13 @@
 package com.stylemycloset.notification.util;
 
 import com.stylemycloset.user.entity.User;
-import org.springframework.test.util.ReflectionTestUtils;
+import com.stylemycloset.user.repository.UserRepository;
 
 public final class TestUserFactory {
 
-  public static User createUser(String name, String email, Long id) {
+  public static User createUser(UserRepository userRepository, String name, String email) {
     User user = new User(name, email, "test");
-    ReflectionTestUtils.setField(user, "id", id);
+    userRepository.save(user);
     return user;
   }
 }

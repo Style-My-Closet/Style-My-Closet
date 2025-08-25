@@ -1,6 +1,5 @@
 package com.stylemycloset.sse.repository;
 
-import com.stylemycloset.sse.dto.SseInfo;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
@@ -8,17 +7,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
+@Slf4j
 @Repository
 public class SseRepository {
 
   private final ConcurrentHashMap<Long, Deque<SseEmitter>> userEmitters = new ConcurrentHashMap<>();
-  private final ConcurrentHashMap<Long, Deque<SseInfo>> userEvents = new ConcurrentHashMap<>();
-
   private static final int MAX_EMITTER_COUNT = 3;
-  private static final int MAX_EVENT_COUNT = 30;
 
   public SseEmitter addEmitter(Long userId, SseEmitter emitter) {
     final SseEmitter[] completeEmitter = {null};
@@ -56,30 +53,5 @@ public class SseRepository {
 
   public Deque<SseEmitter> findOrCreateEmitters(Long userId) {
     return userEmitters.computeIfAbsent(userId, k -> new ArrayDeque<>());
-  }
-
-  public void addEvent(Long userId, SseInfo event) {
-    userEvents.compute(userId, (id, events) -> {
-      Deque<SseInfo> eventQueue = (events == null) ? new ArrayDeque<>() : events;
-      if(eventQueue.size() >= MAX_EVENT_COUNT) {
-        eventQueue.removeFirst();
-      }
-      eventQueue.addLast(event);
-      return eventQueue;
-    });
-  }
-
-  public Deque<SseInfo> findOrCreateEvents(Long userId) {
-    return userEvents.computeIfAbsent(userId, k -> new ArrayDeque<>());
-  }
-
-  public void cleanEventOlderThan(long timeout) {
-    for(Long userId : userEvents.keySet()) {
-      userEvents.compute(userId, (id, events) -> {
-        if(events == null) return null;
-        events.removeIf(event -> event.createdAt() < timeout);
-        return events.isEmpty() ? null : events;
-      });
-    }
   }
 }

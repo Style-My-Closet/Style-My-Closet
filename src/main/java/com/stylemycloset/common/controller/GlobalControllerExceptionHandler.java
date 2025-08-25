@@ -1,9 +1,11 @@
 package com.stylemycloset.common.controller;
 
 import com.stylemycloset.common.exception.StyleMyClosetException;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -75,7 +77,20 @@ public class GlobalControllerExceptionHandler {
   }
 
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception exception) {
+  public ResponseEntity<?> handleUnexpectedException(Exception exception, HttpServletRequest request) {
+    String accept = request.getHeader("Accept");
+    final String uri = request.getRequestURI();
+    boolean isSse = accept != null && accept.toLowerCase().contains(MediaType.TEXT_EVENT_STREAM_VALUE)
+        && uri != null && uri.startsWith("/api/sse");
+
+    if (isSse) {
+        log.debug("[SSE] benign disconnect handled quietly: uri={}, ex={}",
+            request.getRequestURI(), exception.toString());
+        return ResponseEntity.ok()
+            .header("Cache-Control", "no-store")
+            .build();
+    }
+
     log.error("Not SpecificException: {}", exception.getMessage());
 
     ErrorResponse errorResponse = ErrorResponse.of(exception,
