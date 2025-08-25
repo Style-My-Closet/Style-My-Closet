@@ -1,6 +1,7 @@
 package com.stylemycloset.clothes.repository.clothes.impl;
 
 import static com.stylemycloset.clothes.entity.clothes.QClothes.clothes;
+import static com.stylemycloset.clothes.entity.clothes.QClothesAttributeSelectedValue.clothesAttributeSelectedValue;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -37,6 +38,9 @@ public class ClothesRepositoryImpl implements ClothesRepositoryCustom {
     List<Clothes> content = queryFactory
         .selectFrom(clothes)
         .leftJoin(clothes.image).fetchJoin()
+        .join(clothes.selectedValues, clothesAttributeSelectedValue).fetchJoin()
+        .join(clothesAttributeSelectedValue.selectableValue).fetchJoin()
+        .join(clothesAttributeSelectedValue.selectableValue.definition).fetchJoin()
         .where(
             buildOwnerIdPredicate(ownerId),
             buildTypeEqualPredicate(typeEqual),

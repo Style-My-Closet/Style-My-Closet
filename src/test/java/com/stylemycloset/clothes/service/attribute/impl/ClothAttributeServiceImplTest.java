@@ -35,7 +35,7 @@ class ClothAttributeServiceImplTest extends IntegrationTestSupport {
     definitionSelectableRepository.deleteAllInBatch();
   }
 
-  @DisplayName("속성 정의 이름을 바탕으로 정렬하고 오름 차순 입니다.")
+  @DisplayName("기본은 속성 정의 이름을 바탕으로 정렬하고 오름 차순 입니다.")
   @Test
   void getAttributeAscName() {
     // given
