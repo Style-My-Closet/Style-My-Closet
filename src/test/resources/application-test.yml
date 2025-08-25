@@ -17,6 +17,10 @@ spring:
       mode: never
   main:
     allow-bean-definition-overriding: true
+  redis:
+    data:
+      host: localhost
+      port: 6379
 
 style-my-closet:
   storage:
