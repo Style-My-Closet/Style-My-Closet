@@ -5,7 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -51,17 +53,6 @@ public class WeatherServiceTest {
     @InjectMocks
     private WeatherServiceImpl weatherService;
 
-    @Mock
-    private LocationMapper locationMapper;
-
-    @Mock
-    private LocationRepository locationRepository;
-
-    @Mock
-    private KakaoApiService kakaoApiService;
-
-    @Mock
-    private ForecastApiService forecastApiService;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -95,29 +86,37 @@ public class WeatherServiceTest {
             .windSpeed(windSpeed)
             .build();
 
-        when(weatherRepository.findTheNext5DaysByLocation(eq(37.5665d),
-            eq(126.978d),
-            any(LocalDateTime.class)))
-            .thenReturn(List.of(weather));
+        // spy로 감싸기
+        WeatherServiceImpl spyService = spy(weatherService);
 
+        // getTheNext5DaysByLocation() stub 처리
+        doReturn(List.of(weather))
+            .when(spyService)
+            .getTheNext5DaysByLocation(eq(37.5665), eq(126.9780));
+
+        // weatherMapper.toDto stub
         when(weatherMapper.toDto(weather)).thenReturn(new WeatherDto(
             weather.getId(),
             weather.getForecastedAt().atZone(ZoneId.of("UTC")).toInstant(),
             weather.getForecastAt().atZone(ZoneId.of("UTC")).toInstant(),
             weather.getLocation(),
             weather.getSkyStatus(),
-            WeatherInfosMapper.toDto(weather.getPrecipitation()) ,
-            WeatherInfosMapper.toDto(weather.getHumidity()) ,
-            WeatherInfosMapper.toDto(weather.getTemperature()) ,
+            WeatherInfosMapper.toDto(weather.getPrecipitation()),
+            WeatherInfosMapper.toDto(weather.getHumidity()),
+            WeatherInfosMapper.toDto(weather.getTemperature()),
             WeatherInfosMapper.toDto(weather.getWindSpeed())
         ));
 
         // when
-        List<WeatherDto> result = weatherService.getWeatherByCoordinates(37.5665, 126.9780);
+        List<WeatherDto> result = spyService.getWeatherByCoordinates(37.5665, 126.9780);
+
         // then
         assertEquals(1, result.size());
         assertEquals(23.0, result.get(0).temperature().current());
         assertEquals(AlertType.RAIN, result.get(0).precipitation().type());
+
+        // 내부 호출 검증(Optional)
+        verify(spyService).getTheNext5DaysByLocation(37.5665, 126.9780);
     }
 
     @Test
