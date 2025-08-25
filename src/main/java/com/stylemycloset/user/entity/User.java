@@ -18,8 +18,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -64,7 +64,6 @@ public class User extends SoftDeletableEntity {
   @Column(name = "temperature_sensitivity")
   private Integer temperatureSensitivity;
 
-  @Transient
   @Convert(converter = StringListJsonConverter.class)
   private List<String> linkedOAuthProviders;
 
@@ -85,7 +84,7 @@ public class User extends SoftDeletableEntity {
     this.email = email;
     this.password = password;
     this.role = Role.USER;
-    this.linkedOAuthProviders = List.of("google");
+    this.linkedOAuthProviders = new ArrayList<>();
     this.locked = false;
   }
 
@@ -103,19 +102,27 @@ public class User extends SoftDeletableEntity {
     }
   }
 
-  public void updateProfile(ProfileUpdateRequest request) {
-    if (request.name() != null) {
-      this.name = request.name();
+  public void updateProfile(String name, Gender gender, LocalDate birthDate, Location location,
+      Integer temperatureSensitivity) {
+    if (name != null) {
+      this.name = name;
     }
-    if (request.gender() != null) {
-      this.gender = request.gender();
+    if (gender != null) {
+      this.gender = gender;
     }
-    if (request.birthDate() != null) {
-      this.birthDate = request.birthDate();
+    if (birthDate != null) {
+      this.birthDate = birthDate;
     }
-    if (request.temperatureSensitivity() != null) {
-      this.temperatureSensitivity = request.temperatureSensitivity();
+    if (location != null) {
+      this.location = location;
     }
+    if (temperatureSensitivity != null) {
+      this.temperatureSensitivity = temperatureSensitivity;
+    }
+  }
+
+  public void updateImage(BinaryContent image) {
+    this.profileImage = image;
   }
 
   public void setId(Long id) {// 테스트 때문에 넣었습니다. // 이 부분은 제거해주세요
@@ -125,6 +132,10 @@ public class User extends SoftDeletableEntity {
   public void resetTempPassword(String tempPassword, Instant resetPasswordTime) {
     this.tempPassword = tempPassword;
     this.resetPasswordTime = resetPasswordTime;
+  }
+
+  public void addOAuthProvider(String providerId) {
+    this.linkedOAuthProviders.add(providerId);
   }
 
 }

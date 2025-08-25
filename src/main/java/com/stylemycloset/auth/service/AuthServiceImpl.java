@@ -41,6 +41,6 @@ public class AuthServiceImpl implements AuthService {
     User saved = userRepository.save(admin);
     log.info("어드민 생성 완료");
 
-    return userMapper.UsertoUserDto(saved);
+    return userMapper.toUserDto(saved);
   }
 }

@@ -4,9 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -16,7 +14,6 @@ import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.security.dto.data.JwtObject;
 import com.stylemycloset.security.dto.data.TokenInfo;
 import com.stylemycloset.user.dto.data.UserDto;
-import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.exception.UserNotFoundException;
 import com.stylemycloset.user.mapper.UserMapper;
 import com.stylemycloset.user.repository.UserRepository;
@@ -26,7 +23,6 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,6 +47,7 @@ public class JwtService {
 
   private final JwtSessionRepository jwtSessionRepository;
   private final ObjectMapper objectMapper;
+  private final JwtBlacklist jwtBlacklist;
   private final UserRepository userRepository;
   private final UserMapper userMapper;
 
@@ -109,7 +106,7 @@ public class JwtService {
 
     Long userId = parse(refreshToken).userId();
     UserDto userDto = userRepository.findById(userId)
-        .map(userMapper::UsertoUserDto)
+        .map(userMapper::toUserDto)
         .orElseThrow(UserNotFoundException::new);
     JwtObject accessJwtObject = generateJwtObject(userDto, accessTokenValiditySeconds);
     JwtObject refreshJwtObject = generateJwtObject(userDto, refreshTokenValiditySeconds);
@@ -130,6 +127,16 @@ public class JwtService {
   }
 
   private void invalidate(JwtSession session) {
+    if (!session.isExpired()) {
+      Instant expirationTime = session.getExpirationTime();
+      Instant now = Instant.now();
+
+      Duration duration = Duration.ZERO;
+      if (expirationTime.isAfter(now)) {
+        duration = Duration.between(now, expirationTime);
+      }
+      jwtBlacklist.putToken(session.getAccessToken(), duration);
+    }
     jwtSessionRepository.delete(session);
   }
 
@@ -160,6 +167,11 @@ public class JwtService {
 
       if (expirationTime == null || expirationTime.before(new Date())) {
         log.warn("만료된 JWT 토큰입니다.");
+        return false;
+      }
+
+      if (jwtBlacklist.isBlacklisted(token)) {
+        log.warn("블랙리스트에 등록된 토큰입니다.");
         return false;
       }
       return true;
