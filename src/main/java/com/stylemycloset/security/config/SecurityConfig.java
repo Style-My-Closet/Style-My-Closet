@@ -9,6 +9,7 @@ import com.stylemycloset.security.JsonUsernamePasswordAuthenticationFilter;
 import com.stylemycloset.security.OAuth2LoginFailureHandler;
 import com.stylemycloset.security.OAuth2LoginSuccessHandler;
 import com.stylemycloset.security.SecurityMatchers;
+import com.stylemycloset.security.jwt.JwtAuthenticationEntryPoint;
 import com.stylemycloset.security.jwt.JwtAuthenticationFilter;
 import com.stylemycloset.security.jwt.JwtLogoutHandler;
 import com.stylemycloset.security.jwt.JwtService;
@@ -17,7 +18,6 @@ import com.stylemycloset.user.repository.UserRepository;
 import com.stylemycloset.user.service.CustomOAuth2UserService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -31,7 +31,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
@@ -45,6 +44,7 @@ public class SecurityConfig {
 
   private final CustomOAuth2UserService customOAuth2UserService;
   private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+  private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http,
@@ -54,8 +54,13 @@ public class SecurityConfig {
     http
         .authenticationProvider(daoAuthenticationProvider)
         .authorizeHttpRequests(authorize -> authorize
+            .requestMatchers(SecurityMatchers.SSE_ASYNC, SecurityMatchers.SSE_ERROR).permitAll()
             .requestMatchers(SecurityMatchers.PUBLIC_MATCHERS).permitAll()
+            .requestMatchers("/api/sse").authenticated()
             .anyRequest().hasRole(Role.USER.name())
+        )
+        .exceptionHandling(exception -> exception
+            .authenticationEntryPoint(jwtAuthenticationEntryPoint)
         )
         .oauth2Login(oauth2 -> oauth2
             .userInfoEndpoint(userInfo -> userInfo

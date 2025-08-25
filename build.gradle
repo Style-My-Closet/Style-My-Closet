@@ -28,12 +28,11 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    //로컬 캐시
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'com.github.ben-manes.caffeine:caffeine'
 
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.postgresql:postgresql'
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-core'
@@ -69,12 +68,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'com.nimbusds:nimbus-jose-jwt:10.3'
 
-    testImplementation 'org.mockito:mockito-core:5.11.0'
-    testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
-
     implementation 'org.springframework.boot:spring-boot-starter-aop'
 
-    // https://mvnrepository.com/artifact/ml.dmlc/xgboost4j
     implementation 'ml.dmlc:xgboost4j_2.13:3.0.2'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
@@ -82,8 +77,8 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.18.3'
 
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
-
 
 test {
     useJUnitPlatform()

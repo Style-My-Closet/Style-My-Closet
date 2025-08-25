@@ -39,7 +39,7 @@ public class WeatherItemsFilterer {
         // 3) 나머지는 fcstTime == 2300 일 때만 통과
         if(fcstDate.equals(baseDate)) {
             return fcstTime.equals(hh00);
-        }else return "0200".equals(fcstTime);
+        }else return "0000".equals(fcstTime);
 
     }
 

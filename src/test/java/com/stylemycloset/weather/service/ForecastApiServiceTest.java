@@ -60,15 +60,16 @@ class ForecastApiServiceTest {
     void setUp() {
         // weatherRepository는 Mockito mock 상태
         // processor는 실제 객체 생성, weatherRepository 주입
-        TmpProcessor tmpProcessor = Mockito.spy(new TmpProcessor(weatherRepository));
-        HumidityProcessor humidProcessor = Mockito.spy(new HumidityProcessor(weatherRepository));
+        TmpProcessor tmpProcessor = Mockito.spy(new TmpProcessor());
+        HumidityProcessor humidProcessor = Mockito.spy(new HumidityProcessor());
 
         FakeWeatherApiFetcher apiFetcher = new FakeWeatherApiFetcher(new ObjectMapper(), filterer);
         List<WeatherCategoryProcessor> processors = List.of(tmpProcessor, humidProcessor);
 
         forecastApiService = new ForecastApiService(
             apiFetcher,
-            processors
+            processors,
+            weatherRepository
         );
 
         // 필요하면 processor 내 특정 메서드만 mock 처리 가능

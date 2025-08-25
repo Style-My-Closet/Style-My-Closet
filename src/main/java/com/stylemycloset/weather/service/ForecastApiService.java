@@ -4,16 +4,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.stylemycloset.location.Location;
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.processor.WeatherCategoryProcessor;
+import com.stylemycloset.weather.repository.WeatherRepository;
 import com.stylemycloset.weather.util.DateTimeUtils;
 import com.stylemycloset.weather.util.WeatherApiFetcher;
 import com.stylemycloset.weather.util.WeatherBuilderHelper;
+import com.stylemycloset.weather.util.WeatherBuilderHelperContext;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.TreeMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,7 @@ public class ForecastApiService {
 
   private final WeatherApiFetcher apiFetcher;
   private final List<WeatherCategoryProcessor> processors;
+  private final WeatherRepository weatherRepository;
 
   public List<Weather> fetchData(Location location) {
 
@@ -36,6 +39,7 @@ public class ForecastApiService {
 
     List<JsonNode> deduplicatedItems = apiFetcher.fetchAllPages(baseDate, baseTime, location);
     Map<String, WeatherBuilderHelper> builders = new LinkedHashMap<>();
+    List<WeatherBuilderHelperContext> bhcs = new ArrayList<>();
 
     Map<String, List<JsonNode>> itemsByDate = deduplicatedItems.stream()
         .collect(Collectors.groupingBy(
@@ -58,16 +62,45 @@ public class ForecastApiService {
         if (!item.path("baseDate").asText().equals(baseDate)) {
           continue;
         }
-        builder.setCategoryValue(item.path("category").asText(), item.path("fcstValue").asText());
+        builder.setCategoryValue(item.path("category").asText(),
+            item.path("fcstValue").asText());
 
       }
-
+      bhcs.add(builder.getContext());
     }
 
     List<Weather> latestWeather = new ArrayList<>();
-    for (WeatherBuilderHelper builder : builders.values()) {
+    int i = 0;
+    LocalDate today = LocalDate.now();
+    LocalDateTime startOfYesterday = today.minusDays(1).atStartOfDay();
+    LocalDateTime endOfYesterday = today.atStartOfDay().minusNanos(1);
+
+    double TMPyesterday = 0.0;
+    double HUMIDyesterday = 0.0;
+    double WINDyesterday = 0.0;
+
+    for (
+        WeatherBuilderHelper builder : builders.values()) {
+      if (i != 0) {
+        TMPyesterday = bhcs.get(i - 1).temperature.getCurrent();
+        HUMIDyesterday = bhcs.get(i - 1).humidity.getCurrent();
+        WINDyesterday = bhcs.get(i - 1).windSpeed.getCurrent();
+        bhcs.get(i).setCompareToDayBefore(TMPyesterday, HUMIDyesterday, WINDyesterday);
+      } else {
+        List<Weather> datas =
+            weatherRepository.findWeathersByForecastedAtYesterday(location.getId(),
+                startOfYesterday, endOfYesterday);
+
+        if (!datas.isEmpty()) {
+          TMPyesterday = datas.getLast().getTemperature().getCurrent();
+          HUMIDyesterday = datas.getLast().getHumidity().getCurrent();
+          WINDyesterday = datas.getLast().getWindSpeed().getCurrent();
+          bhcs.getFirst().setCompareToDayBefore(TMPyesterday, HUMIDyesterday, WINDyesterday);
+        }
+      }
       latestWeather.add(builder.build());
       log.info("Weather built: {}", latestWeather);
+      i++;
     }
 
     return latestWeather;

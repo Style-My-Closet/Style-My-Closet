@@ -19,6 +19,8 @@ spring:
         use_sql_comments: true
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: Asia/Seoul
     open-in-view: false
     generate-ddl: false
   sql:
@@ -61,7 +63,10 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
-
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 logging:
   level:
     root: info
@@ -74,7 +79,6 @@ management:
 
 style-my-closet:
   storage:
-    type: s3
     s3:
       access-key: ${AWS_S3_ACCESS_KEY:access-key}
       secret-key: ${AWS_S3_SECRET_KEY:secret-key}

@@ -14,6 +14,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -25,19 +26,18 @@ public class NotificationServiceImpl implements NotificationService {
   private final NotificationQueryRepository notificationQueryRepository;
 
   @Override
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public NotificationDto create(Long receiverId, String title, String content, NotificationLevel level) {
     log.info("단일 알림 생성 시작: receiverId={}, title={},content={},level={}",  receiverId, title, content, level);
 
     Notification notification = new Notification(receiverId, title, content, level);
     notificationRepository.save(notification);
-
     log.info("단일 알림 생성 완료 : {}", notification);
     return NotificationDto.from(notification);
   }
 
   @Override
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public List<NotificationDto> createAll(Set<Long> receivers, String title, String content, NotificationLevel level) {
     log.info("여러 알림 생성 시작: 수신자 수={}, title={},content={},level={}", receivers.size(), title, content, level);
 

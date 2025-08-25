@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class WindSpeedProcessor implements WeatherCategoryProcessor {
-    private final WeatherRepository repository;
 
     @Override
     public boolean supports(String category) {
@@ -28,18 +27,7 @@ public class WindSpeedProcessor implements WeatherCategoryProcessor {
         LocalDateTime startOfYesterday = today.minusDays(1).atStartOfDay();
         LocalDateTime endOfYesterday = today.atStartOfDay().minusNanos(1);
 
-        List<Weather> weathers = repository.findWeathersByForecastedAtYesterday(startOfYesterday, endOfYesterday);
-
-        double yesterday;
-        if (weathers.isEmpty()) {
-            yesterday = 0;
-        } else {
-            // 예시: weathers에서 어떤 값을 계산
-            // (실제 계산 로직에 맞게 수정하세요)
-            yesterday = weathers.getFirst().getWindSpeed().getCurrent();
-        }
-
-        ctx.windSpeed = new WindSpeed(current, current-yesterday);
+        ctx.windSpeed = new WindSpeed(current, 0.0);
     }
 
     private double parseDoubleSafe(String value) {

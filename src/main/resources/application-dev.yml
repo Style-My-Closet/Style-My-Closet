@@ -11,6 +11,10 @@ spring:
   batch:
     jdbc:
       initialize-schema: always
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 server:
   port: 8080

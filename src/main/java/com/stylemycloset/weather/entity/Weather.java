@@ -85,7 +85,7 @@ public class Weather extends CreatedAtEntity {
     this.temperature = temperature;
     this.humidity = humidity;
     this.windSpeed = windSpeed;
-    this.isAlertTriggered = isAlertTriggered;
+    this.isAlertTriggered = alertTriggered();
     this.alertType = alertType;
   }
 
@@ -94,7 +94,18 @@ public class Weather extends CreatedAtEntity {
   }
 
   public enum AlertType {
-    NONE, RAIN, HEAVY_RAIN,SNOW_RAIN ,SNOW, SHOWER,HIGH_TEMP, LOW_TEMP, STRONG_WIND
+    NONE, RAIN, HEAVY_RAIN,RAIN_SNOW ,SNOW, SHOWER,HIGH_TEMP, LOW_TEMP, STRONG_WIND
+  }
+
+  public boolean alertTriggered() {
+    switch (this.alertType) {
+      case RAIN, HEAVY_RAIN,HIGH_TEMP,LOW_TEMP,STRONG_WIND -> {
+            return true;
+        }
+        default -> {
+        return false;
+      }
+    }
   }
 
 }

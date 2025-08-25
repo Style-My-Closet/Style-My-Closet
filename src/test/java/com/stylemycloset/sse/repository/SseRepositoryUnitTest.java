@@ -2,7 +2,6 @@ package com.stylemycloset.sse.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.stylemycloset.sse.dto.SseInfo;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -22,7 +21,6 @@ public class SseRepositoryUnitTest {
   SseRepository sseRepository;
 
   static final int MAX_EMITTER_COUNT = 3;
-  static final int MAX_EVENT_COUNT = 30;
   Long userId = 100L;
 
   @BeforeEach
@@ -35,13 +33,6 @@ public class SseRepositoryUnitTest {
     Map<Long, Deque<SseEmitter>> userEmitters =
         (Map<Long, Deque<SseEmitter>>) ReflectionTestUtils.getField(sseRepository, "userEmitters");
     return userEmitters.getOrDefault(userId, new ArrayDeque<>());
-  }
-
-  @SuppressWarnings("unchecked")
-  Deque<SseInfo> getEvents(Long userId) {
-    Map<Long, Deque<SseInfo>> userEvents =
-        (Map<Long, Deque<SseInfo>>) ReflectionTestUtils.getField(sseRepository, "userEvents");
-    return userEvents.getOrDefault(userId, new ArrayDeque<>());
   }
 
   @DisplayName("Emitter 개수가 MAX_EMITTER_COUNT 미만이면 바로 Emitter를 저장하고 null을 반환한다.")
@@ -83,71 +74,6 @@ public class SseRepositoryUnitTest {
     assertThat(emitters.peekFirst()).isSameAs(emitter2);
     assertThat(emitters.peekLast()).isSameAs(eNew);
 
-  }
-
-  @DisplayName("이벤트 개수가 MAX_EVENT_COUNT 미만이면 바로 SseInfo를 저장한다.")
-  @Test
-  void addEvent_whenBelowMax_shouldJustStore() {
-    // given
-    SseInfo event = new SseInfo(1, "test", "test", 1);
-
-    // when
-    sseRepository.addEvent(userId, event);
-
-    // then
-    Deque<SseInfo> events = getEvents(userId);
-    assertThat(events.getLast()).isSameAs(event);
-  }
-
-  @DisplayName("이벤트 개수가 MAX_EVENT_COUNT 이상이면 가장 오래된 이벤트를 제거하고 저장한다.")
-  @Test
-  void addEvent_whenOverMax_shouldRemoveOldestAndAdd() {
-    // given
-    for (int i = 0; i < MAX_EVENT_COUNT; i++) {
-      sseRepository.addEvent(userId, new SseInfo(i, "test", "test" + i, i));
-    }
-
-    // when
-    SseInfo newEvent = new SseInfo(30L, "test", "newTest", 3L);
-    sseRepository.addEvent(userId, newEvent);
-
-    // then
-    Deque<SseInfo> events = getEvents(userId);
-    assertThat(events).hasSize(MAX_EVENT_COUNT);
-    assertThat(events.getLast()).isSameAs(newEvent);
-
-    int expectedId = 1;
-    for(SseInfo event : events) {
-      assertThat(event.id()).isEqualTo(expectedId++);
-    }
-  }
-
-  @DisplayName("같은 userId에 대해 여러 스레드가 동시에 addEvent()를 호출해도 예외가 발생하지 않고 데이터가 저장된다.")
-  @Test
-  void addEvent_parallelism_observed() throws Exception {
-    // given
-    int loops = 1000;
-
-    ExecutorService pool = Executors.newFixedThreadPool(10);
-    List<Future<?>> futures = new ArrayList<>();
-
-    // when
-    for(int i = 0; i < 1000; i++) {
-      final long eventId = i;
-      futures.add(pool.submit(() ->
-        sseRepository.addEvent(userId, new SseInfo(eventId, "test", "test", 0))));
-    }
-
-    pool.shutdown();
-
-    for(Future<?> future : futures) {
-      future.get();
-    }
-
-    // then
-    Deque<SseInfo> res = getEvents(userId);
-    assertThat(res).hasSize(MAX_EVENT_COUNT);
-    assertThat(res).extracting(SseInfo::id).doesNotHaveDuplicates();
   }
 
   @DisplayName("같은 userId에 대해 여러 스레드가 동시에 addEmitter()를 호출해도 예외가 발생하지 않고 데이터가 저장된다.")

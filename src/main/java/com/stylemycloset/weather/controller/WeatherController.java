@@ -34,14 +34,14 @@ public class WeatherController {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<WeatherDto>> getWeathers(
-        @RequestParam double longitude,
+        @RequestParam(name = "longitude") double longitude,
 
-        @RequestParam double latitude,
+        @RequestParam(name = "latitude") double latitude,
         @AuthenticationPrincipal(expression = "userId") Long userId
     ) {
 
         List<WeatherDto> weathers = weatherService.getWeatherByCoordinates(latitude, longitude);
-        //weatherService.checkWeather(latitude, longitude, userId);
+        weatherService.checkWeather(latitude, longitude, userId);
         return ResponseEntity.ok(weathers);
     }
 

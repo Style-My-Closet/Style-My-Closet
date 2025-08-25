@@ -31,6 +31,7 @@ import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.mapper.UserMapper;
 import com.stylemycloset.user.repository.UserRepository;
 import com.stylemycloset.user.util.MailService;
+import com.stylemycloset.weather.dto.WeatherAPILocation;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.time.LocalDate;
@@ -46,6 +47,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.mock.web.MockMultipartFile;
@@ -362,12 +364,19 @@ public class UserServiceTest {
   }
 
   private ProfileDto createTestProfileDto(User user, String imageUrl) {
+    WeatherAPILocation location = null;
+    if (user.getLocation() != null) {
+      location = new WeatherAPILocation(user.getLocation().getLatitude(),
+          user.getLocation().getLongitude(), user.getLocation().getX(), user.getLocation().getY(),
+          user.getLocation().getLocationNames());
+    }
+
     return new ProfileDto(
         user.getId(),
         user.getName(),
         user.getGender(),
         user.getBirthDate(),
-        user.getLocation(),
+        location,
         user.getTemperatureSensitivity(),
         imageUrl
     );

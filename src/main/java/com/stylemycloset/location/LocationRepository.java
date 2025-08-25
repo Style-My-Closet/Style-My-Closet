@@ -13,8 +13,8 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
     @Query(value = """
     SELECT *
     FROM locations l
-    WHERE ABS(l.latitude - :lat) < 0.1
-      AND ABS(l.longitude - :lon) < 0.1
+    WHERE ABS(l.latitude - :lat) < 0.01
+      AND ABS(l.longitude - :lon) < 0.01
     LIMIT 1
 """, nativeQuery = true)
     Optional<Location> findByLatitudeAndLongitude(@Param("lat") double latitude,
