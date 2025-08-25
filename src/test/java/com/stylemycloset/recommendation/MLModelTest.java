@@ -25,9 +25,6 @@ class MLModelTest {
     @Mock
     private ClothingConditionRepository clothingConditionRepository;
 
-
-
-
     private final ConditionVectorizer conditionVectorizer  = new ConditionVectorizer();
 
     private final ClothingConditionBuilderHelper clothingConditionBuilderHelper = new ClothingConditionBuilderHelper();
@@ -53,6 +50,8 @@ class MLModelTest {
     @DisplayName("더미데이터 16개로 학습")
     void train_predicate() throws XGBoostError {
         // given
+        long start = System.nanoTime();
+
         given(clothingConditionRepository.findAll()).willReturn(dummyData);
 
         service.trainModel();
@@ -61,6 +60,9 @@ class MLModelTest {
 
         System.out.println("추천 의상 샘플에 대한 추천 확률: "+prediction1);
         System.out.println("비추천 의상 샘플에 대한 추천 확률: "+prediction2);
+
+        long end = System.nanoTime();
+        System.out.println("실행 시간(ns): " + (end - start)/1000000000.0 +"초");
 
     }
 
