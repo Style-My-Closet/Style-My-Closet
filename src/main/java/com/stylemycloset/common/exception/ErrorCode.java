@@ -45,6 +45,9 @@ public enum ErrorCode {
   // Feed
   FEED_NOT_FOUND("피드 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
   ALREADY_LIKED_FEED("이미 좋아요를 눌렀습니다.", HttpStatus.NOT_FOUND),
+  FEED_UPDATE_FORBIDDEN("피드 수정 권한이 없습니다.", HttpStatus.FORBIDDEN),
+  FEED_DELETE_FORBIDDEN("피드 삭제 권한이 없습니다.", HttpStatus.FORBIDDEN),
+  COMMENT_CREATE_FORBIDDEN("댓글 작성 권한이 없습니다.", HttpStatus.FORBIDDEN),
 
   // Message
   MESSAGE_NOT_FOUND("메시지 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);

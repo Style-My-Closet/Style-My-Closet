@@ -213,7 +213,7 @@ public class FeedServiceImpl implements FeedService {
             Map.of("feedId", feedId)));
 
     if (!feed.getAuthor().getId().equals(currentUserId)) {
-      throw new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("reason", "수정 권한이 없습니다."));
+      throw new StyleMyClosetException(ErrorCode.FEED_UPDATE_FORBIDDEN, Map.of("feedId", feedId, "currentUserId", currentUserId));
     }
 
     feed.updateContent(request.content());
@@ -233,9 +233,9 @@ public class FeedServiceImpl implements FeedService {
         .orElseThrow(() -> new StyleMyClosetException(ErrorCode.FEED_NOT_FOUND,
             Map.of("feedId", feedId)));
 
-    // 권환 확인
+    // 권한 확인
     if (!feed.getAuthor().getId().equals(currentUserId)) {
-      throw new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("reason", "삭제 권한이 없습니다."));
+      throw new StyleMyClosetException(ErrorCode.FEED_DELETE_FORBIDDEN, Map.of("feedId", feedId, "currentUserId", currentUserId));
     }
 
     feedRepository.delete(feed);
@@ -275,7 +275,7 @@ public class FeedServiceImpl implements FeedService {
   @Transactional
   public CommentDto createComment(CommentCreateRequest request, Long currentUserId) {
     if (!request.authorId().equals(currentUserId)) {
-      throw new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("reason", "댓글을 작성할 권한이 없습니다."));
+      throw new StyleMyClosetException(ErrorCode.COMMENT_CREATE_FORBIDDEN, Map.of("requestAuthorId", request.authorId(), "currentUserId", currentUserId));
     }
 
     User author = userRepository.findByIdAndDeletedAtIsNullAndLockedIsFalse(request.authorId())
