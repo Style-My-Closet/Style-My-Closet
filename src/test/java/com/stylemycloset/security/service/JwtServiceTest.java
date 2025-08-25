@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.stylemycloset.security.jwt.JwtBlacklist;
 import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.security.jwt.JwtSession;
 import com.stylemycloset.security.jwt.JwtSessionRepository;
@@ -32,6 +33,9 @@ public class JwtServiceTest {
 
   @Mock
   private JwtSessionRepository jwtSessionRepository;
+
+  @Mock
+  private JwtBlacklist jwtBlacklist;
 
   @BeforeEach
   void setUp() {

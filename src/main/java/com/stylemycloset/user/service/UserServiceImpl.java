@@ -71,6 +71,8 @@ public class UserServiceImpl implements UserService {
 
     user.updateRole(updateRequest.role());
     publisher.publishEvent(new RoleChangedEvent(userId, previousRole));
+
+    jwtService.invalidateJwtSession(userId);
     return userMapper.toUserDto(user);
   }
 

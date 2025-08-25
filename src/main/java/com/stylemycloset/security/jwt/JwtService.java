@@ -47,6 +47,7 @@ public class JwtService {
 
   private final JwtSessionRepository jwtSessionRepository;
   private final ObjectMapper objectMapper;
+  private final JwtBlacklist jwtBlacklist;
   private final UserRepository userRepository;
   private final UserMapper userMapper;
 
@@ -126,6 +127,16 @@ public class JwtService {
   }
 
   private void invalidate(JwtSession session) {
+    if (!session.isExpired()) {
+      Instant expirationTime = session.getExpirationTime();
+      Instant now = Instant.now();
+
+      Duration duration = Duration.ZERO;
+      if (expirationTime.isAfter(now)) {
+        duration = Duration.between(now, expirationTime);
+      }
+      jwtBlacklist.putToken(session.getAccessToken(), duration);
+    }
     jwtSessionRepository.delete(session);
   }
 
@@ -156,6 +167,11 @@ public class JwtService {
 
       if (expirationTime == null || expirationTime.before(new Date())) {
         log.warn("만료된 JWT 토큰입니다.");
+        return false;
+      }
+
+      if (jwtBlacklist.isBlacklisted(token)) {
+        log.warn("블랙리스트에 등록된 토큰입니다.");
         return false;
       }
       return true;
