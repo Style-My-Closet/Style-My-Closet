@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 public class TmpProcessor implements WeatherCategoryProcessor {
 
     private static final Set<String> SUPPORTED = Set.of("TMP", "TMN", "TMX");
-    private final WeatherRepository repository;
 
     @Override
     public boolean supports(String category) {
@@ -35,21 +34,6 @@ public class TmpProcessor implements WeatherCategoryProcessor {
         double min = oldTemp.getMin();
         double max = oldTemp.getMax();
 
-        LocalDate today = LocalDate.now();
-        LocalDateTime startOfYesterday = today.minusDays(1).atStartOfDay();
-        LocalDateTime endOfYesterday = today.atStartOfDay().minusNanos(1);
-
-        List<Weather> weathers = repository.findWeathersByForecastedAtYesterday(startOfYesterday, endOfYesterday);
-
-
-        double yesterday;
-        if (weathers.isEmpty()) {
-            yesterday = 0;
-        } else {
-            // 예시: weathers에서 어떤 값을 계산
-            // (실제 계산 로직에 맞게 수정하세요)
-            yesterday = weathers.getFirst().getTemperature().getCurrent();
-        }
 
 
         switch (category) {
@@ -64,7 +48,7 @@ public class TmpProcessor implements WeatherCategoryProcessor {
             }
         }
 
-        ctx.temperature = new Temperature(current,current-yesterday,min,max);
+        ctx.temperature = new Temperature(current,oldTemp.getComparedToDayBefore(),min,max);
     }
 
     private double parseDoubleSafe(String value) {

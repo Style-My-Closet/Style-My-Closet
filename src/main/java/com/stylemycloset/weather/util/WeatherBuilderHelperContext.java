@@ -23,7 +23,18 @@ public class WeatherBuilderHelperContext {
     public Temperature temperature = new Temperature(0.0, 0.0, 0.0, 0.0);
     public Humidity humidity = new Humidity(0.0, 0.0);
     public WindSpeed windSpeed = new WindSpeed(0.0, 0.0);
-    public boolean isAlertTriggered = false;
     public Weather.AlertType alertType = Weather.AlertType.NONE;
+
+    public void setCompareToDayBefore(double TMPyesterday, double HUMIDyesterday, double WINDyesterday) {
+        Temperature oldTmp = this.temperature;
+        Humidity oldHumid = this.humidity;
+        WindSpeed oldWind = this.windSpeed;
+
+        this.temperature = new Temperature(oldTmp.getCurrent(), oldTmp.getCurrent()- TMPyesterday,
+            oldTmp.getMin(), oldTmp.getMax());
+        this.humidity = new Humidity(oldHumid.getCurrent(), oldHumid.getCurrent()- HUMIDyesterday);
+        this.windSpeed = new WindSpeed(oldWind.getCurrent(), oldWind.getCurrent()-WINDyesterday);
+
+    }
 }
 

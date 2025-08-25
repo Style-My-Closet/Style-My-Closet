@@ -24,7 +24,7 @@ public class MeaningfulDummyGenerator {
             .gender(Gender.MALE)
             .temperatureSensitivity(3)
             .color(Color.YELLOW) // 가정: 맑은 날 밝은 색 추천
-            .SleeveLength(SleeveLength.SHORT_SLEEVE)
+            .sleeveLength(SleeveLength.SHORT_SLEEVE)
             .pantsLength(PantsLength.SHORT_PANTS)
             .label(true)
             .build());
@@ -39,7 +39,7 @@ public class MeaningfulDummyGenerator {
             .gender(Gender.FEMALE)
             .temperatureSensitivity(2)
             .color(Color.BLUE)
-            .SleeveLength(SleeveLength.SHORT_SLEEVE)
+            .sleeveLength(SleeveLength.SHORT_SLEEVE)
             .pantsLength(PantsLength.SHORT_PANTS)
             .label(true)
             .build());
@@ -54,7 +54,7 @@ public class MeaningfulDummyGenerator {
             .gender(Gender.MALE)
             .temperatureSensitivity(3)
             .color(Color.BLACK)
-            .SleeveLength(SleeveLength.LONG_SLEEVE)
+            .sleeveLength(SleeveLength.LONG_SLEEVE)
             .pantsLength(PantsLength.LONG_PANTS)
             .label(true)
             .build());
@@ -69,7 +69,7 @@ public class MeaningfulDummyGenerator {
             .gender(Gender.FEMALE)
             .temperatureSensitivity(1)
             .color(Color.WHITE)
-            .SleeveLength(SleeveLength.LONG_SLEEVE)
+            .sleeveLength(SleeveLength.LONG_SLEEVE)
             .pantsLength(PantsLength.LONG_PANTS)
             .label(true)
             .build());
@@ -84,7 +84,7 @@ public class MeaningfulDummyGenerator {
             .gender(Gender.MALE)
             .temperatureSensitivity(1)
             .color(Color.BLACK)
-            .SleeveLength(SleeveLength.LONG_SLEEVE)
+            .sleeveLength(SleeveLength.LONG_SLEEVE)
             .pantsLength(PantsLength.LONG_PANTS)
             .label(true)
             .build());
@@ -99,7 +99,7 @@ public class MeaningfulDummyGenerator {
             .gender(Gender.FEMALE)
             .temperatureSensitivity(2)
             .color(Color.RED)
-            .SleeveLength(SleeveLength.SHORT_SLEEVE)
+            .sleeveLength(SleeveLength.SHORT_SLEEVE)
             .pantsLength(PantsLength.LONG_PANTS)
             .label(true)
             .build());
@@ -114,7 +114,7 @@ public class MeaningfulDummyGenerator {
             .gender(Gender.MALE)
             .temperatureSensitivity(2)
             .color(Color.BLUE)
-            .SleeveLength(SleeveLength.LONG_SLEEVE)
+            .sleeveLength(SleeveLength.LONG_SLEEVE)
             .pantsLength(PantsLength.LONG_PANTS)
             .label(true)
             .build());
@@ -129,7 +129,7 @@ public class MeaningfulDummyGenerator {
             .gender(Gender.FEMALE)
             .temperatureSensitivity(3)
             .color(Color.YELLOW)
-            .SleeveLength(SleeveLength.SHORT_SLEEVE)
+            .sleeveLength(SleeveLength.SHORT_SLEEVE)
             .pantsLength(PantsLength.SHORT_PANTS)
             .label(true)
             .build());
@@ -144,7 +144,7 @@ public class MeaningfulDummyGenerator {
             .gender(Gender.MALE)
             .temperatureSensitivity(2)
             .color(Color.WHITE)
-            .SleeveLength(SleeveLength.LONG_SLEEVE)
+            .sleeveLength(SleeveLength.LONG_SLEEVE)
             .pantsLength(PantsLength.SHORT_PANTS)
             .label(true)
             .build());
@@ -159,7 +159,7 @@ public class MeaningfulDummyGenerator {
             .gender(Gender.FEMALE)
             .temperatureSensitivity(3)
             .color(Color.BLUE)
-            .SleeveLength(SleeveLength.LONG_SLEEVE)
+            .sleeveLength(SleeveLength.LONG_SLEEVE)
             .pantsLength(PantsLength.LONG_PANTS)
             .label(true)
             .build());
@@ -174,7 +174,7 @@ public class MeaningfulDummyGenerator {
             .gender(Gender.MALE)
             .temperatureSensitivity(3)
             .color(Color.BLACK)
-            .SleeveLength(SleeveLength.LONG_SLEEVE)
+            .sleeveLength(SleeveLength.LONG_SLEEVE)
             .pantsLength(PantsLength.LONG_PANTS)
             .label(false)
             .build());
@@ -188,7 +188,7 @@ public class MeaningfulDummyGenerator {
             .gender(Gender.FEMALE)
             .temperatureSensitivity(1)
             .color(Color.BLUE)
-            .SleeveLength(SleeveLength.SHORT_SLEEVE)
+            .sleeveLength(SleeveLength.SHORT_SLEEVE)
             .pantsLength(PantsLength.SHORT_PANTS)
             .label(false)
             .build());
@@ -202,7 +202,7 @@ public class MeaningfulDummyGenerator {
             .gender(Gender.MALE)
             .temperatureSensitivity(2)
             .color(Color.WHITE)
-            .SleeveLength(SleeveLength.SHORT_SLEEVE)
+            .sleeveLength(SleeveLength.SHORT_SLEEVE)
             .pantsLength(PantsLength.SHORT_PANTS)
             .label(false)
             .build());
@@ -216,7 +216,7 @@ public class MeaningfulDummyGenerator {
             .gender(Gender.FEMALE)
             .temperatureSensitivity(3)
             .color(Color.RED)
-            .SleeveLength(SleeveLength.SHORT_SLEEVE)
+            .sleeveLength(SleeveLength.SHORT_SLEEVE)
             .pantsLength(PantsLength.SHORT_PANTS)
             .label(false)
             .build());
@@ -230,7 +230,7 @@ public class MeaningfulDummyGenerator {
             .gender(Gender.MALE)
             .temperatureSensitivity(1)
             .color(Color.WHITE)
-            .SleeveLength(SleeveLength.LONG_SLEEVE)
+            .sleeveLength(SleeveLength.LONG_SLEEVE)
             .pantsLength(PantsLength.LONG_PANTS)
             .label(false)
             .build());
@@ -244,7 +244,7 @@ public class MeaningfulDummyGenerator {
             .gender(Gender.FEMALE)
             .temperatureSensitivity(2)
             .color(Color.BLACK)
-            .SleeveLength(SleeveLength.SHORT_SLEEVE)
+            .sleeveLength(SleeveLength.SHORT_SLEEVE)
             .pantsLength(PantsLength.SHORT_PANTS)
             .label(false)
             .build());
