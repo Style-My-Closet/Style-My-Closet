@@ -1,13 +1,13 @@
 package com.stylemycloset.ootd.dto;
 
-import com.stylemycloset.ootd.tempEnum.ClothesType;
+import com.stylemycloset.cloth.entity.ClothingCategoryType;
 import java.util.List;
 
 public record OotdItemDto(
-    Long clothesId,
+    Long id,
     String name,
     String imageUrl,
-    ClothesType type,
+    ClothingCategoryType type,
     List<ClothesAttributeWithDefDto> attributes
 ) {
 

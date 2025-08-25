@@ -4,9 +4,9 @@ import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
 import com.stylemycloset.cloth.entity.AttributeOption;
 import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.entity.ClothingAttribute;
+import com.stylemycloset.cloth.entity.ClothingCategoryType;
 import com.stylemycloset.ootd.dto.ClothesAttributeWithDefDto;
 import com.stylemycloset.ootd.dto.OotdItemDto;
-import com.stylemycloset.ootd.tempEnum.ClothesType;
 import org.springframework.stereotype.Component;
 
 import java.net.URL;
@@ -67,8 +67,8 @@ public class OotdItemMapper {
                 .collect(Collectors.toList());
     }
 
-    private ClothesType mapClothesType(Cloth cloth) {
-        return ClothesType.valueOf(cloth.getCategory().getName().name());
+    private ClothingCategoryType mapClothesType(Cloth cloth) {
+        return cloth.getCategory().getName();
     }
 
     private String getImageUrl(Cloth cloth) {
