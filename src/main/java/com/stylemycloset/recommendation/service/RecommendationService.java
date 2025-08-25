@@ -49,7 +49,7 @@ public class RecommendationService {
         List<Cloth> clothes = clothRepository.findAll();
 
 
-        RecommendationDto result = null;
+        RecommendationDto result = new RecommendationDto(weatherId , user.getId(), new ArrayList<>());
         RecommendationDto current = parseToRecommendationDto(clothes,weather,user);
 
         if(clothes.size()<10) {
