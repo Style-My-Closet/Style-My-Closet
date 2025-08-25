@@ -115,12 +115,12 @@ class SecurityControllerTest extends IntegrationTestSupport {
     String csrfResponseBody = csrfResponse.getBody();
     String csrfCookieHeader = csrfResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
     Map<String, String> csrfTokenMap = objectMapper.readValue(csrfResponseBody, Map.class);
+    String csrfCookie = csrfCookieHeader != null ? csrfCookieHeader.split(";")[0] : "";
 
     String refreshTokenCookie = setTokenCookie.split(";")[0];
 
     HttpHeaders headers = new HttpHeaders();
-    headers.add("Cookie", refreshTokenCookie);
-    headers.add("Cookie", csrfCookieHeader);
+    headers.add("Cookie", refreshTokenCookie + "; " + csrfCookie);
     headers.add(csrfTokenMap.get("headerName"), csrfTokenMap.get("token"));
 
     HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
@@ -140,13 +140,20 @@ class SecurityControllerTest extends IntegrationTestSupport {
     //given
     ResponseEntity<String> loginResponse = performLogin();
     String accessToken = loginResponse.getBody();
-    String setTokenCookie = loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+    String setCookieHeader = loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+    String refreshTokenCookie = setCookieHeader.split(";")[0];
 
-    String refreshTokenCookie = setTokenCookie.split(";")[0];
+    ResponseEntity<String> csrfResponse = restTemplate.getForEntity("/api/auth/csrf-token",
+        String.class);
+    String csrfResponseBody = csrfResponse.getBody();
+    String csrfSetCookieHeader = csrfResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+    Map<String, String> csrfTokenMap = objectMapper.readValue(csrfResponseBody, Map.class);
+    String csrfCookie = csrfSetCookieHeader.split(";")[0];
 
     HttpHeaders headers = new HttpHeaders();
-    headers.add("Cookie", refreshTokenCookie);
+    headers.add("Cookie", refreshTokenCookie + "; " + csrfCookie);
     headers.setBearerAuth(accessToken);
+    headers.add(csrfTokenMap.get("headerName"), csrfTokenMap.get("token"));
     HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
     //when
