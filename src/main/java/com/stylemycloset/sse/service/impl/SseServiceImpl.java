@@ -1,13 +1,18 @@
 package com.stylemycloset.sse.service.impl;
 
+import com.stylemycloset.common.exception.ErrorCode;
+import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.notification.dto.NotificationDto;
-import com.stylemycloset.sse.dto.SseInfo;
+import com.stylemycloset.sse.cache.SseNotificationInfoCache;
+import com.stylemycloset.sse.dto.NotificationDtoWithId;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.SseSender;
 import com.stylemycloset.sse.service.SseService;
 import java.io.IOException;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,6 +26,7 @@ public class SseServiceImpl implements SseService {
 
   private final SseRepository sseRepository;
   private final SseSender sseSender;
+  private final SseNotificationInfoCache cache;
 
   private static final long DEFAULT_TIMEOUT = 5L * 60 * 1000;
   private static final String EVENT_NAME = "notifications";
@@ -47,43 +53,46 @@ public class SseServiceImpl implements SseService {
     sseSender.sendToClient(userId, emitter, eventId, "connect", "Sse Connected");
 
     if(lastEventId != null &&  !lastEventId.isEmpty()) {
-      try {
-        long lastId = Long.parseLong(lastEventId);
-        List<SseInfo> missedInfo = sseRepository.findOrCreateEvents(userId)
-            .stream()
-            .filter(event ->
-                event.id() > lastId
-            ).toList();
-        log.debug("missedInfo Size={}", missedInfo.size());
+      if(isValidStreamsId(lastEventId)) {
+        List<NotificationDtoWithId> missedInfo = cache.getNotificationInfo(userId, lastEventId);
+        log.debug("놓친 알림 이벤트 개수={}", missedInfo.size());
 
-        for (SseInfo info : missedInfo) {
-          sseSender.sendToClient(userId, emitter, String.valueOf(info.id()), info.name(), info.data());
+        for (NotificationDtoWithId info : missedInfo) {
+          sseSender.sendToClient(userId, emitter, info.eventId(), EVENT_NAME, info.dto());
         }
-      } catch(NumberFormatException e) {
-        log.warn("유효하지 않는 lastEventId 형식 : {}", lastEventId);
+      } else {
+        log.info("유효하지 않은 LastEventId로 요청. userId={}, lastEventId={}", userId, lastEventId);
+        throw new StyleMyClosetException(ErrorCode.INVALID_INPUT_VALUE, Map.of("lastEventId", lastEventId));
       }
     }
 
     return emitter;
   }
 
+  public boolean isValidStreamsId(String lastEventId) {
+    return Pattern.compile("^\\d+-\\d+$").matcher(lastEventId).matches();
+  }
+
   @Override
   public void sendNotification(NotificationDto notificationDto) {
     Long receiverId = notificationDto.receiverId();
     Deque<SseEmitter> sseEmitters = sseRepository.findOrCreateEmitters(receiverId);
-    if(sseEmitters.isEmpty()) {
+    if(sseEmitters == null || sseEmitters.isEmpty()) {
       log.info("SSE 연결이 없어 알림 전송 실패 : id={}, notificationId={}",
           receiverId, notificationDto.id());
       return;
     }
 
-    long eventId = notificationDto.createdAt().toEpochMilli();
-    SseInfo sseInfo = new SseInfo(eventId, EVENT_NAME, notificationDto, System.currentTimeMillis());
-
-    sseRepository.addEvent(receiverId, sseInfo);
+    String eventId = System.currentTimeMillis() + "-0";
+    try{
+      eventId = cache.addNotificationInfo(receiverId, notificationDto);
+    } catch (Exception e) {
+      log.warn("캐시 저장에 실패하여 자체적인 eventId 생성. userId={}, notificationId={}, eventId={}, type={}, {}",
+          receiverId, notificationDto.id(), eventId, e.getClass().getName(), e.getMessage());
+    }
 
     for(SseEmitter sseEmitter : sseEmitters) {
-      sseSender.sendToClientAsync(receiverId, sseEmitter, String.valueOf(eventId), EVENT_NAME, notificationDto);
+      sseSender.sendToClientAsync(receiverId, sseEmitter, eventId, EVENT_NAME, notificationDto);
     }
   }
 
@@ -102,10 +111,9 @@ public class SseServiceImpl implements SseService {
             }));
   }
 
-  @Scheduled(fixedRate = 60 * 60 * 1000)
-  public void cleanUpSseInfos() {
-    long timeout = System.currentTimeMillis() - (60 * 60 * 1000);
-    sseRepository.cleanEventOlderThan(timeout);
+  @Scheduled(fixedDelay = 5 * 60 * 1000)
+  public void cleanNotificationInfos() {
+    cache.trimNotificationInfos();
   }
 
 }
