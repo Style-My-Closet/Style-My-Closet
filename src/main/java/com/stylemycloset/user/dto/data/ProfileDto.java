@@ -2,6 +2,7 @@ package com.stylemycloset.user.dto.data;
 
 import com.stylemycloset.location.Location;
 import com.stylemycloset.user.entity.Gender;
+import com.stylemycloset.weather.dto.WeatherAPILocation;
 import java.time.LocalDate;
 
 public record ProfileDto(
@@ -9,7 +10,7 @@ public record ProfileDto(
     String name,
     Gender gender,
     LocalDate birthDate,
-    Location location,
+    WeatherAPILocation location,
     Integer temperatureSensitivity,
     String profileImageUrl
 ) {

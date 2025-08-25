@@ -3,6 +3,10 @@ package com.stylemycloset.user.service;
 import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
 import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
+import com.stylemycloset.common.exception.ErrorCode;
+import com.stylemycloset.common.exception.StyleMyClosetException;
+import com.stylemycloset.location.Location;
+import com.stylemycloset.location.LocationRepository;
 import com.stylemycloset.notification.event.domain.RoleChangedEvent;
 import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.user.dto.data.ProfileDto;
@@ -47,6 +51,7 @@ public class UserServiceImpl implements UserService {
   private final MailService mailSender;
   private final BinaryContentRepository binaryContentRepository;
   private final BinaryContentStorage storage;
+  private final LocationRepository locationRepository;
 
   @Transactional
   @Override
@@ -116,6 +121,22 @@ public class UserServiceImpl implements UserService {
   public ProfileDto updateProfile(Long userId, ProfileUpdateRequest request,
       MultipartFile image) {
     User user = findUserById(userId);
+    Location location = null;
+
+    if (request.location() != null) {
+      location = locationRepository.findByLatitudeAndLongitude(request.location().getLatitude(),
+              request.location().getLongitude())
+          .orElseGet(() -> {
+            Location newLocation = new Location(
+                request.location().getLatitude(),
+                request.location().getLongitude(),
+                request.location().getX(),
+                request.location().getY(),
+                request.location().getLocationNames()
+            );
+            return locationRepository.save(newLocation);
+          });
+    }
     String profileImageUrl = null;
     if (image != null && !image.isEmpty()) {
       try {
@@ -132,7 +153,7 @@ public class UserServiceImpl implements UserService {
       }
     }
 
-    user.updateProfile(request.name(), request.gender(), request.birthDate(), request.location(),
+    user.updateProfile(request.name(), request.gender(), request.birthDate(), location,
         request.temperatureSensitivity());
     if (user.getProfileImage() != null) {
       profileImageUrl = storage.getUrl(user.getProfileImage().getId()).toString();
