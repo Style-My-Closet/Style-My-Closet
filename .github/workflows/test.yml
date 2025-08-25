@@ -7,6 +7,7 @@ on:
 
 jobs:
   test:
+    name: CI - Run Tests and Upload Coverage 
     runs-on: ubuntu-latest
 
     services:
@@ -35,8 +36,10 @@ jobs:
           --health-retries=5
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source code 
+        uses: actions/checkout@v4
 
+      - name: Set up JDK 21
       - uses: actions/setup-java@v4
         with:
           java-version: '21'
