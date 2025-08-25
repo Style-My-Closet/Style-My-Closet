@@ -32,6 +32,7 @@ public class SseSender {
       log.debug("[{}] {} SSE 이벤트 전송 성공 (eventId: {})", userId, eventName, eventId);
     } catch (IllegalStateException e) {
       log.warn("[{}] {} 전송 실패 - emitter가 이미 완료됨. 즉시 제거 (eventId: {})", userId, eventName, eventId, e);
+      try { emitter.complete(); } catch (RuntimeException ignore) {}
       sseRepository.removeEmitter(userId, emitter);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
@@ -52,6 +53,7 @@ public class SseSender {
   public void recover(UncheckedIOException e, Long userId, SseEmitter emitter,
       String eventId, String eventName, Object data) {
     log.warn("[{}] {} 재시도 모두 실패 (eventId: {})", userId, eventName, eventId, e);
+    try { emitter.complete(); } catch (RuntimeException ignore) {}
     sseRepository.removeEmitter(userId, emitter);
   }
 }

@@ -9,6 +9,18 @@ jobs:
   test:
     name: CI - Run Tests and Upload Coverage
     runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping || exit 1"
+          --health-interval 1s
+          --health-timeout 5s
+          --health-retries 60
+
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
