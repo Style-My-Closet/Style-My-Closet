@@ -10,12 +10,9 @@ import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.cache.transaction.TransactionAwareCacheManagerProxy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@EnableTransactionManagement(order = 0)
-@EnableCaching(order = 1)
 @Configuration
-//@EnableCaching
+@EnableCaching
 public class CacheConfig {
 
   public static final String CLOTHES_CACHE = "clothes";
@@ -47,7 +44,6 @@ public class CacheConfig {
     delegate.afterPropertiesSet();
 
     return new TransactionAwareCacheManagerProxy(delegate);
-//    return delegate;
   }
 
 }
