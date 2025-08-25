@@ -1,5 +1,18 @@
 package com.stylemycloset.ootd.service;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.stylemycloset.cloth.entity.Cloth;
 import com.stylemycloset.cloth.repository.ClothRepository;
 import com.stylemycloset.common.exception.ErrorCode;
@@ -19,28 +32,15 @@ import com.stylemycloset.ootd.dto.FeedUpdateRequest;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.FeedComment;
 import com.stylemycloset.ootd.entity.FeedLike;
-
+import com.stylemycloset.ootd.mapper.CommentMapper;
+import com.stylemycloset.ootd.mapper.FeedMapper;
 import com.stylemycloset.ootd.repo.FeedCommentRepository;
 import com.stylemycloset.ootd.repo.FeedLikeRepository;
 import com.stylemycloset.ootd.repo.FeedRepository;
-import com.stylemycloset.ootd.mapper.FeedMapper;
-import com.stylemycloset.ootd.mapper.CommentMapper;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
-
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.repository.WeatherRepository;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.lang.Nullable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -99,7 +99,7 @@ public class FeedServiceImpl implements FeedService {
     }
 
     // 좋아요 수와 상태를 Batch 쿼리로 조회
-    Map<Long, Long> likeCountMap = getLikeCountMap(feeds);
+    Map<Long, Long> likeCountMap = getLikeCountMapFromFeeds(feeds);
     Map<Long, Boolean> likedByMeMap = currentUser != null ? getLikedByMeMap(feeds, currentUser) : new HashMap<>();
 
     String nextCursor = null;
@@ -163,7 +163,7 @@ public class FeedServiceImpl implements FeedService {
   private FeedDto mapToFeedResponse(Feed feed, User currentUser) {
     // Batch 쿼리로 좋아요 정보 조회
     List<Long> feedIds = List.of(feed.getId());
-    Map<Long, Long> likeCountMap = getLikeCountMapByFeedIds(feedIds);
+    Map<Long, Long> likeCountMap = getLikeCountMap(feedIds);
     Map<Long, Boolean> likedByMeMap = currentUser != null ? getLikedByMeMapByFeedIds(feedIds, currentUser) : new HashMap<>();
 
     long likeCount = likeCountMap.getOrDefault(feed.getId(), 0L);
@@ -174,19 +174,31 @@ public class FeedServiceImpl implements FeedService {
     return feedMapper.toDto(feed, currentUser, likeCount, 0, likedByMe);
   }
 
-  private Map<Long, Long> getLikeCountMap(List<Feed> feeds) {
-    List<Long> feedIds = feeds.stream().map(Feed::getId).collect(Collectors.toList());
+  private Map<Long, Long> getLikeCountMap(List<Long> feedIds) {
     if (feedIds.isEmpty()) {
       return new HashMap<>();
     }
     
     // Batch 쿼리로 좋아요 수 조회
     List<FeedLikeRepository.FeedLikeCountProjection> results = feedLikeRepository.countByFeedIds(feedIds);
-    return results.stream()
-        .collect(Collectors.toMap(
-            FeedLikeRepository.FeedLikeCountProjection::getFeedId,
-            FeedLikeRepository.FeedLikeCountProjection::getLikeCount
-        ));
+    
+    // 결과를 Map으로 변환 (기본값 0으로 설정)
+    Map<Long, Long> likeCountMap = feedIds.stream()
+        .collect(Collectors.toMap(feedId -> feedId, feedId -> 0L));
+    
+    results.forEach(result -> {
+      Long feedId = result.getFeedId();
+      Long count = result.getLikeCount();
+      likeCountMap.put(feedId, count);
+    });
+    
+    return likeCountMap;
+  }
+
+  // Feed 리스트에서 ID 추출하는 헬퍼 메서드
+  private Map<Long, Long> getLikeCountMapFromFeeds(List<Feed> feeds) {
+    List<Long> feedIds = feeds.stream().map(Feed::getId).collect(Collectors.toList());
+    return getLikeCountMap(feedIds);
   }
 
   private Map<Long, Boolean> getLikedByMeMap(List<Feed> feeds, User currentUser) {
@@ -294,26 +306,7 @@ public class FeedServiceImpl implements FeedService {
     return commentMapper.toDto(savedComment);
   }
 
-  // Feed ID 리스트로 좋아요 수 조회 (개별 피드용)
-  private Map<Long, Long> getLikeCountMapByFeedIds(List<Long> feedIds) {
-    if (feedIds.isEmpty()) {
-      return new HashMap<>();
-    }
-    
-    // 모든 피드에 대해 기본값 0 설정
-    Map<Long, Long> likeCountMap = feedIds.stream()
-        .collect(Collectors.toMap(feedId -> feedId, feedId -> 0L));
-    
-    // Batch 쿼리로 좋아요 수 조회
-    List<FeedLikeRepository.FeedLikeCountProjection> results = feedLikeRepository.countByFeedIds(feedIds);
-    results.forEach(result -> {
-      Long feedId = result.getFeedId();
-      Long count = result.getLikeCount();
-      likeCountMap.put(feedId, count);
-    });
-    
-    return likeCountMap;
-  }
+
 
   // Feed ID 리스트로 좋아요 상태 조회 (개별 피드용)
   private Map<Long, Boolean> getLikedByMeMapByFeedIds(List<Long> feedIds, User currentUser) {
