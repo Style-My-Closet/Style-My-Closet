@@ -1,16 +1,17 @@
 package com.stylemycloset.ootd.mapper;
 
-import com.stylemycloset.ootd.dto.AuthorDto;
-import com.stylemycloset.ootd.dto.FeedDto;
-import com.stylemycloset.weather.dto.WeatherSummaryDto;
-import com.stylemycloset.ootd.entity.Feed;
-import com.stylemycloset.user.entity.User;
-import com.stylemycloset.weather.entity.Weather;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Component;
+
+import com.stylemycloset.ootd.dto.AuthorDto;
+import com.stylemycloset.ootd.dto.FeedDto;
+import com.stylemycloset.ootd.entity.Feed;
+import com.stylemycloset.user.entity.User;
+import com.stylemycloset.weather.dto.WeatherSummaryDto;
+import com.stylemycloset.weather.entity.Weather;
 
 @Component
 public class FeedMapper {

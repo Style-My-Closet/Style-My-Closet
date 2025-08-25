@@ -1,21 +1,11 @@
 package com.stylemycloset.ootd.controller;
 
-import com.stylemycloset.ootd.dto.CommentCreateRequest;
-import com.stylemycloset.ootd.dto.CommentCursorResponse;
-import com.stylemycloset.ootd.dto.CommentDto;
-import com.stylemycloset.ootd.dto.CommentSearchRequest;
-import com.stylemycloset.ootd.dto.FeedCreateRequest;
-import com.stylemycloset.ootd.dto.FeedDto;
-import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
-import com.stylemycloset.ootd.dto.FeedSearchRequest;
-import com.stylemycloset.ootd.dto.FeedUpdateRequest;
-import com.stylemycloset.ootd.service.FeedService;
 import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import com.stylemycloset.security.ClosetUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +16,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.stylemycloset.ootd.dto.CommentCreateRequest;
+import com.stylemycloset.ootd.dto.CommentCursorResponse;
+import com.stylemycloset.ootd.dto.CommentDto;
+import com.stylemycloset.ootd.dto.CommentSearchRequest;
+import com.stylemycloset.ootd.dto.FeedCreateRequest;
+import com.stylemycloset.ootd.dto.FeedDto;
+import com.stylemycloset.ootd.dto.FeedDtoCursorResponse;
+import com.stylemycloset.ootd.dto.FeedSearchRequest;
+import com.stylemycloset.ootd.dto.FeedUpdateRequest;
+import com.stylemycloset.ootd.service.FeedService;
+import com.stylemycloset.security.ClosetUserDetails;
 
 @RestController
 @RequestMapping("/api/feeds")

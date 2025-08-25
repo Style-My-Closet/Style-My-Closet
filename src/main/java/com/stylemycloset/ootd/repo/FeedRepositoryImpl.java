@@ -2,21 +2,23 @@ package com.stylemycloset.ootd.repo;
 
 import static com.stylemycloset.ootd.entity.QFeed.feed;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
+
 import com.stylemycloset.ootd.dto.FeedSearchRequest;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.QFeed;
 import com.stylemycloset.weather.entity.Weather.AlertType;
 import com.stylemycloset.weather.entity.Weather.SkyStatus;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
 
 @Repository
 @RequiredArgsConstructor
