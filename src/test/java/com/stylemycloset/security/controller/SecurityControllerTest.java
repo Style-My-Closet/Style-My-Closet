@@ -137,7 +137,9 @@ class SecurityControllerTest extends IntegrationTestSupport {
   void signOut_Success() throws Exception {
     //given
     ResponseEntity<String> loginResponse = performLogin();
-    String refreshTokenCookie = loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+    String setTokenCookie = loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+
+    String refreshTokenCookie = setTokenCookie.split(";")[0];
 
     HttpHeaders headers = new HttpHeaders();
     headers.add("Cookie", refreshTokenCookie);
