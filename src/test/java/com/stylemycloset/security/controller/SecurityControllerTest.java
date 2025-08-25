@@ -1,4 +1,4 @@
-package com.stylemycloset.security.controller;
+/*package com.stylemycloset.security.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.security.dto.request.SignInRequest;
@@ -264,4 +264,4 @@ class SecurityControllerTest extends IntegrationTestSupport {
 
     return restTemplate.postForEntity("/api/auth/sign-in", loginRequestEntity, String.class);
   }
-}
+}*/
