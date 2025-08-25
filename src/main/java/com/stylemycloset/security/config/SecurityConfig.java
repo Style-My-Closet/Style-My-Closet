@@ -9,6 +9,7 @@ import com.stylemycloset.security.JsonUsernamePasswordAuthenticationFilter;
 import com.stylemycloset.security.OAuth2LoginFailureHandler;
 import com.stylemycloset.security.OAuth2LoginSuccessHandler;
 import com.stylemycloset.security.SecurityMatchers;
+import com.stylemycloset.security.jwt.JwtAuthenticationEntryPoint;
 import com.stylemycloset.security.jwt.JwtAuthenticationFilter;
 import com.stylemycloset.security.jwt.JwtLogoutHandler;
 import com.stylemycloset.security.jwt.JwtService;
@@ -42,6 +43,7 @@ public class SecurityConfig {
 
   private final CustomOAuth2UserService customOAuth2UserService;
   private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+  private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http,
@@ -55,6 +57,9 @@ public class SecurityConfig {
             .requestMatchers(SecurityMatchers.PUBLIC_MATCHERS).permitAll()
             .requestMatchers("/api/sse").authenticated()
             .anyRequest().hasRole(Role.USER.name())
+        )
+        .exceptionHandling(exception -> exception
+            .authenticationEntryPoint(jwtAuthenticationEntryPoint)
         )
         .oauth2Login(oauth2 -> oauth2
             .userInfoEndpoint(userInfo -> userInfo

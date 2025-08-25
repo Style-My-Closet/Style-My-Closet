@@ -1,6 +1,9 @@
 package com.stylemycloset.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stylemycloset.common.controller.ErrorResponse;
+import com.stylemycloset.common.exception.ErrorCode;
+import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.security.ClosetUserDetails;
 import com.stylemycloset.security.SecurityMatchers;
 import com.stylemycloset.security.dto.data.TokenInfo;
@@ -10,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +36,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       HttpServletResponse response,
       FilterChain chain
   ) throws IOException, ServletException {
-    resolveAccessToken(request).ifPresent(token -> {
+    Optional<String> tokenOptional = resolveAccessToken(request);
+    if (tokenOptional.isPresent() && !isPermitAll(request)) {
+      String token = tokenOptional.get();
       if (jwtService.validate(token)) {
         TokenInfo tokenInfo = jwtService.parse(token);
 
@@ -44,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
       }
-    });
+    }
 
     chain.doFilter(request, response);
   }
