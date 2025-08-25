@@ -1,7 +1,9 @@
 package com.stylemycloset.ootd.mapper;
 
+import com.stylemycloset.ootd.dto.AuthorDto;
 import com.stylemycloset.ootd.dto.CommentDto;
 import com.stylemycloset.ootd.entity.FeedComment;
+import com.stylemycloset.user.entity.User;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -9,12 +11,6 @@ import java.util.stream.Collectors;
 
 @Component
 public class CommentMapper {
-
-    private final FeedMapper feedMapper;
-
-    public CommentMapper(FeedMapper feedMapper) {
-        this.feedMapper = feedMapper;
-    }
 
     public CommentDto toDto(FeedComment comment) {
         if (comment == null) {
@@ -25,7 +21,7 @@ public class CommentMapper {
                 comment.getId(),
                 comment.getCreatedAt(),
                 comment.getFeed().getId(),
-                feedMapper.toAuthorDto(comment.getAuthor()),
+                toAuthorDto(comment.getAuthor()),
                 comment.getContent());
     }
 
@@ -37,5 +33,12 @@ public class CommentMapper {
         return comments.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+    }
+
+    private AuthorDto toAuthorDto(User user) {
+        if (user == null) {
+            return null;
+        }
+        return new AuthorDto(user.getId(), user.getName(), null);
     }
 }

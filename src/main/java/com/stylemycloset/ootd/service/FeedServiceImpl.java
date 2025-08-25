@@ -19,11 +19,10 @@ import com.stylemycloset.ootd.dto.FeedUpdateRequest;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.FeedComment;
 import com.stylemycloset.ootd.entity.FeedLike;
-import com.stylemycloset.ootd.repo.FeedClothesRepository;
+
 import com.stylemycloset.ootd.repo.FeedCommentRepository;
 import com.stylemycloset.ootd.repo.FeedLikeRepository;
 import com.stylemycloset.ootd.repo.FeedRepository;
-import com.stylemycloset.ootd.mapper.OotdItemMapper;
 import com.stylemycloset.ootd.mapper.FeedMapper;
 import com.stylemycloset.ootd.mapper.CommentMapper;
 import com.stylemycloset.user.entity.User;
@@ -49,14 +48,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class FeedServiceImpl implements FeedService {
 
   private final FeedRepository feedRepository;
-  private final FeedClothesRepository feedClothesRepository;
   private final UserRepository userRepository;
   private final ClothRepository clothRepository;
   private final WeatherRepository weatherRepository;
   private final FeedLikeRepository feedLikeRepository;
   private final FeedCommentRepository feedCommentRepository;
   private final ApplicationEventPublisher publisher;
-  private final OotdItemMapper ootdItemMapper;
   private final FeedMapper feedMapper;
   private final CommentMapper commentMapper;
 
@@ -169,16 +166,6 @@ public class FeedServiceImpl implements FeedService {
     Map<Long, Long> likeCountMap = getLikeCountMapByFeedIds(feedIds);
     Map<Long, Boolean> likedByMeMap = currentUser != null ? getLikedByMeMapByFeedIds(feedIds, currentUser) : new HashMap<>();
 
-    long likeCount = likeCountMap.getOrDefault(feed.getId(), 0L);
-    boolean likedByMe = likedByMeMap.getOrDefault(feed.getId(), false);
-
-    // FeedMapper를 사용하여 FeedDto 생성
-    // commentCount: 명세서 요구사항이지만 프론트엔드 미사용으로 0으로 설정
-    return feedMapper.toDto(feed, currentUser, likeCount, 0, likedByMe);
-  }
-
-  private FeedDto mapToFeedResponseWithLikeInfo(Feed feed, User currentUser, 
-      Map<Long, Long> likeCountMap, Map<Long, Boolean> likedByMeMap) {
     long likeCount = likeCountMap.getOrDefault(feed.getId(), 0L);
     boolean likedByMe = likedByMeMap.getOrDefault(feed.getId(), false);
 
