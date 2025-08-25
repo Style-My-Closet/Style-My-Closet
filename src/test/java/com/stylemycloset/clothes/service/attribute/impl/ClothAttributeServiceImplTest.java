@@ -1,18 +1,18 @@
 package com.stylemycloset.clothes.service.attribute.impl;
 
+import static com.stylemycloset.clothes.entity.attribute.QClothesAttributeDefinition.clothesAttributeDefinition;
+
 import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDto;
 import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDtoCursorResponse;
 import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeCreateRequest;
 import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeSearchCondition;
-import com.stylemycloset.clothes.entity.attribute.QClothesAttributeDefinition;
+import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeUpdateRequest;
 import com.stylemycloset.clothes.repository.attribute.ClothesAttributeDefinitionRepository;
 import com.stylemycloset.clothes.repository.attribute.ClothesAttributeDefinitionSelectableRepository;
-import com.stylemycloset.clothes.repository.attribute.ClothesAttributeDefinitionSelectedRepository;
 import com.stylemycloset.clothes.service.attribute.ClothAttributeService;
 import java.util.List;
 import org.assertj.core.api.Assertions;
-import org.hibernate.query.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,8 +24,6 @@ class ClothAttributeServiceImplTest extends IntegrationTestSupport {
   @Autowired
   private ClothesAttributeDefinitionRepository attributeDefinitionRepository;
   @Autowired
-  private ClothesAttributeDefinitionSelectedRepository attributeDefinitionSelectedRepository;
-  @Autowired
   private ClothesAttributeDefinitionSelectableRepository definitionSelectableRepository;
 
   @Autowired
@@ -34,23 +32,20 @@ class ClothAttributeServiceImplTest extends IntegrationTestSupport {
   @BeforeEach
   void setUp() {
     attributeDefinitionRepository.deleteAllInBatch();
-    attributeDefinitionSelectedRepository.deleteAllInBatch();
     definitionSelectableRepository.deleteAllInBatch();
   }
 
   @DisplayName("속성 정의 이름을 바탕으로 정렬하고 오름 차순 입니다.")
   @Test
-  void createAttribute() {
+  void getAttributeAscName() {
     // given
-    ClothesAttributeDefinitionDto firstRequest = clothAttributeService.createAttribute(
-        new ClothesAttributeCreateRequest(
-            "차", List.of("랜드로바")
-        )
+    ClothesAttributeDefinitionDto laterInAscendingOrder = createAttributeWithSelectableValue(
+        "차",
+        List.of("랜드로바")
     );
-    ClothesAttributeDefinitionDto secondRequest = clothAttributeService.createAttribute(
-        new ClothesAttributeCreateRequest(
-            "가나", List.of("초콜릿")
-        )
+    ClothesAttributeDefinitionDto earlierInAscendingOrder = createAttributeWithSelectableValue(
+        "가나",
+        List.of("초콜릿")
     );
 
     // when
@@ -59,7 +54,7 @@ class ClothAttributeServiceImplTest extends IntegrationTestSupport {
             null,
             null,
             20,
-            QClothesAttributeDefinition.clothesAttributeDefinition.name.getMetadata().getName(),
+            clothesAttributeDefinition.name.getMetadata().getName(),
             Direction.ASC,
             null
         )
@@ -68,7 +63,48 @@ class ClothAttributeServiceImplTest extends IntegrationTestSupport {
     // then
     Assertions.assertThat(attributes.data())
         .extracting(ClothesAttributeDefinitionDto::definitionName)
-        .containsExactly("가나", "차");
+        .containsExactly(
+            earlierInAscendingOrder.definitionName(),
+            laterInAscendingOrder.definitionName()
+        );
+  }
+
+  @DisplayName("선택가능한 의상 속성을 업데이트 합니다")
+  @Test
+  void testUpdateAttribute() {
+    // given
+    String definitionName = "계절";
+    List<String> selectableValues = List.of("봄, 여름", "가을", "겨울");
+    ClothesAttributeDefinitionDto attribute = createAttributeWithSelectableValue(
+        definitionName, selectableValues);
+
+    // when
+    List<String> newSelectableValues = List.of("봄, 여름", "가을", "축구");
+    ClothesAttributeUpdateRequest updateRequest = new ClothesAttributeUpdateRequest(
+        definitionName,
+        newSelectableValues
+    );
+    ClothesAttributeDefinitionDto updatedAttribute = clothAttributeService.updateAttribute(
+        attribute.id(),
+        updateRequest
+    );
+
+    // then
+    Assertions.assertThat(updatedAttribute)
+        .extracting(
+            ClothesAttributeDefinitionDto::definitionName,
+            ClothesAttributeDefinitionDto::selectableValues
+        )
+        .containsExactly(definitionName, newSelectableValues);
+  }
+
+  private ClothesAttributeDefinitionDto createAttributeWithSelectableValue(
+      String definitionName,
+      List<String> selectableValue
+  ) {
+    return clothAttributeService.createAttribute(
+        new ClothesAttributeCreateRequest(definitionName, selectableValue)
+    );
   }
 
 }

@@ -2,7 +2,6 @@ package com.stylemycloset.clothes.service.attribute.impl;
 
 import static com.stylemycloset.common.config.CacheConfig.CLOTHES_ATTRIBUTES_KEY;
 import static com.stylemycloset.common.config.CacheConfig.CLOTHES_ATTRIBUTE_CACHE;
-import static com.stylemycloset.common.config.CacheConfig.CLOTHES_CACHE;
 
 import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDtoCursorResponse;
 import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDto;
@@ -41,7 +40,7 @@ public class ClothAttributeServiceImpl implements ClothAttributeService {
   public ClothesAttributeDefinitionDto createAttribute(
       ClothesAttributeCreateRequest request
   ) {
-    validateAttributeDefinitionDuplicate(request.name());
+    validateAttributeDefinitionDuplicateName(request.name());
     ClothesAttributeDefinition attribute = new ClothesAttributeDefinition(
         request.name(),
         request.selectableValues()
@@ -78,7 +77,7 @@ public class ClothAttributeServiceImpl implements ClothAttributeService {
       Long attributeId,
       ClothesAttributeUpdateRequest request
   ) {
-    validateAttributeDefinitionDuplicate(request.name());
+    validateAttributeDefinitionDuplicateName(request.name());
     ClothesAttributeDefinition attribute = getAttribute(attributeId);
     attribute.update(request.name(), request.selectableValues());
     ClothesAttributeDefinition savedAttribute = clothesAttributeDefinitionRepository.save(
@@ -122,7 +121,7 @@ public class ClothAttributeServiceImpl implements ClothAttributeService {
     );
   }
 
-  private void validateAttributeDefinitionDuplicate(String name) {
+  private void validateAttributeDefinitionDuplicateName(String name) {
     if (clothesAttributeDefinitionRepository.existsByActiveAttributeDefinition(name)) {
       throw new ClothesAttributeDefinitionDuplicateException();
     }

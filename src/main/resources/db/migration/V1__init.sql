@@ -104,7 +104,7 @@ CREATE TABLE clothes_attribute_selectable_value
 (
     id                      BIGSERIAL PRIMARY KEY,
     attribute_definition_id BIGINT                   NOT NULL,
-    value                   VARCHAR(50)              NOT NULL UNIQUE,
+    value                   VARCHAR(50)              NOT NULL,
     deleted_at              TIMESTAMP WITH TIME ZONE,
     created_at              TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at              TIMESTAMP WITH TIME ZONE

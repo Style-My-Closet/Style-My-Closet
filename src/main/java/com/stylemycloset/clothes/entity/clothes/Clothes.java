@@ -84,7 +84,7 @@ public class Clothes extends SoftDeletableEntity {
     if (type != null && !this.clothesType.name().equals(type)) {
       this.clothesType = ClothesType.from(type);
     }
-    if (selectableValues != null && !selectableValues.isEmpty()) {
+    if (selectableValues != null) {
       this.selectedValues = convertToSelectedValues(selectableValues);
     }
   }
@@ -103,11 +103,11 @@ public class Clothes extends SoftDeletableEntity {
     if (selectableValues == null || selectableValues.isEmpty()) {
       return new ArrayList<>();
     }
-    List<ClothesAttributeSelectedValue> list = new ArrayList<>(selectableValues.size());
-    for (ClothesAttributeSelectableValue sv : selectableValues) {
-      list.add(new ClothesAttributeSelectedValue(this, sv));
+    List<ClothesAttributeSelectedValue> values = new ArrayList<>(selectableValues.size());
+    for (ClothesAttributeSelectableValue selectableValue : selectableValues) {
+      values.add(new ClothesAttributeSelectedValue(this, selectableValue));
     }
-    return list;
+    return values;
   }
 
 }

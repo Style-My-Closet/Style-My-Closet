@@ -11,6 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,6 +41,27 @@ public class ClothesAttributeSelectableValue extends SoftDeletableEntity {
   public ClothesAttributeSelectableValue(ClothesAttributeDefinition definition, String value) {
     this.definition = definition;
     this.value = value;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o instanceof ClothesAttributeSelectableValue that
+        && Objects.equals(this.definition, that.definition)
+    ) {
+      return Objects.equals(this.value, that.value);
+    }
+
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = definition != null ? definition.hashCode() : 0;
+    result = 31 * result + (value != null ? value.hashCode() : 0);
+    return result;
   }
 
 }
