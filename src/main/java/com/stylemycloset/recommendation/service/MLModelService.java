@@ -39,11 +39,12 @@ public class MLModelService {
     for (Clothes c : clothes) {
       double p = predictSingle(
           clothingConditionMapper.from3Entity(c.getSelectedValues(), weather, user, false));
-      if (!(p > 70)) {
+      if (!(p > 0.7)) {
         current.clothes().remove(clothesMapper.toClothesDto(c));
         result = current;
         recordFeedback(weather, user, c.getSelectedValues(), false);
       } else {
+        result = current;
         recordFeedback(weather, user, c.getSelectedValues(), true);
       }
     }

@@ -11,6 +11,7 @@ import com.stylemycloset.weather.entity.Weather.AlertType;
 import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import jakarta.persistence.EntityManager;
 import java.util.List;
+import java.util.Optional;
 import org.postgresql.util.PGobject;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -30,7 +31,7 @@ public class ClothingConditionRepositoryImpl implements ClothingConditionReposit
 
     @Override
     public ClothingCondition findMostSimilarByVector(float[] inputVector) {
-        String sql = "SELECT * FROM clothing_conditions ORDER BY ABS(embedding <#> ?) LIMIT 1";
+        String sql = "SELECT * FROM clothing_conditions ORDER BY embedding <#> ? LIMIT 1";
 
         PGobject pg = VectorHelper.toPGVector(inputVector);
 
@@ -59,10 +60,9 @@ public class ClothingConditionRepositoryImpl implements ClothingConditionReposit
     @Override
     public boolean saveIfNotDuplicate(ClothingCondition newCondition) {
         String sql = """
-            SELECT id, embedding, ABS(embedding <#> ?) AS cosine_distance
+            SELECT id, embedding, embedding <=> ? AS cosine_distance
             FROM clothing_conditions
             ORDER BY cosine_distance
-            LIMIT 3
             """;
 
         List<ConditionWithDistance> result = jdbcTemplate.query(
@@ -75,8 +75,13 @@ public class ClothingConditionRepositoryImpl implements ClothingConditionReposit
             )
         );
 
-        if (!result.isEmpty() && result.get(0).cosineDistance() < 0.001) {
-            System.out.println("유사 벡터 발견, 거리: " + result.get(0).cosineDistance());
+        Optional<Double> firstMatch = result.stream()
+            .map(ConditionWithDistance::cosineDistance)
+            .filter(distance -> distance <= 0.001)
+            .findFirst();
+
+        if (!result.isEmpty() && firstMatch.isPresent()) {
+            System.out.println("유사 벡터 발견, 거리: " + firstMatch.toString());
             return false; // 거의 동일한 벡터 존재 → 저장하지 않음
         }
 

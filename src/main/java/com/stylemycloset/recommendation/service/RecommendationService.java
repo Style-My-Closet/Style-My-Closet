@@ -64,6 +64,7 @@ public class RecommendationService {
           result = current;
           if(!c.getSelectedValues().isEmpty()) {vectorCosineSimilarityMeter.recordFeedback(weather, user, c.getSelectedValues(), false);}
         } else {
+          result = current;
           vectorCosineSimilarityMeter.recordFeedback(weather, user, c.getSelectedValues(), true);
         }
       }
