@@ -1,6 +1,6 @@
 package com.stylemycloset.ootd.dto;
 
-import com.stylemycloset.ootd.tempEnum.PrecipitationType;
+import com.stylemycloset.weather.entity.Weather.AlertType;
 import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -22,7 +22,7 @@ public record FeedSearchRequest(
     // 필터링(검색) 관련
     String keywordLike,
     SkyStatus skyStatusEqual,
-    PrecipitationType precipitationTypeEqual,
+    AlertType precipitationTypeEqual,
     Long authorIdEqual
 ) {
 
