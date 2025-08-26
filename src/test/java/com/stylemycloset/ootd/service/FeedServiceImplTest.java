@@ -330,7 +330,7 @@ class FeedServiceImplTest {
       assertThatThrownBy(() -> feedService.updateFeed(currentUserId, feedId, request))
           .isInstanceOf(StyleMyClosetException.class)
           .extracting("errorCode")
-          .isEqualTo(ErrorCode.ERROR_CODE);
+          .isEqualTo(ErrorCode.FEED_UPDATE_FORBIDDEN);
     }
 
     @Test

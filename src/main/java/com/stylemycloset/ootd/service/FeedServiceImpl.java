@@ -1,5 +1,18 @@
 package com.stylemycloset.ootd.service;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.clothes.repository.clothes.ClothesRepository;
 import com.stylemycloset.common.exception.ErrorCode;
@@ -19,29 +32,17 @@ import com.stylemycloset.ootd.dto.FeedUpdateRequest;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.FeedComment;
 import com.stylemycloset.ootd.entity.FeedLike;
+import com.stylemycloset.ootd.mapper.CommentMapper;
+import com.stylemycloset.ootd.mapper.FeedMapper;
+import com.stylemycloset.ootd.mapper.OotdItemMapper;
 import com.stylemycloset.ootd.repo.FeedClothesRepository;
 import com.stylemycloset.ootd.repo.FeedCommentRepository;
 import com.stylemycloset.ootd.repo.FeedLikeRepository;
 import com.stylemycloset.ootd.repo.FeedRepository;
-import com.stylemycloset.ootd.mapper.OotdItemMapper;
-import com.stylemycloset.ootd.mapper.FeedMapper;
-import com.stylemycloset.ootd.mapper.CommentMapper;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
-
 import com.stylemycloset.weather.entity.Weather;
 import com.stylemycloset.weather.repository.WeatherRepository;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.lang.Nullable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -121,7 +122,7 @@ public class FeedServiceImpl implements FeedService {
 
     // FeedMapper를 사용하여 FeedDto 리스트 생성
     List<FeedDto> feedDtos = feedMapper.toDtoList(feeds, currentUser, likeCountMap,
-        new HashMap<>(), likedByMeMap); // TODO: commentCount 구현 필요 여부 고민(명세서엔 존재, 프론트엔 없음)
+                        new HashMap<>(), likedByMeMap);
 
     return new FeedDtoCursorResponse(
         feedDtos, nextCursor, nextIdAfter, hasNext, 0L, request.sortBy(), request.sortDirection());
@@ -172,7 +173,7 @@ public class FeedServiceImpl implements FeedService {
     boolean likedByMe = likedByMeMap.getOrDefault(feed.getId(), false);
 
     // FeedMapper를 사용하여 FeedDto 생성
-    return feedMapper.toDto(feed, currentUser, likeCount, 0, likedByMe); // TODO: commentCount 구현 필요 (명세서 요구사항)
+    return feedMapper.toDto(feed, currentUser, likeCount, 0, likedByMe);
   }
 
   private FeedDto mapToFeedResponseWithLikeInfo(Feed feed, User currentUser,
@@ -181,7 +182,7 @@ public class FeedServiceImpl implements FeedService {
     boolean likedByMe = likedByMeMap.getOrDefault(feed.getId(), false);
 
     // FeedMapper를 사용하여 FeedDto 생성
-    return feedMapper.toDto(feed, currentUser, likeCount, 0, likedByMe); // TODO: commentCount 구현 필요 (명세서 요구사항)
+    return feedMapper.toDto(feed, currentUser, likeCount, 0, likedByMe);
   }
 
   private Map<Long, Long> getLikeCountMap(List<Feed> feeds) {
@@ -223,7 +224,7 @@ public class FeedServiceImpl implements FeedService {
             Map.of("feedId", feedId)));
 
     if (!feed.getAuthor().getId().equals(currentUserId)) {
-      throw new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("reason", "수정 권한이 없습니다."));
+      throw new StyleMyClosetException(ErrorCode.FEED_UPDATE_FORBIDDEN, Map.of("feedId", feedId, "currentUserId", currentUserId));
     }
 
     feed.updateContent(request.content());
@@ -243,9 +244,9 @@ public class FeedServiceImpl implements FeedService {
         .orElseThrow(() -> new StyleMyClosetException(ErrorCode.FEED_NOT_FOUND,
             Map.of("feedId", feedId)));
 
-    // 권환 확인
+    // 권한 확인
     if (!feed.getAuthor().getId().equals(currentUserId)) {
-      throw new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("reason", "삭제 권한이 없습니다."));
+      throw new StyleMyClosetException(ErrorCode.FEED_DELETE_FORBIDDEN, Map.of("feedId", feedId, "currentUserId", currentUserId));
     }
 
     feedRepository.delete(feed);
@@ -276,7 +277,7 @@ public class FeedServiceImpl implements FeedService {
     // CommentMapper를 사용하여 CommentDto 리스트 생성
     List<CommentDto> commentDtos = commentMapper.toDtoList(comments);
 
-    // TODO: totalCount 구현 필요 (명세서 요구사항)
+    // totalCount: 명세서 요구사항이지만 프론트엔드 미사용으로 0으로 설정
     return new CommentCursorResponse(commentDtos, nextCursor, nextIdAfter, hasNext, 0L, "createdAt",
         "DESC");
   }
@@ -285,7 +286,7 @@ public class FeedServiceImpl implements FeedService {
   @Transactional
   public CommentDto createComment(CommentCreateRequest request, Long currentUserId) {
     if (!request.authorId().equals(currentUserId)) {
-      throw new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("reason", "댓글을 작성할 권한이 없습니다."));
+      throw new StyleMyClosetException(ErrorCode.COMMENT_CREATE_FORBIDDEN, Map.of("requestAuthorId", request.authorId(), "currentUserId", currentUserId));
     }
 
     User author = userRepository.findByIdAndDeletedAtIsNullAndLockedIsFalse(request.authorId())
