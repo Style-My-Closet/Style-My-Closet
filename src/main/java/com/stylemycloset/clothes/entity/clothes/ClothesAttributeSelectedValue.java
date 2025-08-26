@@ -1,7 +1,6 @@
 package com.stylemycloset.clothes.entity.clothes;
 
 import com.stylemycloset.clothes.entity.attribute.ClothesAttributeSelectableValue;
-import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.common.entity.SoftDeletableEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,12 +14,13 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Where;
 
 @Getter
 @Entity
 @Table(name = "clothes_attribute_selected_value")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Where(clause = "deleted_at IS NULL")
 public class ClothesAttributeSelectedValue extends SoftDeletableEntity {
 
   @Id

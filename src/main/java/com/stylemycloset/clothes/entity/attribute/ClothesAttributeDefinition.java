@@ -98,8 +98,8 @@ public class ClothesAttributeDefinition extends SoftDeletableEntity {
   ) {
     Set<ClothesAttributeSelectableValue> oldValues = new LinkedHashSet<>(existSelectables);
     oldValues.removeAll(newSelectables);
-    for (ClothesAttributeSelectableValue v : oldValues) {
-      v.softDelete();
+    for (ClothesAttributeSelectableValue selectableValue : oldValues) {
+      selectableValue.softDelete();
     }
     this.selectableValues.removeIf(oldValues::contains);
   }
