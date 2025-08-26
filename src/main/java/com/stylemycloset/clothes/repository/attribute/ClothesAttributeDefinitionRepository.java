@@ -23,4 +23,6 @@ public interface ClothesAttributeDefinitionRepository extends
       """)
   boolean existsByActiveAttributeDefinition(@Param("definitionName") String definitionName);
 
+
+  Optional<ClothesAttributeDefinition> findByName(String attributeName);
 }
