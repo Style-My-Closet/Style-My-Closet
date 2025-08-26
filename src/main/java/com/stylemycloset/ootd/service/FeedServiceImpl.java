@@ -34,7 +34,6 @@ import com.stylemycloset.ootd.entity.FeedComment;
 import com.stylemycloset.ootd.entity.FeedLike;
 import com.stylemycloset.ootd.mapper.CommentMapper;
 import com.stylemycloset.ootd.mapper.FeedMapper;
-import com.stylemycloset.ootd.mapper.OotdItemMapper;
 
 import com.stylemycloset.ootd.repo.FeedCommentRepository;
 import com.stylemycloset.ootd.repo.FeedLikeRepository;
@@ -269,7 +268,6 @@ public class FeedServiceImpl implements FeedService {
     // CommentMapper를 사용하여 CommentDto 리스트 생성
     List<CommentDto> commentDtos = commentMapper.toDtoList(comments);
 
-    // totalCount: 명세서 요구사항이지만 프론트엔드 미사용으로 0으로 설정
     return new CommentCursorResponse(commentDtos, nextCursor, nextIdAfter, hasNext, 0L, "createdAt",
         "DESC");
   }
