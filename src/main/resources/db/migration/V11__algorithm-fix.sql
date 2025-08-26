@@ -22,31 +22,6 @@ CREATE TRIGGER trigger_set_dates
     FOR EACH ROW
 EXECUTE FUNCTION set_created_date();
 
-UPDATE clothing_conditions
-    SET embedding =
-            (ARRAY(
-                    SELECT e / sqrt(embedding <#> embedding)
-                    FROM unnest(embedding) AS e
-             ))::vector
-    WHERE TRUE;
-
-CREATE OR REPLACE FUNCTION normalize_embedding()
-    RETURNS trigger AS $$
-BEGIN
-    NEW.embedding :=
-            (ARRAY(
-                    SELECT e / sqrt(NEW.embedding <#> NEW.embedding)
-                    FROM unnest(NEW.embedding) AS e
-             ))::vector;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_normalize_embedding
-    BEFORE INSERT OR UPDATE ON clothing_conditions
-    FOR EACH ROW
-EXECUTE FUNCTION normalize_embedding();
-
 
 -- unique constraint 생성
 ALTER TABLE weather

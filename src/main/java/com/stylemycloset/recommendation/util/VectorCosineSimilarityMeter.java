@@ -4,13 +4,11 @@ import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.clothes.entity.clothes.ClothesAttributeSelectedValue;
 import com.stylemycloset.recommendation.entity.ClothingCondition;
 import com.stylemycloset.recommendation.mapper.ClothingConditionMapper;
-import com.stylemycloset.recommendation.repository.ClothingConditionRepository;
 import com.stylemycloset.recommendation.repository.ClothingConditionRepositoryCustom;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.weather.entity.Weather;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.postgresql.util.PGobject;
 import org.springframework.stereotype.Component;
 
 @Component

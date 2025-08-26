@@ -6,6 +6,7 @@ import com.stylemycloset.recommendation.entity.ClothingCondition;
 import com.stylemycloset.recommendation.entity.ClothingCondition.ClothingConditionBuilder;
 import com.stylemycloset.recommendation.util.ClothingConditionBuilderHelper;
 import com.stylemycloset.recommendation.util.ConditionVectorizer;
+import com.stylemycloset.recommendation.util.VectorHelper;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.weather.entity.Weather;
 import java.util.List;
@@ -38,7 +39,9 @@ public class ClothingConditionMapper {
 
     float[] embedding = conditionVectorizer.toConditionVector(feature);
 
-    feature = builder.embedding(embedding).build();
+    float[] nomalize_vector =  VectorHelper.normalize(embedding);
+
+    feature = builder.embedding(nomalize_vector).build();
     return feature;
 
 
@@ -46,6 +49,8 @@ public class ClothingConditionMapper {
 
   public ClothingCondition withVector(ClothingCondition cc) {
     float[] embedding = conditionVectorizer.toConditionVector(cc);
+    float[] nomalize_vector =  VectorHelper.normalize(embedding);
+
     ClothingConditionBuilder builder = ClothingCondition.builder()
         .temperature(cc.getTemperature())
         .humidity(cc.getHumidity())
@@ -58,6 +63,6 @@ public class ClothingConditionMapper {
         .sleeveLength(cc.getSleeveLength())
         .skyStatus(cc.getSkyStatus())
         .label(cc.getLabel());
-    return builder.embedding(embedding).build();
+    return builder.embedding(nomalize_vector).build();
   }
 }

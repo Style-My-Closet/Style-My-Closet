@@ -7,8 +7,10 @@ import java.util.stream.IntStream;
 public class VectorHelper {
 
     // float[] → PGobject
-    public static PGobject toPGVector(float[] vector) {
-        if (vector == null) return null;
+    public static PGobject toPGVector(float[] vector1) {
+        if (vector1 == null) return null;
+
+        float[] vector = normalize(vector1);
 
         PGobject pg = new PGobject();
         pg.setType("vector");
@@ -45,5 +47,28 @@ public class VectorHelper {
         } else {
             ps.setObject(index, pg);
         }
+    }
+
+    public static float[] normalize(float[] vector) {
+        if (vector == null || vector.length == 0) {
+            throw new IllegalArgumentException("Vector is null or empty");
+        }
+
+        float norm = 0f;
+        for (float v : vector) {
+            norm += v * v;
+        }
+        norm = (float) Math.sqrt(norm);
+
+        if (norm == 0f) {
+            throw new IllegalArgumentException("Zero vector cannot be normalized");
+        }
+
+        float[] normalized = new float[vector.length];
+        for (int i = 0; i < vector.length; i++) {
+            normalized[i] = vector[i] / norm;
+        }
+
+        return normalized;
     }
 }
