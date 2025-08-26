@@ -4,6 +4,7 @@ import com.stylemycloset.recommendation.dto.ConditionWithDistance;
 import com.stylemycloset.recommendation.entity.ClothingCondition;
 import com.stylemycloset.recommendation.entity.Color;
 import com.stylemycloset.recommendation.entity.Length;
+import com.stylemycloset.recommendation.entity.Material;
 import com.stylemycloset.recommendation.util.VectorHelper;
 import com.stylemycloset.user.entity.Gender;
 import com.stylemycloset.weather.entity.Weather.AlertType;
@@ -48,6 +49,7 @@ public class ClothingConditionRepositoryImpl implements ClothingConditionReposit
                     .weatherType(AlertType.values()[rs.getInt("weather_type")])
                     .color(Color.values()[rs.getInt("color")])
                     .length(Length.values()[rs.getInt("sleeve_length")])
+                    .material(Material.values()[rs.getInt("material")])
                     .label(rs.getBoolean("label"))
                     .embedding(VectorHelper.fromPGVector(rs.getString("embedding")))
                     .build();

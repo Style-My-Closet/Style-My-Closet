@@ -57,7 +57,7 @@ public class ClothingCondition {
 
     @Type(VectorType.class)
     @JdbcTypeCode(SqlTypes.OTHER)
-    @Column(columnDefinition = "vector(28)")
+    @Column(columnDefinition = "vector(37)")
     private float[] embedding;
 
 

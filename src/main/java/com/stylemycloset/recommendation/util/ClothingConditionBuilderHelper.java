@@ -4,6 +4,7 @@ import com.stylemycloset.clothes.entity.clothes.ClothesAttributeSelectedValue;
 import com.stylemycloset.recommendation.entity.ClothingCondition;
 import com.stylemycloset.recommendation.entity.Color;
 import com.stylemycloset.recommendation.entity.Length;
+import com.stylemycloset.recommendation.entity.Material;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -31,16 +32,25 @@ public class ClothingConditionBuilderHelper {
 
         // Length 필드 세팅
         values.stream()
-            .filter(v -> v.getSelectableValue().getDefinition() != null && v.getSelectableValue().getDefinition().getName().equalsIgnoreCase("SleeveLength"))
+            .filter(v -> v.getSelectableValue().getDefinition() != null && v.getSelectableValue().getDefinition().getName().equalsIgnoreCase("Length"))
             .findFirst()
             .ifPresent(v -> {
                 try {
-                    Length sleeve = Length.valueOf(v.getSelectableValue().getValue().toUpperCase());
-                    builder.length(sleeve);
+                    Length length = Length.valueOf(v.getSelectableValue().getValue().toUpperCase());
+                    builder.length(length);
                 } catch (IllegalArgumentException ignored) {}
             });
 
-
+        // Material 필드 세팅
+        values.stream()
+            .filter(v -> v.getSelectableValue().getDefinition() != null && v.getSelectableValue().getDefinition().getName().equalsIgnoreCase("Material"))
+            .findFirst()
+            .ifPresent(v -> {
+                try {
+                    Material material = Material.valueOf(v.getSelectableValue().getValue().toUpperCase());
+                    builder.material(material);
+                } catch (IllegalArgumentException ignored) {}
+            });
 
         return builder;
     }
