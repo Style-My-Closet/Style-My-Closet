@@ -57,7 +57,6 @@ public class FeedServiceImpl implements FeedService {
   private final FeedLikeRepository feedLikeRepository;
   private final FeedCommentRepository feedCommentRepository;
   private final ApplicationEventPublisher publisher;
-  private final OotdItemMapper ootdItemMapper;
   private final FeedMapper feedMapper;
   private final CommentMapper commentMapper;
 

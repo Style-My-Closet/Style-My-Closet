@@ -73,8 +73,6 @@ class FeedServiceImplTest {
   @Mock
   private ApplicationEventPublisher publisher;
   @Mock
-  private OotdItemMapper ootdItemMapper;
-  @Mock
   private FeedMapper feedMapper;
   @Mock
   private CommentMapper commentMapper;
