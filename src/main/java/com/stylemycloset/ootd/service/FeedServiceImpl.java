@@ -35,7 +35,7 @@ import com.stylemycloset.ootd.entity.FeedLike;
 import com.stylemycloset.ootd.mapper.CommentMapper;
 import com.stylemycloset.ootd.mapper.FeedMapper;
 import com.stylemycloset.ootd.mapper.OotdItemMapper;
-import com.stylemycloset.ootd.repo.FeedClothesRepository;
+
 import com.stylemycloset.ootd.repo.FeedCommentRepository;
 import com.stylemycloset.ootd.repo.FeedLikeRepository;
 import com.stylemycloset.ootd.repo.FeedRepository;
@@ -50,7 +50,7 @@ import com.stylemycloset.weather.repository.WeatherRepository;
 public class FeedServiceImpl implements FeedService {
 
   private final FeedRepository feedRepository;
-  private final FeedClothesRepository feedClothesRepository;
+
   private final UserRepository userRepository;
   private final ClothesRepository clothRepository;
   private final WeatherRepository weatherRepository;
@@ -176,14 +176,7 @@ public class FeedServiceImpl implements FeedService {
     return feedMapper.toDto(feed, currentUser, likeCount, 0, likedByMe);
   }
 
-  private FeedDto mapToFeedResponseWithLikeInfo(Feed feed, User currentUser,
-      Map<Long, Long> likeCountMap, Map<Long, Boolean> likedByMeMap) {
-    long likeCount = likeCountMap.getOrDefault(feed.getId(), 0L);
-    boolean likedByMe = likedByMeMap.getOrDefault(feed.getId(), false);
 
-    // FeedMapper를 사용하여 FeedDto 생성
-    return feedMapper.toDto(feed, currentUser, likeCount, 0, likedByMe);
-  }
 
   private Map<Long, Long> getLikeCountMap(List<Feed> feeds) {
     List<Long> feedIds = feeds.stream().map(Feed::getId).collect(Collectors.toList());
