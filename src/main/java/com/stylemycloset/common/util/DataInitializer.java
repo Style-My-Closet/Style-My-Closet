@@ -38,11 +38,11 @@ public class DataInitializer implements CommandLineRunner {
 
             clothingConditionRepository.saveAll(dummyData);
 
-            // enum 기반 속성 초기화
-            initializeAttribute("color", Color.values());
-            initializeAttribute("length", Length.values());
-            initializeAttribute("material", Material.values());
         }
+        // enum 기반 속성 초기화
+        initializeAttribute("color", Color.values());
+        initializeAttribute("length", Length.values());
+        initializeAttribute("material", Material.values());
     }
 
     private <E extends Enum<E>> void initializeAttribute(String attributeName, E[] values) {
@@ -61,8 +61,6 @@ public class DataInitializer implements CommandLineRunner {
             if (!exists) {
                 ClothesAttributeSelectableValue newValue = new ClothesAttributeSelectableValue(definition, valueStr);
                 valueRepository.save(newValue);
-                definition.getSelectableValues().add(newValue); // 리스트에도 추가
-                definitionRepository.save(definition);
             }
         }
     }
