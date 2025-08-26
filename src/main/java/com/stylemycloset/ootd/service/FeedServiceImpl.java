@@ -13,8 +13,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.stylemycloset.cloth.entity.Cloth;
-import com.stylemycloset.cloth.repository.ClothRepository;
+import com.stylemycloset.clothes.entity.clothes.Clothes;
+import com.stylemycloset.clothes.repository.clothes.ClothesRepository;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.notification.event.domain.FeedCommentEvent;
@@ -49,7 +49,7 @@ public class FeedServiceImpl implements FeedService {
 
   private final FeedRepository feedRepository;
   private final UserRepository userRepository;
-  private final ClothRepository clothRepository;
+  private final ClothesRepository clothRepository;
   private final WeatherRepository weatherRepository;
   private final FeedLikeRepository feedLikeRepository;
   private final FeedCommentRepository feedCommentRepository;
@@ -66,7 +66,7 @@ public class FeedServiceImpl implements FeedService {
 
     Weather weather = findWeatherOrNull(request.weatherId());
 
-    List<Cloth> clothesList = clothRepository.findAllById(request.clothesIds());
+    List<Clothes> clothesList = clothRepository.findAllById(request.clothesIds());
     if (clothesList.size() != request.clothesIds().size()) {
       throw new StyleMyClosetException(ErrorCode.CLOTHES_NOT_FOUND,
           Map.of("requestedIds", request.clothesIds()));
@@ -87,7 +87,7 @@ public class FeedServiceImpl implements FeedService {
   @Override
   public FeedDtoCursorResponse getFeeds(FeedSearchRequest request, @Nullable Long currentUserId) {
     // 인증된 사용자 정보 조회
-    User currentUser = currentUserId != null ? 
+    User currentUser = currentUserId != null ?
         userRepository.findByIdAndDeletedAtIsNullAndLockedIsFalse(currentUserId).orElse(null) : null;
 
     List<Feed> feeds = feedRepository.findByConditions(request);
@@ -117,9 +117,8 @@ public class FeedServiceImpl implements FeedService {
     }
 
     // FeedMapper를 사용하여 FeedDto 리스트 생성
-    // commentCount: 명세서 요구사항이지만 프론트엔드 미사용으로 0으로 설정
-    List<FeedDto> feedDtos = feedMapper.toDtoList(feeds, currentUser, likeCountMap, 
-        new HashMap<>(), likedByMeMap);
+    List<FeedDto> feedDtos = feedMapper.toDtoList(feeds, currentUser, likeCountMap,
+        new HashMap<>(), likedByMeMap); // TODO: commentCount 구현 필요 여부 고민(명세서엔 존재, 프론트엔 없음)
 
     return new FeedDtoCursorResponse(
         feedDtos, nextCursor, nextIdAfter, hasNext, 0L, request.sortBy(), request.sortDirection());
@@ -178,7 +177,7 @@ public class FeedServiceImpl implements FeedService {
     if (feedIds.isEmpty()) {
       return new HashMap<>();
     }
-    
+
     // Batch 쿼리로 좋아요 수 조회
     List<FeedLikeRepository.FeedLikeCountProjection> results = feedLikeRepository.countByFeedIds(feedIds);
     
@@ -206,14 +205,14 @@ public class FeedServiceImpl implements FeedService {
     if (feedIds.isEmpty()) {
       return new HashMap<>();
     }
-    
+
     // Batch 쿼리로 좋아요 상태 조회
     List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByUserAndFeedIds(currentUser.getId(), feedIds);
-    HashSet<Long> likedFeedIdSet = new HashSet<>(likedFeedIds); // O(1) 
+    HashSet<Long> likedFeedIdSet = new HashSet<>(likedFeedIds); // O(1)
     return feedIds.stream()
         .collect(Collectors.toMap(
             feedId -> feedId,
-            feedId -> likedFeedIdSet.contains(feedId) // O(1) 
+            feedId -> likedFeedIdSet.contains(feedId) // O(1)
         ));
   }
 
@@ -313,14 +312,14 @@ public class FeedServiceImpl implements FeedService {
     if (feedIds.isEmpty()) {
       return new HashMap<>();
     }
-    
+
     // Batch 쿼리로 좋아요 상태 조회
     List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByUserAndFeedIds(currentUser.getId(), feedIds);
-    HashSet<Long> likedFeedIdSet = new HashSet<>(likedFeedIds); // O(1) 
+    HashSet<Long> likedFeedIdSet = new HashSet<>(likedFeedIds); // O(1)
     return feedIds.stream()
         .collect(Collectors.toMap(
             feedId -> feedId,
-            feedId -> likedFeedIdSet.contains(feedId) // O(1) 
+            feedId -> likedFeedIdSet.contains(feedId) // O(1)
         ));
   }
 }

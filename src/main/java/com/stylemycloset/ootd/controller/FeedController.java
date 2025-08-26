@@ -28,7 +28,6 @@ import com.stylemycloset.ootd.dto.FeedSearchRequest;
 import com.stylemycloset.ootd.dto.FeedUpdateRequest;
 import com.stylemycloset.ootd.service.FeedService;
 import com.stylemycloset.security.ClosetUserDetails;
-
 @RestController
 @RequestMapping("/api/feeds")
 @RequiredArgsConstructor
@@ -64,7 +63,7 @@ public class FeedController {
   @PostMapping("/{feedId}/like")
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<FeedDto> likeFeed(
-      @PathVariable Long feedId,
+      @PathVariable(name = "feedId") Long feedId,
       @AuthenticationPrincipal ClosetUserDetails userDetails
   ) {
     Long userId = userDetails.getUserId();
@@ -75,7 +74,7 @@ public class FeedController {
   @DeleteMapping("/{feedId}/like")
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<Void> unlikeFeed(
-      @PathVariable Long feedId,
+      @PathVariable(name = "feedId") Long feedId,
       @AuthenticationPrincipal ClosetUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     feedService.toggleLike(userId, feedId);
@@ -84,7 +83,7 @@ public class FeedController {
 
   @GetMapping("/{feedId}/comments")
   public ResponseEntity<CommentCursorResponse> getComments(
-      @PathVariable Long feedId,
+      @PathVariable(name = "feedId")  Long feedId,
       @Valid CommentSearchRequest request
   ) {
     CommentCursorResponse response = feedService.getComments(feedId, request);
@@ -94,7 +93,7 @@ public class FeedController {
   @PostMapping("/{feedId}/comments")
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<CommentDto> createComment(
-      @PathVariable Long feedId,
+      @PathVariable(name = "feedId")  Long feedId,
       @Valid @RequestBody CommentCreateRequest request,
       @AuthenticationPrincipal ClosetUserDetails userDetails
   ) {
@@ -110,7 +109,7 @@ public class FeedController {
   @DeleteMapping("/{feedId}")
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<Void> deleteFeed(
-      @PathVariable Long feedId,
+      @PathVariable(name = "feedId")  Long feedId,
       @AuthenticationPrincipal ClosetUserDetails userDetails
   ) {
     Long userId = userDetails.getUserId();
@@ -122,7 +121,7 @@ public class FeedController {
   @PatchMapping("/{feedId}")
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<FeedDto> updateFeed(
-      @PathVariable Long feedId,
+      @PathVariable(name = "feedId") Long feedId,
       @Valid @RequestBody FeedUpdateRequest request,
       @AuthenticationPrincipal ClosetUserDetails userDetails
   ) {
