@@ -32,7 +32,7 @@ public class ClothingConditionBuilderHelper {
 
         // sleeveLength 필드 세팅
         values.stream()
-            .filter(v -> v.getSelectableValue().getDefinition() != null && v.getSelectableValue().getDefinition().getName().equalsIgnoreCase("SLEEVE"))
+            .filter(v -> v.getSelectableValue().getDefinition() != null && v.getSelectableValue().getDefinition().getName().equalsIgnoreCase("SleeveLength"))
             .findFirst()
             .ifPresent(v -> {
                 try {
@@ -43,7 +43,7 @@ public class ClothingConditionBuilderHelper {
 
         // pantsLength 필드 세팅
         values.stream()
-            .filter(v -> v.getSelectableValue().getDefinition() != null && v.getSelectableValue().getDefinition().getName().equalsIgnoreCase("PANTS"))
+            .filter(v -> v.getSelectableValue().getDefinition() != null && v.getSelectableValue().getDefinition().getName().equalsIgnoreCase("PantsLength"))
             .findFirst()
             .ifPresent(v -> {
                 try {

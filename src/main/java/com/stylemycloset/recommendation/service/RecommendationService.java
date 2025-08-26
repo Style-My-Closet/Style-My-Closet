@@ -62,7 +62,7 @@ public class RecommendationService {
         if (!vectorCosineSimilarityMeter.recommend(c, weather, user)) {
           current.clothes().remove(clothesMapper.toClothesDto(c));
           result = current;
-          vectorCosineSimilarityMeter.recordFeedback(weather, user, c.getSelectedValues(), false);
+          if(!c.getSelectedValues().isEmpty()) {vectorCosineSimilarityMeter.recordFeedback(weather, user, c.getSelectedValues(), false);}
         } else {
           vectorCosineSimilarityMeter.recordFeedback(weather, user, c.getSelectedValues(), true);
         }

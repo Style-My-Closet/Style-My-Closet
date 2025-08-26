@@ -9,6 +9,7 @@ import com.stylemycloset.recommendation.mapper.ClothesMapper;
 import com.stylemycloset.recommendation.mapper.ClothingConditionMapper;
 import com.stylemycloset.recommendation.mapper.RecommendationMapper;
 import com.stylemycloset.recommendation.repository.ClothingConditionRepository;
+import com.stylemycloset.recommendation.repository.ClothingConditionRepositoryCustom;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.weather.entity.Weather;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class MLModelService {
 
   private Booster booster;  // XGBoost 모델
   private final ClothingConditionRepository repository;
+  private final ClothingConditionRepositoryCustom customRepository;
   private final ClothingConditionMapper clothingConditionMapper;
   private final RecommendationMapper recommendationMapper;
   private final ClothesMapper clothesMapper;
@@ -128,6 +130,6 @@ public class MLModelService {
 
     ClothingCondition feature = clothingConditionMapper.from3Entity(values, weather, user, label);
 
-    repository.save(feature);
+    customRepository.saveIfNotDuplicate(feature);
   }
 }

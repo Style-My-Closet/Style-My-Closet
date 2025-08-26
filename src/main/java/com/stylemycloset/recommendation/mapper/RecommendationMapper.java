@@ -4,6 +4,7 @@ import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.recommendation.dto.RecommendationDto;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.weather.entity.Weather;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -19,9 +20,9 @@ public class RecommendationMapper {
     return new RecommendationDto(
         weather.getId(),
         user.getId(),
-        clothes.stream()
+        new ArrayList<>(clothes.stream()
             .map(clothesMapper::toClothesDto)
-            .toList()
+            .toList())
     );
 
 

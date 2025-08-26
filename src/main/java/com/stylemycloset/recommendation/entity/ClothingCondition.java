@@ -7,7 +7,10 @@ import com.stylemycloset.weather.entity.Weather.AlertType;
 import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
+
 
 
 @Entity
@@ -53,6 +56,7 @@ public class ClothingCondition {
     private Boolean label;
 
     @Type(VectorType.class)
+    @JdbcTypeCode(SqlTypes.OTHER)
     @Column(columnDefinition = "vector(28)")
     private float[] embedding;
 

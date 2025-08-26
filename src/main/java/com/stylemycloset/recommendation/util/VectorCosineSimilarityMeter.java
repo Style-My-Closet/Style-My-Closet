@@ -5,17 +5,19 @@ import com.stylemycloset.clothes.entity.clothes.ClothesAttributeSelectedValue;
 import com.stylemycloset.recommendation.entity.ClothingCondition;
 import com.stylemycloset.recommendation.mapper.ClothingConditionMapper;
 import com.stylemycloset.recommendation.repository.ClothingConditionRepository;
+import com.stylemycloset.recommendation.repository.ClothingConditionRepositoryCustom;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.weather.entity.Weather;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.postgresql.util.PGobject;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class VectorCosineSimilarityMeter {
 
-  private final ClothingConditionRepository repository;
+  private final ClothingConditionRepositoryCustom repository;
   private final ConditionVectorizer conditionVectorizer;
   private final ClothingConditionMapper clothingConditionMapper;
 
@@ -25,7 +27,7 @@ public class VectorCosineSimilarityMeter {
         clothingConditionMapper.from3Entity(cloth.getSelectedValues(), weather, user, false)
     );
 
-    ClothingCondition mostSimilar = repository.findMostSimilar(inputVector);
+    ClothingCondition mostSimilar = repository.findMostSimilarByVector(inputVector);
 
     return mostSimilar != null && Boolean.TRUE.equals(mostSimilar.getLabel());
   }
@@ -34,6 +36,6 @@ public class VectorCosineSimilarityMeter {
   public void recordFeedback(Weather weather, User user, List<ClothesAttributeSelectedValue> values,
       Boolean label) {
     ClothingCondition feature = clothingConditionMapper.from3Entity(values, weather, user, label);
-    repository.save(feature);
+    repository.saveIfNotDuplicate(feature);
   }
 }
