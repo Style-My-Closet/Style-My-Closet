@@ -22,13 +22,16 @@ import com.stylemycloset.follow.service.FollowService;
 import com.stylemycloset.notification.dto.NotificationDto;
 import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.user.entity.User;
+import com.stylemycloset.user.exception.UserNotFoundException;
 import com.stylemycloset.user.repository.UserRepository;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.transaction.TestTransaction;
@@ -47,8 +50,8 @@ class FollowServiceTest extends IntegrationTestSupport {
   @MockitoBean
   private SseService sseService;
 
-  @AfterEach
-  void tearDown() {
+  @BeforeEach
+  void setUp() {
     userRepository.deleteAllInBatch();
     followRepository.deleteAllInBatch();
   }
@@ -59,9 +62,9 @@ class FollowServiceTest extends IntegrationTestSupport {
     // given
     User userA = userRepository.save(new User("a", "a", "a"));
     User userB = userRepository.save(new User("b", "b", "b"));
-    FollowCreateRequest followCreateRequest = new FollowCreateRequest(userB.getId(), userA.getId());
 
     // when
+    FollowCreateRequest followCreateRequest = new FollowCreateRequest(userB.getId(), userA.getId());
     FollowResult followResult = followService.startFollowing(followCreateRequest);
 
     if (TestTransaction.isActive()) {
@@ -84,9 +87,9 @@ class FollowServiceTest extends IntegrationTestSupport {
   void testForbiddenBySelf() {
     // given
     User userA = userRepository.save(new User("a", "a", "a"));
-    FollowCreateRequest followCreateRequest = new FollowCreateRequest(userA.getId(), userA.getId());
 
     // when & then
+    FollowCreateRequest followCreateRequest = new FollowCreateRequest(userA.getId(), userA.getId());
     Assertions.assertThatThrownBy(() -> followService.startFollowing(followCreateRequest))
         .isInstanceOf(FollowSelfForbiddenException.class);
   }
@@ -96,11 +99,11 @@ class FollowServiceTest extends IntegrationTestSupport {
   void testBNotPresent() {
     // given
     User userA = userRepository.save(new User("a", "a", "a"));
-    FollowCreateRequest followCreateRequest = new FollowCreateRequest(-1L, userA.getId());
 
     // when & then
+    FollowCreateRequest followCreateRequest = new FollowCreateRequest(-1L, userA.getId());
     Assertions.assertThatThrownBy(() -> followService.startFollowing(followCreateRequest))
-        .isInstanceOf(IllegalArgumentException.class);
+        .isInstanceOf(UserNotFoundException.class);
   }
 
   @DisplayName("A 유저가 B 유저를 팔로우 요청 할떄 이미 팔로잉하고 있으면, 팔로우되지 않는다")
@@ -110,39 +113,35 @@ class FollowServiceTest extends IntegrationTestSupport {
     User userA = userRepository.save(new User("a", "a", "a"));
     User userB = userRepository.save(new User("b", "b", "b"));
     followRepository.save(new Follow(userB, userA));
-    FollowCreateRequest followCreateRequest = new FollowCreateRequest(userB.getId(), userA.getId());
 
     // when & then
+    FollowCreateRequest followCreateRequest = new FollowCreateRequest(userB.getId(), userA.getId());
     Assertions.assertThatThrownBy(() -> followService.startFollowing(followCreateRequest))
         .isInstanceOf(FollowAlreadyExistException.class);
   }
 
-  @DisplayName("A 유저가 B 유저를 팔로우 취소 후 팔로우를 하면, 새로 생성되지 않고 이전 팔로우 기록이 복구된다")
+  @DisplayName("A 유저가 B 유저를 팔로우 취소 후 팔로우를 하면, 복구되지않고 새로운 팔로우가 생성됩니다")
   @Test
-  void testFollowSoftDeleteRestore() {
+  void testFollowSoftDelete() {
     // given
     User userA = userRepository.save(new User("a", "a", "a"));
     User userB = userRepository.save(new User("b", "b", "b"));
     Follow follow = followRepository.save(new Follow(userB, userA));
     follow.softDelete();
     Follow updatedFollow = followRepository.save(follow);
-    FollowCreateRequest followCreateRequest = new FollowCreateRequest(userB.getId(), userA.getId());
 
     // when
+    FollowCreateRequest followCreateRequest = new FollowCreateRequest(userB.getId(), userA.getId());
     FollowResult followResult = followService.startFollowing(followCreateRequest);
 
     // then
     SoftAssertions.assertSoftly(softly -> {
-      softly.assertThat(followRepository.findAll())
-          .hasSize(1)
-          .extracting(Follow::getDeletedAt)
-          .containsOnlyNulls();
       softly.assertThat(followResult)
           .extracting(
               testFollowResult -> testFollowResult.followee().userId(),
-              testFollowResult -> testFollowResult.follower().userId(),
-              FollowResult::id
-          ).containsExactly(userB.getId(), userA.getId(), updatedFollow.getId());
+              testFollowResult -> testFollowResult.follower().userId()
+          ).containsExactly(userB.getId(), userA.getId());
+      softly.assertThat(followResult.id()).isNotEqualTo(updatedFollow.getId());
     });
   }
 
@@ -286,17 +285,12 @@ class FollowServiceTest extends IntegrationTestSupport {
     followService.softDelete(follow.getId());
 
     // then
-    SoftAssertions.assertSoftly(softly -> {
-      softly.assertThat(followRepository.findById(follow.getId()))
-          .isPresent()
-          .get()
-          .satisfies(f -> {
-            softly.assertThat(f.isSoftDeleted()).isTrue();
-            softly.assertThat(f.getDeletedAt()).isNotNull();
-          });
-      softly.assertThat(followRepository.existsActiveByFolloweeIdAndFollowerId(followee.getId(),
-          follower.getId())).isFalse();
-    });
+    Assertions.assertThat(
+            followRepository.existsByFolloweeIdAndFollowerId(
+                followee.getId(),
+                follower.getId()
+            ))
+        .isFalse();
   }
 
   @DisplayName("이미 소프트 삭제된 팔로우 관계를 다시 소프트 삭제하면, 활성 관계를 찾지 못해 예외가 발생한다")

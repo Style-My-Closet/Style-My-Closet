@@ -47,8 +47,8 @@ class FollowRepositoryTest extends IntegrationTestSupport {
     Follow followAtoC = followRepository.save(new Follow(userC, userA));
 
     // when
-    long followersCount = followRepository.countActiveFollowers(userA.getId());
-    long followingsCount = followRepository.countActiveFollowings(userA.getId());
+    long followersCount = followRepository.countFollowers(userA.getId());
+    long followingsCount = followRepository.countFollowings(userA.getId());
 
     // then
     SoftAssertions.assertSoftly(softly -> {
@@ -68,18 +68,11 @@ class FollowRepositoryTest extends IntegrationTestSupport {
     Follow savedFollow = followRepository.save(follow);
 
     // when
-    boolean isFollowed = followRepository.existsActiveByFolloweeIdAndFollowerId(userB.getId(),
+    boolean isFollowed = followRepository.existsByFolloweeIdAndFollowerId(userB.getId(),
         userA.getId());
 
     // then
-    SoftAssertions.assertSoftly(softly -> {
-      softly.assertThat(followRepository.findById(savedFollow.getId()))
-          .isPresent()
-          .get()
-          .extracting(Follow::isSoftDeleted)
-          .isEqualTo(true);
-      softly.assertThat(isFollowed).isFalse();
-    });
+    Assertions.assertThat(isFollowed).isFalse();
   }
 
   @DisplayName("사용자가 팔로잉 목록을 조회하면, 기본 정렬은 최근 생성 순서(내림차순)이다")
@@ -191,31 +184,6 @@ class FollowRepositoryTest extends IntegrationTestSupport {
         Arguments.of("b", 1, Direction.ASC, List.of("bbb"), true),
         Arguments.of("c", 1, Direction.ASC, List.of("ccc"), true)
     );
-  }
-
-  @DisplayName("사용자가 지정한 정렬 기준에 따라 복원된 팔로우까지 정렬된다")
-  @Test
-  void sortFollowings_WithRestoredFollow_ThenOrderIsCorrect() {
-    // given
-    User userA = userRepository.save(new User("a", "a", "p"));
-    User userB = userRepository.save(new User("b", "b", "p"));
-    User userC = userRepository.save(new User("c", "c", "p"));
-    Follow followAtoB = followRepository.save(new Follow(userB, userA));
-    Follow followAtoC = followRepository.save(new Follow(userC, userA));
-    followAtoB.softDelete();
-    followAtoB.restore();
-    followRepository.save(followAtoB);
-
-    // when
-    Slice<Follow> result = followRepository.findFollowingsByFollowerId(
-        userA.getId(), null, null, 2, null, follow.followedAt.getMetadata().getName(), Direction.DESC
-    );
-
-    // then
-    Assertions.assertThat(result.getContent())
-        .hasSize(2)
-        .extracting(Follow::getId)
-        .containsExactly(followAtoB.getId(), followAtoC.getId());
   }
 
   @DisplayName("팔로우 관계가 SoftDelete 되었으면 조회 결과에 반영하지 않습니다.")
