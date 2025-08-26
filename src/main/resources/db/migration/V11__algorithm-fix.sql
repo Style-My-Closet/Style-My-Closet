@@ -26,3 +26,13 @@ EXECUTE FUNCTION set_created_date();
 -- unique constraint 생성
 ALTER TABLE weather
     ADD CONSTRAINT uq_weather_forecast_per_day UNIQUE (created_date, forecast_at, location_id);
+
+
+ALTER TABLE clothing_conditions
+    DROP COLUMN sleeve_length;
+ALTER TABLE clothing_conditions
+    DROP COLUMN pants_length;
+ALTER TABLE clothing_conditions
+    ADD COLUMN length SMALLINT;
+ALTER TABLE clothing_conditions
+    ALTER COLUMN embedding TYPE VECTOR(37);

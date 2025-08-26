@@ -59,8 +59,7 @@ public class ClothingConditionMapper {
         .color(cc.getColor())
         .gender(cc.getGender())
         .temperatureSensitivity(cc.getTemperatureSensitivity())
-        .pantsLength(cc.getPantsLength())
-        .sleeveLength(cc.getSleeveLength())
+        .length(cc.getLength())
         .skyStatus(cc.getSkyStatus())
         .label(cc.getLabel());
     return builder.embedding(nomalize_vector).build();

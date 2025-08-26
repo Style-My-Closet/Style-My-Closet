@@ -7,6 +7,7 @@ import com.stylemycloset.recommendation.mapper.ClothesMapper;
 import com.stylemycloset.recommendation.mapper.ClothingConditionMapper;
 import com.stylemycloset.recommendation.mapper.RecommendationMapper;
 import com.stylemycloset.recommendation.repository.ClothingConditionRepository;
+import com.stylemycloset.recommendation.repository.ClothingConditionRepositoryCustom;
 import com.stylemycloset.recommendation.service.MLModelService;
 import com.stylemycloset.recommendation.util.ClothingConditionBuilderHelper;
 import com.stylemycloset.recommendation.util.ConditionVectorizer;
@@ -30,6 +31,9 @@ class MLModelTest {
   @Mock
   private ClothingConditionRepository clothingConditionRepository;
 
+  @Mock
+  private ClothingConditionRepositoryCustom clothingConditionRepositoryCustom;
+
   private final ConditionVectorizer conditionVectorizer = new ConditionVectorizer();
 
   private final ClothingConditionBuilderHelper clothingConditionBuilderHelper = new ClothingConditionBuilderHelper();
@@ -48,7 +52,7 @@ class MLModelTest {
 
   @BeforeEach
   void setUp() {
-    service = new MLModelService(clothingConditionRepository, clothingConditionMapper, recommendationMapper, clothesMapper);
+    service = new MLModelService(clothingConditionRepository, clothingConditionRepositoryCustom, clothingConditionMapper, recommendationMapper, clothesMapper);
     List<ClothingCondition> dummys = MeaningfulDummyGenerator.generateMeaningfulDummyList();
 
     dummyData = dummys.stream()

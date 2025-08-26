@@ -47,10 +47,10 @@ public class ClothingCondition {
     private Color color;
 
     @Enumerated(EnumType.ORDINAL)
-    private SleeveLength sleeveLength;
+    private Length length;
 
     @Enumerated(EnumType.ORDINAL)
-    private PantsLength pantsLength;
+    private Material material;
 
     // 추천 여부 (1=추천, 0=비추천)
     private Boolean label;

@@ -41,7 +41,7 @@ public class ConditionVectorizer {
         features[idx++] = cc.getGender() == Gender.MALE ? 1f : 0f;
         features[idx++] = cc.getTemperatureSensitivity() != null ? cc.getTemperatureSensitivity() : 0f;
 
-        float[] clothVec = ClothingVectorizer.vectorize(cc.getColor(),cc.getSleeveLength(),cc.getPantsLength());
+        float[] clothVec = ClothingVectorizer.vectorize(cc.getColor(),cc.getLength());
         for (float v : clothVec) {
             features[idx++] = v;
         }

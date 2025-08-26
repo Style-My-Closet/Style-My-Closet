@@ -3,8 +3,7 @@ package com.stylemycloset.recommendation.repository;
 import com.stylemycloset.recommendation.dto.ConditionWithDistance;
 import com.stylemycloset.recommendation.entity.ClothingCondition;
 import com.stylemycloset.recommendation.entity.Color;
-import com.stylemycloset.recommendation.entity.PantsLength;
-import com.stylemycloset.recommendation.entity.SleeveLength;
+import com.stylemycloset.recommendation.entity.Length;
 import com.stylemycloset.recommendation.util.VectorHelper;
 import com.stylemycloset.user.entity.Gender;
 import com.stylemycloset.weather.entity.Weather.AlertType;
@@ -48,8 +47,7 @@ public class ClothingConditionRepositoryImpl implements ClothingConditionReposit
                     .skyStatus(SkyStatus.values()[rs.getInt("sky_status")])
                     .weatherType(AlertType.values()[rs.getInt("weather_type")])
                     .color(Color.values()[rs.getInt("color")])
-                    .sleeveLength(SleeveLength.values()[rs.getInt("sleeve_length")])
-                    .pantsLength(PantsLength.values()[rs.getInt("pants_length")])
+                    .length(Length.values()[rs.getInt("sleeve_length")])
                     .label(rs.getBoolean("label"))
                     .embedding(VectorHelper.fromPGVector(rs.getString("embedding")))
                     .build();
