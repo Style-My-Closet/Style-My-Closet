@@ -20,6 +20,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyAuthoritiesMapper;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
@@ -73,7 +74,7 @@ public class SecurityConfig {
         )
         .csrf(csrf -> csrf
             .ignoringRequestMatchers(SecurityMatchers.LOGOUT)
-            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+            .csrfTokenRepository(cookieCsrfTokenRepository())
             .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
             .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())
         )
@@ -92,6 +93,10 @@ public class SecurityConfig {
             JsonUsernamePasswordAuthenticationFilter.class);
 
     return http.build();
+  }
+  @Bean
+  public CookieCsrfTokenRepository cookieCsrfTokenRepository() {
+    return CookieCsrfTokenRepository.withHttpOnlyFalse();
   }
 
   @Bean

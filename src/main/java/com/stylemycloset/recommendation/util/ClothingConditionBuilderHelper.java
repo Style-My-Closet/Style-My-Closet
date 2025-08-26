@@ -1,6 +1,6 @@
 package com.stylemycloset.recommendation.util;
 
-import com.stylemycloset.cloth.entity.ClothingAttributeValue;
+import com.stylemycloset.clothes.entity.clothes.ClothesAttributeSelectedValue;
 import com.stylemycloset.recommendation.entity.ClothingCondition;
 import com.stylemycloset.recommendation.entity.Color;
 import com.stylemycloset.recommendation.entity.PantsLength;
@@ -15,15 +15,15 @@ public class ClothingConditionBuilderHelper {
 
     public ClothingCondition.ClothingConditionBuilder addClothingAttributes(
         ClothingCondition.ClothingConditionBuilder builder,
-        List<ClothingAttributeValue> values
+        List<ClothesAttributeSelectedValue> values
     ) {
         // color 필드 세팅
         values.stream()
-            .filter(v -> v.getAttribute() != null && v.getAttribute().getName().equalsIgnoreCase("COLOR"))
+            .filter(v -> v.getSelectableValue().getDefinition() != null && v.getSelectableValue().getDefinition().getName().equalsIgnoreCase("COLOR"))
             .findFirst()
             .ifPresent(v -> {
                 try {
-                    Color color = Color.valueOf(v.getOption().getValue().toUpperCase());
+                    Color color = Color.valueOf(v.getSelectableValue().getValue().toUpperCase());
                     builder.color(color);
                 } catch (IllegalArgumentException ignored) {
                     // enum 변환 실패하면 무시
@@ -32,22 +32,22 @@ public class ClothingConditionBuilderHelper {
 
         // sleeveLength 필드 세팅
         values.stream()
-            .filter(v -> v.getAttribute() != null && v.getAttribute().getName().equalsIgnoreCase("SLEEVE"))
+            .filter(v -> v.getSelectableValue().getDefinition() != null && v.getSelectableValue().getDefinition().getName().equalsIgnoreCase("SLEEVE"))
             .findFirst()
             .ifPresent(v -> {
                 try {
-                    SleeveLength sleeve = SleeveLength.valueOf(v.getOption().getValue().toUpperCase());
+                    SleeveLength sleeve = SleeveLength.valueOf(v.getSelectableValue().getValue().toUpperCase());
                     builder.sleeveLength(sleeve);
                 } catch (IllegalArgumentException ignored) {}
             });
 
         // pantsLength 필드 세팅
         values.stream()
-            .filter(v -> v.getAttribute() != null && v.getAttribute().getName().equalsIgnoreCase("PANTS"))
+            .filter(v -> v.getSelectableValue().getDefinition() != null && v.getSelectableValue().getDefinition().getName().equalsIgnoreCase("PANTS"))
             .findFirst()
             .ifPresent(v -> {
                 try {
-                    PantsLength pants = PantsLength.valueOf(v.getOption().getValue().toUpperCase());
+                    PantsLength pants = PantsLength.valueOf(v.getSelectableValue().getValue().toUpperCase());
                     builder.pantsLength(pants);
                 } catch (IllegalArgumentException ignored) {}
             });

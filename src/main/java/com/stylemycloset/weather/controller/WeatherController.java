@@ -27,32 +27,29 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class WeatherController {
 
-    private final WeatherService weatherService;
-    private final JobLauncher jobLauncher;
-    private final Job weatherJob;
+  private final WeatherService weatherService;
+  private final JobLauncher jobLauncher;
+  private final Job weatherJob;
 
-    @GetMapping
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<WeatherDto>> getWeathers(
-        @RequestParam double longitude,
+  @GetMapping
+  @PreAuthorize("isAuthenticated()")
+  public ResponseEntity<List<WeatherDto>> getWeathers(
+      @RequestParam(name = "longitude") double longitude,
+      @RequestParam(name = "latitude") double latitude,
+      @AuthenticationPrincipal(expression = "userId") Long userId
+  ) {
 
-        @RequestParam double latitude,
-        @AuthenticationPrincipal(expression = "userId") Long userId
-    ) {
+    List<WeatherDto> weathers = weatherService.getWeatherByCoordinates(latitude, longitude);
+    weatherService.checkWeather(latitude, longitude, userId);
+    return ResponseEntity.ok(weathers);
+  }
 
-        List<WeatherDto> weathers = weatherService.getWeatherByCoordinates(latitude, longitude);
-        weatherService.checkWeather(latitude, longitude, userId);
-        return ResponseEntity.ok(weathers);
-    }
-
-    @GetMapping("/location")
-    public ResponseEntity<WeatherAPILocation> getWeatherLocation(
-        @RequestParam double longitude,
-        @RequestParam double latitude
-    )
-        {
-
-        WeatherAPILocation location = weatherService.getLocation(latitude,longitude);
-        return ResponseEntity.ok(location);
-    }
+  @GetMapping("/location")
+  public ResponseEntity<WeatherAPILocation> getWeatherLocation(
+      @RequestParam(name = "longitude") double longitude,
+      @RequestParam(name = "latitude") double latitude
+  ) {
+    WeatherAPILocation location = weatherService.getLocation(latitude, longitude);
+    return ResponseEntity.ok(location);
+  }
 }

@@ -15,7 +15,7 @@ public record BinaryContentResult(
     return new BinaryContentResult(
         binaryContent.getId(),
         binaryContent.getCreatedAt(),
-        binaryContent.getOriginalFileName(),
+        binaryContent.getOriginalName(),
         binaryContent.getContentType()
     );
   }

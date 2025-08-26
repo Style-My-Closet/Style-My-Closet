@@ -1,20 +1,13 @@
 package com.stylemycloset.recommendation.util;
 
-
-import com.stylemycloset.cloth.entity.Cloth;
-import com.stylemycloset.cloth.entity.ClothingAttributeValue;
-import com.stylemycloset.common.exception.ErrorCode;
-import com.stylemycloset.common.exception.StyleMyClosetException;
-import com.stylemycloset.recommendation.dto.RecommendationDto;
+import com.stylemycloset.clothes.entity.clothes.Clothes;
+import com.stylemycloset.clothes.entity.clothes.ClothesAttributeSelectedValue;
 import com.stylemycloset.recommendation.entity.ClothingCondition;
 import com.stylemycloset.recommendation.mapper.ClothingConditionMapper;
 import com.stylemycloset.recommendation.repository.ClothingConditionRepository;
 import com.stylemycloset.user.entity.User;
-import com.stylemycloset.user.repository.UserRepository;
 import com.stylemycloset.weather.entity.Weather;
-import com.stylemycloset.weather.repository.WeatherRepository;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -22,29 +15,25 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class VectorCosineSimilarityMeter {
 
-    private final ClothingConditionRepository repository;
-    private final ConditionVectorizer conditionVectorizer;
-    private final ClothingConditionMapper clothingConditionMapper;
+  private final ClothingConditionRepository repository;
+  private final ConditionVectorizer conditionVectorizer;
+  private final ClothingConditionMapper clothingConditionMapper;
 
-    public boolean recommend(Cloth cloth ,Weather weather, User user) {
+  public boolean recommend(Clothes cloth, Weather weather, User user) {
 
+    float[] inputVector = conditionVectorizer.toConditionVector(
+        clothingConditionMapper.from3Entity(cloth.getSelectedValues(), weather, user, false)
+    );
 
-        float[] inputVector = conditionVectorizer.toConditionVector(
-            clothingConditionMapper.from3Entity(cloth.getAttributeValues(), weather, user, false)
-        );
+    ClothingCondition mostSimilar = repository.findMostSimilar(inputVector);
 
+    return mostSimilar != null && Boolean.TRUE.equals(mostSimilar.getLabel());
+  }
 
-        ClothingCondition mostSimilar = repository.findMostSimilar(inputVector);
-
-        return mostSimilar != null && Boolean.TRUE.equals(mostSimilar.getLabel());
-    }
-
-    // 사용자 피드백 데이터 저장
-    public void recordFeedback(Weather weather, User user, List<ClothingAttributeValue> values, Boolean label) {
-
-
-        ClothingCondition feature = clothingConditionMapper.from3Entity(values, weather, user, label);
-
-        repository.save(feature);
-    }
+  // 사용자 피드백 데이터 저장
+  public void recordFeedback(Weather weather, User user, List<ClothesAttributeSelectedValue> values,
+      Boolean label) {
+    ClothingCondition feature = clothingConditionMapper.from3Entity(values, weather, user, label);
+    repository.save(feature);
+  }
 }

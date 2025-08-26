@@ -43,7 +43,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 @AutoConfigureMockMvc
-@SpringBootTest
 @Transactional
 public class UserControllerTest extends IntegrationTestSupport {
 

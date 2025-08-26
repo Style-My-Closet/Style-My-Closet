@@ -22,7 +22,7 @@ public class RecommendationController {
     
     @GetMapping
     public ResponseEntity<RecommendationDto> getRecommendations(
-        @RequestParam Long weatherId
+        @RequestParam(name = "weatherId") Long weatherId
     ) throws XGBoostError {
         RecommendationDto recommendation = recommendationService.recommendation(weatherId);
 

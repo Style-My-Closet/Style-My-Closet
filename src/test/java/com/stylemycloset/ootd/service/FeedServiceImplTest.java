@@ -3,20 +3,19 @@ package com.stylemycloset.ootd.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.stylemycloset.cloth.entity.Cloth;
-import com.stylemycloset.cloth.entity.ClothingCategory;
-import com.stylemycloset.cloth.entity.ClothingCategoryType;
-import com.stylemycloset.cloth.repository.ClothRepository;
+import com.stylemycloset.clothes.entity.clothes.Clothes;
+import com.stylemycloset.clothes.entity.clothes.ClothesType;
+import com.stylemycloset.clothes.repository.clothes.ClothesRepository;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.notification.event.domain.FeedLikedEvent;
@@ -27,12 +26,12 @@ import com.stylemycloset.ootd.dto.FeedSearchRequest;
 import com.stylemycloset.ootd.dto.FeedUpdateRequest;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.FeedLike;
+import com.stylemycloset.ootd.mapper.CommentMapper;
+import com.stylemycloset.ootd.mapper.FeedMapper;
+import com.stylemycloset.ootd.mapper.OotdItemMapper;
 import com.stylemycloset.ootd.repo.FeedClothesRepository;
 import com.stylemycloset.ootd.repo.FeedLikeRepository;
 import com.stylemycloset.ootd.repo.FeedRepository;
-import com.stylemycloset.ootd.mapper.OotdItemMapper;
-import com.stylemycloset.ootd.mapper.FeedMapper;
-import com.stylemycloset.ootd.mapper.CommentMapper;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import com.stylemycloset.weather.repository.WeatherRepository;
@@ -64,7 +63,7 @@ class FeedServiceImplTest {
   @Mock
   private UserRepository userRepository;
   @Mock
-  private ClothRepository clothRepository;
+  private ClothesRepository clothRepository;
   @Mock
   private FeedRepository feedRepository;
   @Mock
@@ -96,9 +95,9 @@ class FeedServiceImplTest {
 
       // Mock 객체 및 반환값 설정
       User mockUser = mock(User.class);
-      Cloth mockCloth1 = mock(Cloth.class);
-      Cloth mockCloth2 = mock(Cloth.class);
-      ClothingCategory mockCategory = mock(ClothingCategory.class);
+      Clothes mockCloth1 = mock(Clothes.class);
+      Clothes mockCloth2 = mock(Clothes.class);
+      ClothesType mockCategory = mock(ClothesType.class);
 
       when(userRepository.findById(authorId)).thenReturn(Optional.of(mockUser));
       when(clothRepository.findAllById(clothesIds)).thenReturn(List.of(mockCloth1, mockCloth2));
@@ -115,11 +114,11 @@ class FeedServiceImplTest {
       when(mockUser.getName()).thenReturn("테스트유저");
       when(mockCloth1.getId()).thenReturn(101L);
       when(mockCloth1.getName()).thenReturn("청바지");
-      when(mockCloth1.getCategory()).thenReturn(mockCategory);
+      when(mockCloth1.getClothesType()).thenReturn(mockCategory);
       when(mockCloth2.getId()).thenReturn(102L);
       when(mockCloth2.getName()).thenReturn("흰티셔츠");
-      when(mockCloth2.getCategory()).thenReturn(mockCategory);
-      when(mockCategory.getName()).thenReturn(ClothingCategoryType.TOP);
+      when(mockCloth2.getClothesType()).thenReturn(mockCategory);
+      when(mockCategory.name()).thenReturn(ClothesType.TOP.name());
 
       // Mock 매퍼 응답 설정
       FeedDto mockFeedDto = mock(FeedDto.class);

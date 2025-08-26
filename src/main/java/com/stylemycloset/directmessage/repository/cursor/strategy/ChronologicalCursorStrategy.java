@@ -1,11 +1,9 @@
 package com.stylemycloset.directmessage.repository.cursor.strategy;
 
 
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.DateTimePath;
-import com.stylemycloset.common.repository.cursor.CursorStrategy;
+import com.stylemycloset.common.repository.CursorStrategy;
 import com.stylemycloset.directmessage.entity.DirectMessage;
 import java.time.Instant;
 import java.util.function.Function;
@@ -31,26 +29,15 @@ public record ChronologicalCursorStrategy(
   }
 
   @Override
-  public BooleanExpression buildInequalityPredicate(String rawDirection, String rawCursor) {
+  public BooleanExpression buildInequalityPredicate(Direction direction, String rawCursor) {
     if (rawCursor == null || rawCursor.isBlank()) {
       return null;
     }
-
-    Direction direction = parseDirectionOrDefault(rawDirection);
     Instant parsed = parse(rawCursor);
-    if (direction.isDescending()) {
+    if (isDescendingOrDefault(direction)) {
       return path.lt(parsed);
     }
     return path.gt(parsed);
-  }
-
-  @Override
-  public OrderSpecifier<Instant> buildOrder(String rawDirection, String rawCursor) {
-    Direction direction = parseDirectionOrDefault(rawDirection);
-    if (direction.isDescending()) {
-      return new OrderSpecifier<>(Order.DESC, path);
-    }
-    return new OrderSpecifier<>(Order.ASC, path);
   }
 
   @Override

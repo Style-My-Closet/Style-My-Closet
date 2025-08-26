@@ -24,9 +24,6 @@ spring:
 
 style-my-closet:
   storage:
-    type: ${STORAGE_TYPE:s3}  # local | s3 (테스트를 위해서 현재는 s3: local)
-    local:
-      root-path: ${STORAGE_LOCAL_ROOT_PATH:.stylemycloset/storage/test}
     s3:
       #      access-key: ${AWS_S3_ACCESS_KEY:access-key}
       #      secret-key: ${AWS_S3_SECRET_KEY:secret-key}
@@ -49,7 +46,6 @@ external:
   kakao:
     rest-api-key: ${REST_API_KEY:2441}
     base-url: https://dapi.kakao.com/v2/local/geo/coord2regioncode.json
-
 
 closet:
   admin:

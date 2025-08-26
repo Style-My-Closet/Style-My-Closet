@@ -1,6 +1,5 @@
 package com.stylemycloset.common.util;
 
-
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
 import org.postgresql.util.PGobject;

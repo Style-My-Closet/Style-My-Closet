@@ -13,10 +13,12 @@ import com.stylemycloset.user.repository.UserRepository;
 import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
+import org.hibernate.query.SortDirection;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort.Direction;
 
 class DirectMessageServiceTest extends IntegrationTestSupport {
 
@@ -61,7 +63,7 @@ class DirectMessageServiceTest extends IntegrationTestSupport {
                 null,
                 1,
                 QDirectMessage.directMessage.createdAt.getMetadata().getName(),
-                "DESC"
+                Direction.DESC
             ),
             viewer.getId()
         );
@@ -75,7 +77,7 @@ class DirectMessageServiceTest extends IntegrationTestSupport {
                 firstPage.nextIdAfter(),
                 1,
                 QDirectMessage.directMessage.createdAt.getMetadata().getName(),
-                "DESC"
+                Direction.DESC
             ),
             viewer.getId()
         );
@@ -125,7 +127,7 @@ class DirectMessageServiceTest extends IntegrationTestSupport {
                 null,
                 10,
                 QDirectMessage.directMessage.createdAt.getMetadata().getName(),
-                "DESC"
+                Direction.DESC
             ),
             viewer.getId()
         );

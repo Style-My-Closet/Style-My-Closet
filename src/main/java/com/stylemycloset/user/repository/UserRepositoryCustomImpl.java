@@ -80,7 +80,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 
     // 동적으로 설계하여 무슨 값을 받아도 구현 가능하게 설계
     switch (request.sortBy()) {
-      case "name":
+      case "definitionName":
         primaryOrder = new OrderSpecifier<>(direction, user.name);
         break;
       case "email":
@@ -111,7 +111,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
         "ASCENDING".equals(request.sortDirection()) ? "ASCENDING" : "DESCENDING";
 
     return switch (request.sortBy()) {
-      case "name" -> {
+      case "definitionName" -> {
         String cursorValue = request.cursor();
         if (direction.equals("ASCENDING")) {
           yield user.name.gt(cursorValue) //커서보다 user.name이 더 높은 값 불러오기 만약 겹치면 id로 비교

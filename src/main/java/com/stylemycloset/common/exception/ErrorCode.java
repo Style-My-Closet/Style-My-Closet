@@ -17,6 +17,18 @@ public enum ErrorCode {
 
   // Clothes
   CLOTHES_NOT_FOUND("일부 의상 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+  CLOTH_NOT_FOUND("해당 의상을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+  CLOTH_LIST_FETCH_FAILED("옷 목록 조회에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+  CLOTH_UPDATE_FAILED("옷 업데이트에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+  INVALID_ATTRIBUTE("유효하지 않은 속성입니다.", HttpStatus.BAD_REQUEST),
+  ATTRIBUTE_DUPLICATE("이미 존재하는 속성입니다.", HttpStatus.CONFLICT),
+  ATTRIBUTE_NOT_FOUND("해당 속성을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+  INVALID_PARAMETER("잘못된 매개변수입니다.", HttpStatus.BAD_REQUEST),
+  CLOSET_NOT_FOUND("해당 옷장을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+  CATEGORY_NOT_FOUND("해당 카테고리를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+  INVALID_CATEGORY("유효하지 않은 카테고리입니다.", HttpStatus.BAD_REQUEST),
+  UNAUTHORIZED_ACCESS("권한이 없습니다.", HttpStatus.FORBIDDEN),
+  IMAGE_UPLOAD_FAILED("이미지 업로드에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
   // Weather
   WEATHER_NOT_FOUND("날씨 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
@@ -47,7 +59,10 @@ public enum ErrorCode {
   ALREADY_LIKED_FEED("이미 좋아요를 눌렀습니다.", HttpStatus.NOT_FOUND),
 
   // Message
-  MESSAGE_NOT_FOUND("메시지 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+  MESSAGE_NOT_FOUND("메시지 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
+  // URL Extractor
+  INVALID_CLOTHES_META_INFO("파싱할 수 없는 페이지입니다.", HttpStatus.UNPROCESSABLE_ENTITY);
 
   private final String message;
   private final HttpStatus httpStatus;

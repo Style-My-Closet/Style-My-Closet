@@ -18,7 +18,7 @@ services:
 
   redis:
     image: redis:7.2
-    command: ["redis-server"]
+    command: [ "redis-server" ]
     container_name: closet_redis
     volumes:
       - redis-data:/data

@@ -23,7 +23,7 @@ public class ClothAttributeChangedNotificationEventListener  {
   private final SseService sseService;
   private final UserRepository userRepository;
 
-  private static final String CLOTH_ATTRIBUTE_CHANGED = "의상 속성이 변경되었어요.";
+  private static final String CLOTH_ATTRIBUTE_CHANGED = "의상 속성 변경되었어요.";
   private static final String CLOTH_ATTRIBUTE_CHANGED_CONTENT = "[%s] 속성을 확인해보세요.";
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

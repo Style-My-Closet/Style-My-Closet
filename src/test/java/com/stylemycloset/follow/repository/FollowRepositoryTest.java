@@ -1,8 +1,9 @@
 package com.stylemycloset.follow.repository;
 
-import com.stylemycloset.follow.entity.Follow;
-import com.stylemycloset.follow.entity.QFollow;
+import static com.stylemycloset.follow.entity.QFollow.follow;
+
 import com.stylemycloset.IntegrationTestSupport;
+import com.stylemycloset.follow.entity.Follow;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import java.util.List;
@@ -10,7 +11,6 @@ import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -101,7 +101,7 @@ class FollowRepositoryTest extends IntegrationTestSupport {
     Sort.Order order = result.getPageable().getSort().iterator().next();
     SoftAssertions.assertSoftly(softly -> {
       softly.assertThat(order.getProperty())
-          .isEqualTo(QFollow.follow.createdAt.getMetadata().getName());
+          .isEqualTo(follow.createdAt.getMetadata().getName());
       softly.assertThat(order.getDirection()).isEqualTo(Sort.Direction.DESC);
       softly.assertThat(result.getContent()).extracting(Follow::getId)
           .containsExactly(followAtoC.getId(), followAtoB.getId());
@@ -121,7 +121,7 @@ class FollowRepositoryTest extends IntegrationTestSupport {
 
     // when
     Slice<Follow> result = followRepository.findFollowingsByFollowerId(
-        userA.getId(), null, null, 2, null, sortBy, "DESC"
+        userA.getId(), null, null, 2, null, sortBy, Direction.DESC
     );
 
     // then
@@ -133,8 +133,8 @@ class FollowRepositoryTest extends IntegrationTestSupport {
 
   static Stream<Arguments> resolveFollowFixedField() {
     return Stream.of(
-        Arguments.of(QFollow.follow.id.getMetadata().getName()),
-        Arguments.of(QFollow.follow.createdAt.getMetadata().getName())
+        Arguments.of(follow.id.getMetadata().getName()),
+        Arguments.of(follow.createdAt.getMetadata().getName())
     );
   }
 
@@ -144,7 +144,7 @@ class FollowRepositoryTest extends IntegrationTestSupport {
   void shouldFilterByNameAndSortDescWithLimit(
       String nameLike,
       int limit,
-      String direction,
+      Direction direction,
       List<String> expectedNames,
       boolean expectHasNext
   ) {
@@ -165,7 +165,7 @@ class FollowRepositoryTest extends IntegrationTestSupport {
         null,
         limit,
         nameLike,
-        QFollow.follow.createdAt.getMetadata().getName(),
+        follow.createdAt.getMetadata().getName(),
         direction
     );
 
@@ -181,22 +181,21 @@ class FollowRepositoryTest extends IntegrationTestSupport {
 
   static Stream<Arguments> nameFilterCases() {
     return Stream.of(
-        Arguments.of(null, 2, Direction.DESC.name(), List.of("abcd", "ccc"), true),
-        Arguments.of("c", 2, Direction.DESC.name(), List.of("abcd", "ccc"), false),
-        Arguments.of("b", 1, Direction.DESC.name(), List.of("abcd"), true),
-        Arguments.of("c", 1, Direction.DESC.name(), List.of("abcd"), true),
+        Arguments.of(null, 2, Direction.DESC, List.of("abcd", "ccc"), true),
+        Arguments.of("c", 2, Direction.DESC, List.of("abcd", "ccc"), false),
+        Arguments.of("b", 1, Direction.DESC, List.of("abcd"), true),
+        Arguments.of("c", 1, Direction.DESC, List.of("abcd"), true),
 
-        Arguments.of(null, 2, Direction.ASC.name(), List.of("bbb", "ccc"), true),
-        Arguments.of("c", 2, Direction.ASC.name(), List.of("ccc", "abcd"), false),
-        Arguments.of("b", 1, Direction.ASC.name(), List.of("bbb"), true),
-        Arguments.of("c", 1, Direction.ASC.name(), List.of("ccc"), true)
+        Arguments.of(null, 2, Direction.ASC, List.of("bbb", "ccc"), true),
+        Arguments.of("c", 2, Direction.ASC, List.of("ccc", "abcd"), false),
+        Arguments.of("b", 1, Direction.ASC, List.of("bbb"), true),
+        Arguments.of("c", 1, Direction.ASC, List.of("ccc"), true)
     );
   }
 
   @DisplayName("사용자가 지정한 정렬 기준에 따라 복원된 팔로우까지 정렬된다")
-  @ParameterizedTest
-  @MethodSource("resolveFollowUpdatableField")
-  void sortFollowings_WithRestoredFollow_ThenOrderIsCorrect(String sortBy) {
+  @Test
+  void sortFollowings_WithRestoredFollow_ThenOrderIsCorrect() {
     // given
     User userA = userRepository.save(new User("a", "a", "p"));
     User userB = userRepository.save(new User("b", "b", "p"));
@@ -209,7 +208,7 @@ class FollowRepositoryTest extends IntegrationTestSupport {
 
     // when
     Slice<Follow> result = followRepository.findFollowingsByFollowerId(
-        userA.getId(), null, null, 2, null, sortBy, "DESC"
+        userA.getId(), null, null, 2, null, follow.followedAt.getMetadata().getName(), Direction.DESC
     );
 
     // then
@@ -217,13 +216,6 @@ class FollowRepositoryTest extends IntegrationTestSupport {
         .hasSize(2)
         .extracting(Follow::getId)
         .containsExactly(followAtoB.getId(), followAtoC.getId());
-  }
-
-  static Stream<Arguments> resolveFollowUpdatableField() {
-    return Stream.of(
-        Arguments.of(QFollow.follow.updatedAt.getMetadata().getName()),
-        Arguments.of(QFollow.follow.followedAt.getMetadata().getName())
-    );
   }
 
   @DisplayName("팔로우 관계가 SoftDelete 되었으면 조회 결과에 반영하지 않습니다.")
@@ -248,7 +240,7 @@ class FollowRepositoryTest extends IntegrationTestSupport {
     Sort.Order order = result.getPageable().getSort().iterator().next();
     SoftAssertions.assertSoftly(softly -> {
       softly.assertThat(order.getProperty())
-          .isEqualTo(QFollow.follow.createdAt.getMetadata().getName());
+          .isEqualTo(follow.createdAt.getMetadata().getName());
       softly.assertThat(order.getDirection()).isEqualTo(Sort.Direction.DESC);
       softly.assertThat(result.getContent()).extracting(Follow::getId)
           .containsExactly(followAtoB.getId());
@@ -278,7 +270,7 @@ class FollowRepositoryTest extends IntegrationTestSupport {
     Sort.Order order = result.getPageable().getSort().iterator().next();
     SoftAssertions.assertSoftly(softly -> {
       softly.assertThat(order.getProperty())
-          .isEqualTo(QFollow.follow.createdAt.getMetadata().getName());
+          .isEqualTo(follow.createdAt.getMetadata().getName());
       softly.assertThat(order.getDirection()).isEqualTo(Sort.Direction.DESC);
       softly.assertThat(result.getContent()).extracting(Follow::getId)
           .containsExactly(followAtoB.getId());
@@ -305,7 +297,7 @@ class FollowRepositoryTest extends IntegrationTestSupport {
     Sort.Order order = result.getPageable().getSort().iterator().next();
     SoftAssertions.assertSoftly(softly -> {
       softly.assertThat(order.getProperty())
-          .isEqualTo(QFollow.follow.createdAt.getMetadata().getName());
+          .isEqualTo(follow.createdAt.getMetadata().getName());
       softly.assertThat(order.getDirection()).isEqualTo(Direction.DESC);
       softly.assertThat(result.getContent()).extracting(Follow::getId)
           .containsExactly(followCtoA.getId(), followBtoA.getId());

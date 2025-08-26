@@ -4,7 +4,6 @@ import java.util.List;
 
 public record ClothesDto(
     Long id,
-
     String name,
     String imageUrl,
     String type,

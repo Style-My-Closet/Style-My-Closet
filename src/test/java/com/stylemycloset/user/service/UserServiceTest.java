@@ -1,16 +1,19 @@
 package com.stylemycloset.user.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
-import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
+import com.stylemycloset.binarycontent.storage.s3.BinaryContentStorage;
 import com.stylemycloset.security.jwt.JwtService;
 import com.stylemycloset.user.dto.data.ProfileDto;
 import com.stylemycloset.user.dto.data.UserDto;
@@ -41,7 +44,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -259,7 +263,7 @@ public class UserServiceTest {
         testUsers.add(user);
       }
 
-      UserPageRequest request = new UserPageRequest(null, null, 5, "name", "ASCENDING", null, null,
+      UserPageRequest request = new UserPageRequest(null, null, 5, "definitionName", "ASCENDING", null, null,
           null);
 
       given(userRepository.findUsersByCursor(request)).willReturn(testUsers);
@@ -296,7 +300,7 @@ public class UserServiceTest {
         user.setId((long) i + 1);
         testUsers.add(user);
       }
-      UserPageRequest request = new UserPageRequest("user2", 3L, 5, "name", "ASCENDING", null, null,
+      UserPageRequest request = new UserPageRequest("user2", 3L, 5, "definitionName", "ASCENDING", null, null,
           null);
 
       given(userRepository.findUsersByCursor(request)).willReturn(testUsers);
@@ -316,10 +320,7 @@ public class UserServiceTest {
 
       assertNull(response.nextCursor());
       assertNull(response.nextIdAfter());
-
-
     }
-
   }
 
   @Test
@@ -380,6 +381,5 @@ public class UserServiceTest {
         imageUrl
     );
   }
-
 
 }

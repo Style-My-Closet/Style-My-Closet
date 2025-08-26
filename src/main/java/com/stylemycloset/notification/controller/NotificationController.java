@@ -25,7 +25,7 @@ public class NotificationController {
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<Void> delete(
       @AuthenticationPrincipal(expression = "userId") Long userId,
-      @PathVariable long notificationId
+      @PathVariable(name = "notificationId") long notificationId
   ) {
     notificationService.delete(userId, notificationId);
     return ResponseEntity.noContent().build();

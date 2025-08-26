@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 
 class DirectMessageRepositoryTest extends IntegrationTestSupport {
 
@@ -57,7 +58,7 @@ class DirectMessageRepositoryTest extends IntegrationTestSupport {
         null, null,
         2,
         null,
-        "DESC"
+        Direction.DESC
     );
 
     // then
@@ -85,15 +86,16 @@ class DirectMessageRepositoryTest extends IntegrationTestSupport {
 
     Slice<DirectMessage> firstPage = directMessageRepository.findMessagesBetweenParticipants(
         userA.getId(), userB.getId(), null, null, 10,
-        QDirectMessage.directMessage.createdAt.getMetadata().getName(), "DESC"
+        QDirectMessage.directMessage.createdAt.getMetadata().getName(), Direction.DESC
     );
     Slice<DirectMessage> secondPage = directMessageRepository.findMessagesBetweenParticipants(
         userB.getId(), userA.getId(), null, null, 10,
-        QDirectMessage.directMessage.createdAt.getMetadata().getName(), "DESC"
+        QDirectMessage.directMessage.createdAt.getMetadata().getName(), Direction.DESC
     );
 
     Assertions.assertThat(firstPage.getContent()).extracting(DirectMessage::getId)
-        .containsExactlyElementsOf(secondPage.getContent().stream().map(DirectMessage::getId).toList());
+        .containsExactlyElementsOf(
+            secondPage.getContent().stream().map(DirectMessage::getId).toList());
   }
 
   @DisplayName("생성 날짜 기준 ASC 정렬도 동작한다 (과거→최신)")
@@ -110,7 +112,7 @@ class DirectMessageRepositoryTest extends IntegrationTestSupport {
         userA.getId(), userB.getId(),
         null, null, 10,
         QDirectMessage.directMessage.createdAt.getMetadata().getName(),
-        "ASC"
+        Direction.ASC
     );
 
     Assertions.assertThat(messages.getContent()).extracting(DirectMessage::getId)
@@ -130,7 +132,7 @@ class DirectMessageRepositoryTest extends IntegrationTestSupport {
 
     Slice<DirectMessage> messages = directMessageRepository.findMessagesBetweenParticipants(
         userA.getId(), userB.getId(), null, null, 10,
-        QDirectMessage.directMessage.createdAt.getMetadata().getName(), "DESC"
+        QDirectMessage.directMessage.createdAt.getMetadata().getName(), Direction.DESC
     );
 
     Assertions.assertThat(messages.getContent()).extracting(DirectMessage::getId)

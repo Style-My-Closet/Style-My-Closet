@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,7 +76,8 @@ public class JwtService {
         .subject(userDto.name())
         .claim("userId", userDto.id())
         .claim("role", userDto.role())
-        .claim("name", userDto.name())
+        .claim("definitionName", userDto.name())
+        .jwtID(UUID.randomUUID().toString())
         .issueTime(new Date(issueTime.toEpochMilli()))
         .expirationTime(new Date(expirationTime.toEpochMilli()))
         .build();
@@ -189,7 +191,7 @@ public class JwtService {
 
       Long userId = claims.getLongClaim("userId");
       String role = claims.getStringClaim("role");
-      String name = claims.getStringClaim("name");
+      String name = claims.getStringClaim("definitionName");
 
       if (userId == null || role == null) {
         throw new StyleMyClosetException(ErrorCode.INVALID_TOKEN, Collections.emptyMap());

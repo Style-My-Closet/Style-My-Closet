@@ -1,2 +1,0 @@
-ALTER TABLE weather
-    ALTER COLUMN sky_status TYPE VARCHAR(20);

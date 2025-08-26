@@ -4,14 +4,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.binarycontent.dto.BinaryContentRequest;
 import com.stylemycloset.binarycontent.dto.BinaryContentResult;
 import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.binarycontent.exception.BinaryContentNotFoundException;
 import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
 import com.stylemycloset.binarycontent.service.BinaryContentService;
-import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
-import com.stylemycloset.IntegrationTestSupport;
+import com.stylemycloset.binarycontent.storage.s3.BinaryContentStorage;
 import java.util.List;
 import java.util.UUID;
 import org.assertj.core.api.Assertions;
@@ -51,7 +51,7 @@ class BinaryContentServiceImplTest extends IntegrationTestSupport {
     // then
     Assertions.assertThat(binaryContent.originalFileName()).isEqualTo(name);
 
-    verify(binaryContentStorage, times(1)).put(any(), any());
+    verify(binaryContentStorage, times(1)).putAsync(any(), any());
   }
 
   @DisplayName("null 받을 경우, null을 리턴합니다.")

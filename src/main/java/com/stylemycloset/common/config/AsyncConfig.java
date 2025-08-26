@@ -45,6 +45,18 @@ public class AsyncConfig {
     return executor;
   }
 
+  @Bean(name = "visionExecutor")
+  public Executor visionExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(2);
+    executor.setMaxPoolSize(4);
+    executor.setQueueCapacity(50);
+    executor.setThreadNamePrefix("vision-");
+    executor.setTaskDecorator(taskDecorator());
+    executor.initialize();
+    return executor;
+  }
+
   @Bean
   public TaskDecorator taskDecorator() {
     return new CompositeTaskDecorator(

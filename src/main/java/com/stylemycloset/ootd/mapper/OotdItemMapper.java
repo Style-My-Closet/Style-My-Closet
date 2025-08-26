@@ -1,65 +1,50 @@
 package com.stylemycloset.ootd.mapper;
 
-import com.stylemycloset.cloth.entity.AttributeOption;
-import com.stylemycloset.cloth.entity.Cloth;
-import com.stylemycloset.cloth.entity.ClothingAttribute;
-import com.stylemycloset.ootd.dto.ClothesAttributeWithDefDto;
+import com.stylemycloset.binarycontent.mapper.BinaryContentMapper;
+import com.stylemycloset.clothes.dto.clothes.AttributeDto;
+import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.ootd.dto.OotdItemDto;
-import com.stylemycloset.ootd.tempEnum.ClothesType;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class OotdItemMapper {
 
-    public OotdItemDto toDto(Cloth cloth) {
-        if (cloth == null) {
-            return null;
-        }
+  private final BinaryContentMapper binaryContentMapper;
 
-        List<ClothesAttributeWithDefDto> attributes = mapAttributes(cloth);
-        
-        return new OotdItemDto(
-                cloth.getId(),
-                cloth.getName(),
-                null, // TODO: 이미지 URL 로직 구현 필요
-                mapClothesType(cloth),
-                attributes);
+  public OotdItemDto toDto(Clothes cloth) {
+    if (cloth == null) {
+      return null;
+    }
+    List<AttributeDto> attributes = getAttributes(cloth);
+
+    return new OotdItemDto(
+        cloth.getId(),
+        cloth.getName(),
+        binaryContentMapper.extractUrl(cloth.getImage()),
+        cloth.getClothesType().name(),
+        attributes
+    );
+  }
+
+  public List<OotdItemDto> toDtoList(List<Clothes> clothes) {
+    if (clothes == null) {
+      return List.of();
     }
 
-    public List<OotdItemDto> toDtoList(List<Cloth> clothes) {
-        if (clothes == null) {
-            return List.of();
-        }
+    return clothes.stream()
+        .map(this::toDto)
+        .collect(Collectors.toList());
+  }
 
-        return clothes.stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
-    }
+  private List<AttributeDto> getAttributes(Clothes cloth) {
+    return cloth.getSelectedValues()
+        .stream()
+        .map(AttributeDto::from)
+        .toList();
+  }
 
-    private List<ClothesAttributeWithDefDto> mapAttributes(Cloth cloth) {
-        return cloth.getAttributeValues().stream()
-                .map(attributeValue -> {
-                    ClothingAttribute definition = attributeValue.getAttribute();
-
-                    List<String> selectableValues = definition.getOptions().stream()
-                            .map(AttributeOption::getValue)
-                            .collect(Collectors.toList());
-
-                    String chosenValue = attributeValue.getOption().getValue();
-
-                    return new ClothesAttributeWithDefDto(
-                            definition.getId(),
-                            definition.getName(),
-                            selectableValues,
-                            chosenValue);
-                })
-                .collect(Collectors.toList());
-    }
-
-    private ClothesType mapClothesType(Cloth cloth) {
-        return ClothesType.valueOf(cloth.getCategory().getName().name());
-    }
 }

@@ -1,20 +1,29 @@
 package com.stylemycloset.recommendation.mapper;
 
-import com.stylemycloset.cloth.entity.Cloth;
+import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.recommendation.dto.RecommendationDto;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.weather.entity.Weather;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
+@RequiredArgsConstructor
 public class RecommendationMapper {
-    public static RecommendationDto parseToRecommendationDto(List<Cloth> clothes, Weather weather ,
-        User user) {
-        return new RecommendationDto(
-            weather.getId(),
-            user.getId(),
-            clothes.stream().map(ClothesMapper::toClothesDto).toList()
-        );
+
+  private final ClothesMapper clothesMapper;
+
+  public RecommendationDto parseToRecommendationDto(List<Clothes> clothes, Weather weather,
+      User user) {
+    return new RecommendationDto(
+        weather.getId(),
+        user.getId(),
+        clothes.stream()
+            .map(clothesMapper::toClothesDto)
+            .toList()
+    );
 
 
-    }
+  }
 }

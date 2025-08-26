@@ -1,5 +1,6 @@
 package com.stylemycloset.directmessage.dto.response;
 
+import com.stylemycloset.common.repository.NextCursorInfo;
 import com.stylemycloset.directmessage.dto.DirectMessageResult;
 import java.util.List;
 
@@ -23,17 +24,13 @@ public record DirectMessageResponse<T>(
   ) {
     return new DirectMessageResponse<>(
         messageResults,
-        nextCursorInfo.nextCursor,
-        nextCursorInfo.nextIdAfter,
+        nextCursorInfo.nextCursor(),
+        nextCursorInfo.nextIdAfter(),
         hasNext,
         totalCount,
         sortBy,
         sortDirection
     );
-  }
-
-  public record NextCursorInfo(String nextCursor, String nextIdAfter) {
-
   }
 
 }

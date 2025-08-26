@@ -2,6 +2,7 @@ package com.stylemycloset.binarycontent.service;
 
 import com.stylemycloset.binarycontent.dto.BinaryContentRequest;
 import com.stylemycloset.binarycontent.dto.BinaryContentResult;
+import java.net.URL;
 import java.util.List;
 import java.util.UUID;
 

@@ -4,7 +4,7 @@ package com.stylemycloset.binarycontent.controller;
 import com.stylemycloset.binarycontent.dto.BinaryContentRequest;
 import com.stylemycloset.binarycontent.dto.BinaryContentResult;
 import com.stylemycloset.binarycontent.service.BinaryContentService;
-import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
+import com.stylemycloset.binarycontent.storage.s3.BinaryContentStorage;
 import jakarta.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.List;
@@ -62,18 +62,16 @@ public class BinaryContentController {
   }
 
   @GetMapping("/url/{binaryContentId}")
-  public ResponseEntity<String> getUrl(
+  public ResponseEntity<String> getPresignedUrl(
       @PathVariable(value = "binaryContentId") UUID binaryContentId
   ) {
     URL url = binaryContentStorage.getUrl(binaryContentId);
-
     return ResponseEntity.ok().body(url.toString());
   }
 
   @DeleteMapping("/{binaryContentId}")
   public ResponseEntity<Void> delete(@NotNull @PathVariable UUID binaryContentId) {
     binaryContentService.delete(binaryContentId);
-
     return ResponseEntity.noContent().build();
   }
 

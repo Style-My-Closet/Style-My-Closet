@@ -76,7 +76,7 @@ public class UserController {
 
   @PatchMapping("/{userId}/profiles")
   public ResponseEntity<ProfileDto> updateProfile(
-      @PathVariable Long userId,
+      @PathVariable(name = "userId") Long userId,
       @RequestPart("request") ProfileUpdateRequest request,
       @RequestPart(value = "image", required = false) MultipartFile image) {
 
@@ -87,6 +87,5 @@ public class UserController {
   public ResponseEntity<ProfileDto> getProfile(@PathVariable Long userId) {
     return ResponseEntity.ok(userService.getProfile(userId));
   }
-
 
 }

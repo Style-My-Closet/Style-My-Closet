@@ -1,7 +1,7 @@
 package com.stylemycloset.ootd.service;
 
-import com.stylemycloset.cloth.entity.Cloth;
-import com.stylemycloset.cloth.repository.ClothRepository;
+import com.stylemycloset.clothes.entity.clothes.Clothes;
+import com.stylemycloset.clothes.repository.clothes.ClothesRepository;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.notification.event.domain.FeedCommentEvent;
@@ -51,7 +51,7 @@ public class FeedServiceImpl implements FeedService {
   private final FeedRepository feedRepository;
   private final FeedClothesRepository feedClothesRepository;
   private final UserRepository userRepository;
-  private final ClothRepository clothRepository;
+  private final ClothesRepository clothRepository;
   private final WeatherRepository weatherRepository;
   private final FeedLikeRepository feedLikeRepository;
   private final FeedCommentRepository feedCommentRepository;
@@ -69,7 +69,7 @@ public class FeedServiceImpl implements FeedService {
 
     Weather weather = findWeatherOrNull(request.weatherId());
 
-    List<Cloth> clothesList = clothRepository.findAllById(request.clothesIds());
+    List<Clothes> clothesList = clothRepository.findAllById(request.clothesIds());
     if (clothesList.size() != request.clothesIds().size()) {
       throw new StyleMyClosetException(ErrorCode.CLOTHES_NOT_FOUND,
           Map.of("requestedIds", request.clothesIds()));
@@ -90,7 +90,7 @@ public class FeedServiceImpl implements FeedService {
   @Override
   public FeedDtoCursorResponse getFeeds(FeedSearchRequest request, @Nullable Long currentUserId) {
     // 인증된 사용자 정보 조회
-    User currentUser = currentUserId != null ? 
+    User currentUser = currentUserId != null ?
         userRepository.findByIdAndDeletedAtIsNullAndLockedIsFalse(currentUserId).orElse(null) : null;
 
     List<Feed> feeds = feedRepository.findByConditions(request);
@@ -120,7 +120,7 @@ public class FeedServiceImpl implements FeedService {
     }
 
     // FeedMapper를 사용하여 FeedDto 리스트 생성
-    List<FeedDto> feedDtos = feedMapper.toDtoList(feeds, currentUser, likeCountMap, 
+    List<FeedDto> feedDtos = feedMapper.toDtoList(feeds, currentUser, likeCountMap,
         new HashMap<>(), likedByMeMap); // TODO: commentCount 구현 필요 여부 고민(명세서엔 존재, 프론트엔 없음)
 
     return new FeedDtoCursorResponse(
@@ -175,7 +175,7 @@ public class FeedServiceImpl implements FeedService {
     return feedMapper.toDto(feed, currentUser, likeCount, 0, likedByMe); // TODO: commentCount 구현 필요 (명세서 요구사항)
   }
 
-  private FeedDto mapToFeedResponseWithLikeInfo(Feed feed, User currentUser, 
+  private FeedDto mapToFeedResponseWithLikeInfo(Feed feed, User currentUser,
       Map<Long, Long> likeCountMap, Map<Long, Boolean> likedByMeMap) {
     long likeCount = likeCountMap.getOrDefault(feed.getId(), 0L);
     boolean likedByMe = likedByMeMap.getOrDefault(feed.getId(), false);
@@ -189,7 +189,7 @@ public class FeedServiceImpl implements FeedService {
     if (feedIds.isEmpty()) {
       return new HashMap<>();
     }
-    
+
     // Batch 쿼리로 좋아요 수 조회
     List<FeedLikeRepository.FeedLikeCountProjection> results = feedLikeRepository.countByFeedIds(feedIds);
     return results.stream()
@@ -204,14 +204,14 @@ public class FeedServiceImpl implements FeedService {
     if (feedIds.isEmpty()) {
       return new HashMap<>();
     }
-    
+
     // Batch 쿼리로 좋아요 상태 조회
     List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByUserAndFeedIds(currentUser.getId(), feedIds);
-    HashSet<Long> likedFeedIdSet = new HashSet<>(likedFeedIds); // O(1) 
+    HashSet<Long> likedFeedIdSet = new HashSet<>(likedFeedIds); // O(1)
     return feedIds.stream()
         .collect(Collectors.toMap(
             feedId -> feedId,
-            feedId -> likedFeedIdSet.contains(feedId) // O(1) 
+            feedId -> likedFeedIdSet.contains(feedId) // O(1)
         ));
   }
 
@@ -309,11 +309,11 @@ public class FeedServiceImpl implements FeedService {
     if (feedIds.isEmpty()) {
       return new HashMap<>();
     }
-    
+
     // 모든 피드에 대해 기본값 0 설정
     Map<Long, Long> likeCountMap = feedIds.stream()
         .collect(Collectors.toMap(feedId -> feedId, feedId -> 0L));
-    
+
     // Batch 쿼리로 좋아요 수 조회
     List<FeedLikeRepository.FeedLikeCountProjection> results = feedLikeRepository.countByFeedIds(feedIds);
     results.forEach(result -> {
@@ -321,7 +321,7 @@ public class FeedServiceImpl implements FeedService {
       Long count = result.getLikeCount();
       likeCountMap.put(feedId, count);
     });
-    
+
     return likeCountMap;
   }
 
@@ -330,14 +330,14 @@ public class FeedServiceImpl implements FeedService {
     if (feedIds.isEmpty()) {
       return new HashMap<>();
     }
-    
+
     // Batch 쿼리로 좋아요 상태 조회
     List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByUserAndFeedIds(currentUser.getId(), feedIds);
-    HashSet<Long> likedFeedIdSet = new HashSet<>(likedFeedIds); // O(1) 
+    HashSet<Long> likedFeedIdSet = new HashSet<>(likedFeedIds); // O(1)
     return feedIds.stream()
         .collect(Collectors.toMap(
             feedId -> feedId,
-            feedId -> likedFeedIdSet.contains(feedId) // O(1) 
+            feedId -> likedFeedIdSet.contains(feedId) // O(1)
         ));
   }
 }

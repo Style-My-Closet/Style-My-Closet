@@ -2,9 +2,7 @@ package com.stylemycloset.user.service;
 
 import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
-import com.stylemycloset.binarycontent.storage.BinaryContentStorage;
-import com.stylemycloset.common.exception.ErrorCode;
-import com.stylemycloset.common.exception.StyleMyClosetException;
+import com.stylemycloset.binarycontent.storage.s3.BinaryContentStorage;
 import com.stylemycloset.location.Location;
 import com.stylemycloset.location.LocationRepository;
 import com.stylemycloset.notification.event.domain.RoleChangedEvent;
@@ -52,6 +50,7 @@ public class UserServiceImpl implements UserService {
   private final BinaryContentRepository binaryContentRepository;
   private final BinaryContentStorage storage;
   private final LocationRepository locationRepository;
+
 
   @Transactional
   @Override
@@ -145,7 +144,7 @@ public class UserServiceImpl implements UserService {
 
         BinaryContent save = binaryContentRepository.save(binaryContent);
 
-        storage.put(save.getId(), image.getBytes());
+        storage.putAsync(save.getId(), image.getBytes());
 
         user.updateImage(save);
       } catch (IOException e) {
@@ -194,7 +193,7 @@ public class UserServiceImpl implements UserService {
             nextCursor = value.toString();
           }
         }
-        case "name" -> nextCursor = lastUser.getName();
+        case "definitionName" -> nextCursor = lastUser.getName();
         case "email" -> nextCursor = lastUser.getEmail();
         default -> throw new IllegalArgumentException("정렬 필드 오류");
       }
@@ -203,7 +202,7 @@ public class UserServiceImpl implements UserService {
 
     Integer totalCount = null;
     if (request.cursor() == null) {
-      totalCount = (int) userRepository.countByFilter(request);
+      totalCount = userRepository.countByFilter(request);
     }
 
     return new UserCursorResponse(
