@@ -35,14 +35,16 @@ public interface CursorStrategy<T extends Comparable<T>, E> {
       String idAfter,
       CursorStrategy<?, E> idAfterStrategy
   ) {
-    BooleanExpression booleanExpression = buildInequalityPredicate(direction, rawCursor);
-    BooleanExpression buildEq = buildEq(rawCursor);
-    BooleanExpression buildSecondary = idAfterStrategy.buildInequalityPredicate(direction,
+    BooleanExpression cursorPredicate = buildInequalityPredicate(direction, rawCursor);
+    BooleanExpression cursorEqualExpression = buildEq(rawCursor);
+    BooleanExpression idAfterPredicate = idAfterStrategy.buildInequalityPredicate(direction,
         idAfter);
-    if (buildEq == null || buildSecondary == null) {
-      return booleanExpression;
+    if (cursorEqualExpression == null || idAfterPredicate == null) {
+      return cursorPredicate;
     }
-    return booleanExpression.or(buildEq.and(buildSecondary));
+    return cursorPredicate.or(
+        cursorEqualExpression.and(idAfterPredicate)
+    );
   }
 
 }

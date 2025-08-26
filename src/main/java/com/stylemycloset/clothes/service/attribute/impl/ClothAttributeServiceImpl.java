@@ -58,7 +58,11 @@ public class ClothAttributeServiceImpl implements ClothAttributeService {
     return ClothesAttributeDefinitionDto.from(savedAttribute);
   }
 
-  @Cacheable(value = CLOTHES_ATTRIBUTE_CACHE, key = CLOTHES_ATTRIBUTES_KEY)
+  @Cacheable(
+      value = CLOTHES_ATTRIBUTE_CACHE,
+      key = CLOTHES_ATTRIBUTES_KEY,
+      condition = "#p0.cursor() == null && #p0.idAfter() == null"
+  )
   @Transactional(readOnly = true)
   @Override
   public ClothesAttributeDefinitionDtoCursorResponse getAttributes(

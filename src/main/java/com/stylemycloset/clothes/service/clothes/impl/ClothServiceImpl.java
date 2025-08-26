@@ -57,7 +57,11 @@ public class ClothServiceImpl implements ClothService {
     return clothesMapper.toResponse(savedClothes);
   }
 
-  @Cacheable(value = CLOTHES_CACHE, key = "#p0.ownerId()+'_'+#p0.typeEqual()")
+  @Cacheable(
+      value = CLOTHES_CACHE,
+      key = "#p0.ownerId()+'_'+#p0.typeEqual()",
+      condition = "#p0.cursor() == null && #p0.idAfter() == null"
+  )
   @Transactional(readOnly = true)
   @Override
   public ClothDtoCursorResponse getClothes(ClothesSearchCondition condition) {
