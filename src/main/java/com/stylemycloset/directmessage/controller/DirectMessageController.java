@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,7 +25,7 @@ public class DirectMessageController {
   private final SimpMessagingTemplate messagingTemplate;
 
   @MessageMapping("/direct-messages_send")
-  public DirectMessageResult send(@Valid DirectMessageCreateRequest request) {
+  public DirectMessageResult send(@Valid @Payload DirectMessageCreateRequest request) {
     DirectMessageResult message = directMessageService.create(request);
 
     String directMessageKey = DirectMessageKey.of(message);
@@ -40,7 +41,9 @@ public class DirectMessageController {
       @AuthenticationPrincipal(expression = "userId") Long viewerId
   ) {
     DirectMessageResponse<DirectMessageResult> messages = directMessageService.getDirectMessageBetweenParticipants(
-        condition, viewerId);
+        condition,
+        viewerId
+    );
     return ResponseEntity.ok(messages);
   }
 

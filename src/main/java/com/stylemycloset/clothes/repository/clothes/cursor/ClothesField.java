@@ -31,7 +31,7 @@ public enum ClothesField {
 
   public static CursorStrategy<?, Clothes> resolveStrategy(String sortBy) {
     if (sortBy == null || sortBy.isBlank()) {
-      return CREATED_AT.cursorStrategy;
+      return ID.cursorStrategy;
     }
 
     return Arrays.stream(ClothesField.values())

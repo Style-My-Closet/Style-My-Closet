@@ -26,7 +26,7 @@ public class FeedLike extends CreatedAtEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "feed_likes_seq_gen")
-  @SequenceGenerator(name = "feed_likes_seq_gen", sequenceName = "feed_likes_id_seq", allocationSize = 1)
+  @SequenceGenerator(name = "feed_likes_seq_gen", sequenceName = "feed_likes_id_seq", allocationSize = 50)
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)

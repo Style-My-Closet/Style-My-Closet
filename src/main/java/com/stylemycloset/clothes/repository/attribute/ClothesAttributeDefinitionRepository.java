@@ -13,14 +13,21 @@ public interface ClothesAttributeDefinitionRepository extends
     JpaRepository<ClothesAttributeDefinition, Long>,
     ClothesAttributeDefinitionRepositoryCustom {
 
-  Optional<ClothesAttributeDefinition> findByIdAndDeletedAtIsNull(Long definitionId);
+  @Query("""
+      SELECT cad
+      FROM ClothesAttributeDefinition cad
+      LEFT JOIN FETCH cad.selectableValues
+      WHERE cad.id = :definitionId
+      """)
+  Optional<ClothesAttributeDefinition> findByIdFetchSelectableValues(
+      @Param("definitionId") Long definitionId
+  );
 
   @Query("""
       SELECT COUNT(cav) > 0
       FROM ClothesAttributeDefinition cav
       WHERE cav.name = :definitionName
-      AND cav.deletedAt IS NOT NULL
       """)
-  boolean existsByActiveAttributeDefinition(@Param("definitionName") String definitionName);
+  boolean existsByAttributeDefinition(@Param("definitionName") String definitionName);
 
 }
