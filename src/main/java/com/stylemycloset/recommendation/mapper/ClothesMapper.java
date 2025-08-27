@@ -22,19 +22,19 @@ public class ClothesMapper {
         binaryContentMapper.extractUrl(cloth.getImage()),
         cloth.getClothesType().toString(),
         cloth.getSelectedValues().stream()
-            .map(ca -> toClothesAttributeWithDefDto(ca.getSelectableValue().getDefinition()))
+            .map(ca -> toClothesAttributeWithDefDto(ca.getSelectableValue().getDefinition(), ca.getSelectableValue()))
             .toList()
     );
   }
 
   private static ClothesAttributeWithDefDto toClothesAttributeWithDefDto(
-      ClothesAttributeDefinition ca
+      ClothesAttributeDefinition ca, ClothesAttributeSelectableValue cs
   ) {
     return new ClothesAttributeWithDefDto(
         ca.getId(),
         ca.getName(),
         ca.getSelectableValues().stream().map(ClothesAttributeSelectableValue::getValue).toList(),
-        ca.getName()
+        cs.getValue()
     );
   }
 
