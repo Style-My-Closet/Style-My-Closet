@@ -6,10 +6,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.entity.NotificationLevel;
 import com.stylemycloset.notification.repository.NotificationRepository;
-import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.user.dto.data.UserDto;
 import com.stylemycloset.user.entity.Role;
 import com.stylemycloset.user.entity.User;
@@ -23,17 +23,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-@Transactional
 public class NotificationControllerTest extends IntegrationTestSupport {
 
   @Autowired
@@ -52,6 +48,7 @@ public class NotificationControllerTest extends IntegrationTestSupport {
 
   @BeforeEach
   void setup() {
+    notificationRepository.deleteAllInBatch();
     User user = new User("testuser", "testuser@test.com", "testuser");
     ReflectionTestUtils.setField(user, "id", userId);
     UserDto dto = new UserDto(
