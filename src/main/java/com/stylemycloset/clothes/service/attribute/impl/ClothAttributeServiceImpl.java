@@ -3,19 +3,24 @@ package com.stylemycloset.clothes.service.attribute.impl;
 import static com.stylemycloset.common.config.CacheConfig.CLOTHES_ATTRIBUTES_KEY;
 import static com.stylemycloset.common.config.CacheConfig.CLOTHES_ATTRIBUTE_CACHE;
 
-import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDtoCursorResponse;
 import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDto;
+import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDtoCursorResponse;
 import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeCreateRequest;
-import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeUpdateRequest;
 import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeSearchCondition;
+import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeUpdateRequest;
 import com.stylemycloset.clothes.entity.attribute.ClothesAttributeDefinition;
+import com.stylemycloset.clothes.entity.attribute.ClothesAttributeSelectableValue;
 import com.stylemycloset.clothes.exception.ClothesAttributeDefinitionDuplicateException;
 import com.stylemycloset.clothes.exception.ClothesAttributeNotFoundException;
 import com.stylemycloset.clothes.mapper.AttributeMapper;
 import com.stylemycloset.clothes.repository.attribute.ClothesAttributeDefinitionRepository;
+import com.stylemycloset.clothes.repository.attribute.ClothesAttributeDefinitionSelectedRepository;
 import com.stylemycloset.clothes.service.attribute.ClothAttributeService;
 import com.stylemycloset.notification.event.domain.ClothAttributeChangedEvent;
 import com.stylemycloset.notification.event.domain.NewClothAttributeEvent;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -30,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ClothAttributeServiceImpl implements ClothAttributeService {
 
+  private final ClothesAttributeDefinitionSelectedRepository clothesAttributeDefinitionSelectedRepository;
   private final ClothesAttributeDefinitionRepository clothesAttributeDefinitionRepository;
   private final AttributeMapper attributeMapper;
   private final ApplicationEventPublisher eventPublisher;
@@ -52,7 +58,11 @@ public class ClothAttributeServiceImpl implements ClothAttributeService {
     return ClothesAttributeDefinitionDto.from(savedAttribute);
   }
 
-  @Cacheable(value = CLOTHES_ATTRIBUTE_CACHE, key = CLOTHES_ATTRIBUTES_KEY)
+  @Cacheable(
+      value = CLOTHES_ATTRIBUTE_CACHE,
+      key = CLOTHES_ATTRIBUTES_KEY,
+      condition = "#p0.cursor() == null && #p0.idAfter() == null"
+  )
   @Transactional(readOnly = true)
   @Override
   public ClothesAttributeDefinitionDtoCursorResponse getAttributes(
@@ -77,13 +87,19 @@ public class ClothAttributeServiceImpl implements ClothAttributeService {
       Long attributeId,
       ClothesAttributeUpdateRequest request
   ) {
-    validateAttributeDefinitionDuplicateName(request.name());
-    ClothesAttributeDefinition attribute = getAttribute(attributeId);
+    ClothesAttributeDefinition attribute = getAttributeDefinitionWithSelectables(attributeId);
+    validateAttributeDefinitionDuplicateName(request.name(), attribute.getName());
+    List<ClothesAttributeSelectableValue> oldSelectables = List.copyOf(
+        attribute.getSelectableValues()
+    );
     attribute.update(request.name(), request.selectableValues());
     ClothesAttributeDefinition savedAttribute = clothesAttributeDefinitionRepository.save(
-        attribute);
+        attribute
+    );
+    softDeleteClothesSelectedValues(oldSelectables, savedAttribute.getSelectableValues());
 
     publishAttributeChangedEvent(savedAttribute);
+
     return ClothesAttributeDefinitionDto.from(savedAttribute);
   }
 
@@ -91,21 +107,27 @@ public class ClothAttributeServiceImpl implements ClothAttributeService {
   @Transactional
   @Override
   public void softDeleteAttributeById(Long definitionId) {
-    ClothesAttributeDefinition attribute = getAttribute(definitionId);
+    ClothesAttributeDefinition attribute = getAttributeDefinitionWithSelectables(definitionId);
     attribute.softDelete();
     clothesAttributeDefinitionRepository.save(attribute);
+    clothesAttributeDefinitionSelectedRepository.softDeleteBySelectableValues(
+        attribute.getSelectableValues()
+    );
   }
 
   @CacheEvict(value = CLOTHES_ATTRIBUTE_CACHE, key = CLOTHES_ATTRIBUTES_KEY)
   @Transactional
   @Override
   public void deleteAttributeById(Long definitionId) {
-    validateAttributeExist(definitionId);
-    clothesAttributeDefinitionRepository.deleteById(definitionId);
+    ClothesAttributeDefinition attribute = getAttributeDefinitionWithSelectables(definitionId);
+    clothesAttributeDefinitionRepository.deleteById(attribute.getId());
+    clothesAttributeDefinitionSelectedRepository.deleteBySelectableValues(
+        attribute.getSelectableValues()
+    );
   }
 
-  private ClothesAttributeDefinition getAttribute(Long id) {
-    return clothesAttributeDefinitionRepository.findByIdAndDeletedAtIsNull(id)
+  private ClothesAttributeDefinition getAttributeDefinitionWithSelectables(Long id) {
+    return clothesAttributeDefinitionRepository.findByIdFetchSelectableValues(id)
         .orElseThrow(ClothesAttributeNotFoundException::new);
   }
 
@@ -121,17 +143,36 @@ public class ClothAttributeServiceImpl implements ClothAttributeService {
     );
   }
 
-  private void validateAttributeDefinitionDuplicateName(String name) {
-    if (clothesAttributeDefinitionRepository.existsByActiveAttributeDefinition(name)) {
+  private void validateAttributeDefinitionDuplicateName(String newName) {
+    if (clothesAttributeDefinitionRepository.existsByAttributeDefinition(newName)) {
       throw new ClothesAttributeDefinitionDuplicateException();
     }
   }
 
-  private void validateAttributeExist(Long attributeId) {
-    if (clothesAttributeDefinitionRepository.existsById(attributeId)) {
+  private void validateAttributeDefinitionDuplicateName(
+      String newName,
+      String currentAttributeDefinitionName
+  ) {
+    if (newName.equals(currentAttributeDefinitionName)) {
       return;
     }
-    throw new ClothesAttributeNotFoundException();
+    if (clothesAttributeDefinitionRepository.existsByAttributeDefinition(newName)) {
+      throw new ClothesAttributeDefinitionDuplicateException();
+    }
+  }
+
+  private void softDeleteClothesSelectedValues(
+      List<ClothesAttributeSelectableValue> attributeSelectableValues,
+      List<ClothesAttributeSelectableValue> savedAttributeSelectableValues
+  ) {
+    Set<ClothesAttributeSelectableValue> oldSelectables = new LinkedHashSet<>(
+        attributeSelectableValues
+    );
+    Set<ClothesAttributeSelectableValue> newSelectable = new LinkedHashSet<>(
+        savedAttributeSelectableValues
+    );
+    oldSelectables.removeIf(newSelectable::contains);
+    clothesAttributeDefinitionSelectedRepository.softDeleteBySelectableValues(oldSelectables);
   }
 
 } 

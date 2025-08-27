@@ -34,7 +34,7 @@ public class ClothesController {
   @PostMapping
   public ResponseEntity<ClothesDto> createCloth(
       @RequestPart("request") ClothesCreateRequest request,
-      @RequestPart(value = "image", required = false) MultipartFile image
+      @RequestPart(value = "image") MultipartFile image
   ) {
     ClothesDto response = clothService.createCloth(
         request,

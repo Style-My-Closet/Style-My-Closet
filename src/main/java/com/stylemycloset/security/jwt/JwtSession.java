@@ -21,7 +21,7 @@ public class JwtSession extends BaseTimeEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "jwt_sessions_seq_gen")
-  @SequenceGenerator(name = "jwt_sessions_seq_gen", sequenceName = "jwt_sessions_id_seq", allocationSize = 1)
+  @SequenceGenerator(name = "jwt_sessions_seq_gen", sequenceName = "jwt_sessions_id_seq", allocationSize = 50)
   @Column(updatable = false, nullable = false)
   private Long Id;
   @Column(updatable = false, nullable = false)

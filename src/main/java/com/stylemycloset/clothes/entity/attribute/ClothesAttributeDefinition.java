@@ -33,7 +33,7 @@ public class ClothesAttributeDefinition extends SoftDeletableEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "clothes_attribute_definition_seq_gen")
-  @SequenceGenerator(name = "clothes_attribute_definition_seq_gen", sequenceName = "clothes_attribute_definition_id_seq", allocationSize = 1)
+  @SequenceGenerator(name = "clothes_attribute_definition_seq_gen", sequenceName = "clothes_attribute_definition_id_seq", allocationSize = 50)
   private Long id;
 
   @Column(name = "name", nullable = false, length = 50)
@@ -98,8 +98,8 @@ public class ClothesAttributeDefinition extends SoftDeletableEntity {
   ) {
     Set<ClothesAttributeSelectableValue> oldValues = new LinkedHashSet<>(existSelectables);
     oldValues.removeAll(newSelectables);
-    for (ClothesAttributeSelectableValue v : oldValues) {
-      v.softDelete();
+    for (ClothesAttributeSelectableValue selectableValue : oldValues) {
+      selectableValue.softDelete();
     }
     this.selectableValues.removeIf(oldValues::contains);
   }

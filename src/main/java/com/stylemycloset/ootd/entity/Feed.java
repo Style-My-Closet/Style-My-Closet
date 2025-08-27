@@ -34,7 +34,7 @@ public class Feed extends SoftDeletableEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "feeds_seq_gen")
-  @SequenceGenerator(name = "feeds_seq_gen", sequenceName = "feeds_id_seq", allocationSize = 1)
+  @SequenceGenerator(name = "feeds_seq_gen", sequenceName = "feeds_id_seq", allocationSize = 50)
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)

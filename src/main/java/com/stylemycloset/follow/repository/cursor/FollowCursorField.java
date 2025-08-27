@@ -20,12 +20,6 @@ public enum FollowCursorField {
       QFollow.follow.createdAt,
       Instant::parse,
       Follow::getCreatedAt)
-  ),
-
-  FOLLOWED_AT(new ChronologicalCursorStrategy(
-      QFollow.follow.followedAt,
-      Instant::parse,
-      Follow::getFollowedAt)
   );
 
   private final CursorStrategy<?, Follow> cursorStrategy;

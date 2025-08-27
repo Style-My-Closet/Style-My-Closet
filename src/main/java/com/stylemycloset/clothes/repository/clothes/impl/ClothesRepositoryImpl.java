@@ -12,6 +12,7 @@ import com.stylemycloset.common.repository.CursorStrategy;
 import com.stylemycloset.common.repository.CustomSliceImpl;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort.Direction;
 
@@ -44,8 +45,12 @@ public class ClothesRepositoryImpl implements ClothesRepositoryCustom {
         .where(
             buildOwnerIdPredicate(ownerId),
             buildTypeEqualPredicate(typeEqual),
-            primaryCursorStrategy.buildCursorPredicate(direction, cursor, idAfter,
-                idAfterCursorStrategy)
+            primaryCursorStrategy.buildCursorPredicate(
+                direction,
+                cursor,
+                idAfter,
+                idAfterCursorStrategy
+            )
         )
         .orderBy(
             primaryCursorStrategy.buildOrder(direction),
