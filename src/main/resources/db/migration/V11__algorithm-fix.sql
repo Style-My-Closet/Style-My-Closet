@@ -39,4 +39,4 @@ ALTER TABLE clothing_conditions
 ALTER TABLE clothing_conditions
     DROP COLUMN embedding;
 ALTER TABLE clothing_conditions
-    ADD COLUMN embedding VECTOR(37);
+    ADD COLUMN embedding VECTOR(44);
