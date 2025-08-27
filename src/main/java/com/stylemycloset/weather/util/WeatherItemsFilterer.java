@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 public class WeatherItemsFilterer {
 
     protected final Set<String> seenKeys = new HashSet<>();
-    private final Set<String> AVAILABLE_CATEGORIES = Set.of("TMP", "TMN", "TMX", "POP", "PTY", "PCP","REH","WSD");
+    private final Set<String> AVAILABLE_CATEGORIES = Set.of("TMP", "TMN", "TMX", "POP", "PTY", "PCP","REH","WSD","SKY");
 
     public Boolean dataCleaning(JsonNode item,String baseDate) {
         String category = item.path("category").asText();

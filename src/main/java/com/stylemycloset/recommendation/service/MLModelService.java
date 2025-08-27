@@ -42,7 +42,7 @@ public class MLModelService {
       if (!(p > 0.7)) {
         current.clothes().remove(clothesMapper.toClothesDto(c));
         result = current;
-        recordFeedback(weather, user, c.getSelectedValues(), false);
+        if(!c.getSelectedValues().isEmpty()) recordFeedback(weather, user, c.getSelectedValues(), false);
       } else {
         result = current;
         recordFeedback(weather, user, c.getSelectedValues(), true);
