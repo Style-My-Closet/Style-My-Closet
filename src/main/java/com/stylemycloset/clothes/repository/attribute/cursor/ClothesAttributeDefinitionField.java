@@ -40,7 +40,7 @@ public enum ClothesAttributeDefinitionField {
 
   public static CursorStrategy<?, ClothesAttributeDefinition> resolveStrategy(String sortBy) {
     if (sortBy == null || sortBy.isBlank()) {
-      return CREATED_AT.cursorStrategy;
+      return NAME.cursorStrategy;
     }
 
     return Arrays.stream(ClothesAttributeDefinitionField.values())

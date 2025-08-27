@@ -47,8 +47,8 @@ class FollowRepositoryTest extends IntegrationTestSupport {
     Follow followAtoC = followRepository.save(new Follow(userC, userA));
 
     // when
-    long followersCount = followRepository.countFollowers(userA.getId());
-    long followingsCount = followRepository.countFollowings(userA.getId());
+    long followersCount = followRepository.countActiveFollowers(userA.getId());
+    long followingsCount = followRepository.countActiveFollowings(userA.getId());
 
     // then
     SoftAssertions.assertSoftly(softly -> {
@@ -68,7 +68,7 @@ class FollowRepositoryTest extends IntegrationTestSupport {
     Follow savedFollow = followRepository.save(follow);
 
     // when
-    boolean isFollowed = followRepository.existsByFolloweeIdAndFollowerId(userB.getId(),
+    boolean isFollowed = followRepository.existsActiveByFolloweeIdAndFollowerId(userB.getId(),
         userA.getId());
 
     // then

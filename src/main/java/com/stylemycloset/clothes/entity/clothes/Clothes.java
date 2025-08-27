@@ -34,7 +34,7 @@ public class Clothes extends SoftDeletableEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "clothes_seq_gen")
-  @SequenceGenerator(name = "clothes_seq_gen", sequenceName = "clothes_id_seq", allocationSize = 1)
+  @SequenceGenerator(name = "clothes_seq_gen", sequenceName = "clothes_id_seq", allocationSize = 50)
   private Long id;
 
   @Column(name = "owner_id", nullable = false)

@@ -1,4 +1,4 @@
-package com.stylemycloset.clothes.repository.clothes.impl;
+package com.stylemycloset.clothes.service.clothes.impl;
 
 import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDto;
@@ -39,8 +39,6 @@ class ClothesServiceTest extends IntegrationTestSupport {
   @Autowired
   private ClothesAttributeDefinitionSelectedRepository clothesAttributeDefinitionSelectedRepository;
   @Autowired
-  private ClothesAttributeDefinitionSelectableRepository clothesAttributeDefinitionSelectableRepository;
-  @Autowired
   private ClothesRepository clothesRepository;
 
   @Autowired
@@ -56,7 +54,6 @@ class ClothesServiceTest extends IntegrationTestSupport {
     definitionSelectableRepository.deleteAllInBatch();
 
     clothesAttributeDefinitionSelectedRepository.deleteAllInBatch();
-    clothesAttributeDefinitionSelectableRepository.deleteAllInBatch();
     clothesRepository.deleteAllInBatch();
   }
 

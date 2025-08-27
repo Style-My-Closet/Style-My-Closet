@@ -13,7 +13,6 @@ import com.stylemycloset.follow.dto.request.FollowCreateRequest;
 import com.stylemycloset.follow.dto.request.SearchFollowersCondition;
 import com.stylemycloset.follow.dto.request.SearchFollowingsCondition;
 import com.stylemycloset.follow.entity.Follow;
-import com.stylemycloset.follow.entity.QFollow;
 import com.stylemycloset.follow.exception.ActiveFollowNotFoundException;
 import com.stylemycloset.follow.exception.FollowAlreadyExistException;
 import com.stylemycloset.follow.exception.FollowSelfForbiddenException;
@@ -26,12 +25,10 @@ import com.stylemycloset.user.exception.UserNotFoundException;
 import com.stylemycloset.user.repository.UserRepository;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.transaction.TestTransaction;
@@ -286,7 +283,7 @@ class FollowServiceTest extends IntegrationTestSupport {
 
     // then
     Assertions.assertThat(
-            followRepository.existsByFolloweeIdAndFollowerId(
+            followRepository.existsActiveByFolloweeIdAndFollowerId(
                 followee.getId(),
                 follower.getId()
             ))

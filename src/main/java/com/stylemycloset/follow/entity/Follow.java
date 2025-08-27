@@ -26,7 +26,7 @@ public class Follow extends SoftDeletableEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "follows_seq_gen")
-  @SequenceGenerator(name = "follows_seq_gen", sequenceName = "follows_id_seq", allocationSize = 1)
+  @SequenceGenerator(name = "follows_seq_gen", sequenceName = "follows_id_seq", allocationSize = 50)
   private Long id;
 
   @JoinColumn(name = "follower_id", nullable = false)

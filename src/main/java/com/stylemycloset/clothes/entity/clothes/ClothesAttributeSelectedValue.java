@@ -25,7 +25,7 @@ public class ClothesAttributeSelectedValue extends SoftDeletableEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "clothes_attribute_selected_value_seq_gen")
-  @SequenceGenerator(name = "clothes_attribute_selected_value_seq_gen", sequenceName = "clothes_attribute_selected_value_id_seq", allocationSize = 1)
+  @SequenceGenerator(name = "clothes_attribute_selected_value_seq_gen", sequenceName = "clothes_attribute_selected_value_id_seq", allocationSize = 50)
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)

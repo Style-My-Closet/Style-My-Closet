@@ -25,7 +25,7 @@ public class FeedClothes extends CreatedAtEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "feed_ootd_clothes_seq_gen")
-  @SequenceGenerator(name = "feed_ootd_clothes_seq_gen", sequenceName = "feed_ootd_clothes_id_seq", allocationSize = 1)
+  @SequenceGenerator(name = "feed_ootd_clothes_seq_gen", sequenceName = "feed_ootd_clothes_id_seq", allocationSize = 50)
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)

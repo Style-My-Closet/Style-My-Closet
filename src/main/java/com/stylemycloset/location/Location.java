@@ -31,7 +31,7 @@ public class Location extends BaseTimeEntity {
   @SequenceGenerator(
       name = "locations_seq_gen",
       sequenceName = "locations_id_seq", // 스키마 명까지 명시
-      allocationSize = 1
+      allocationSize = 50
   )
   private Long id;
 

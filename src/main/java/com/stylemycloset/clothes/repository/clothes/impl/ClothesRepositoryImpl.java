@@ -17,7 +17,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort.Direction;
 
 
-@Slf4j
 @RequiredArgsConstructor
 public class ClothesRepositoryImpl implements ClothesRepositoryCustom {
 

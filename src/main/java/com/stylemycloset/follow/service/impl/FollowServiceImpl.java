@@ -50,21 +50,13 @@ public class FollowServiceImpl implements FollowService {
   @Transactional(readOnly = true)
   @Override
   public FollowSummaryResult getFollowSummary(Long userId, Long viewerId) {
-    long followersNumber = followRepository.countFollowers(userId);
-    long followingsNumber = followRepository.countFollowings(userId);
-
-//    long followersNumber = followRepository.countActiveFollowers(userId);
-//    long followingsNumber = followRepository.countActiveFollowings(userId);
-//    Follow logInUserFollowTargetUser = followRepository.findActiveByFolloweeIdAndFollowerId(
-//        userId,
-//        viewerId
-//    ).orElse(null);
-    Follow logInUserFollowTargetUser = followRepository.findByFolloweeIdAndFollowerId(
+    long followersNumber = followRepository.countActiveFollowers(userId);
+    long followingsNumber = followRepository.countActiveFollowings(userId);
+    Follow logInUserFollowTargetUser = followRepository.findActiveByFolloweeIdAndFollowerId(
         userId,
         viewerId
     ).orElse(null);
-
-    boolean isFollowingMe = followRepository.existsByFolloweeIdAndFollowerId(
+    boolean isFollowingMe = followRepository.existsActiveByFolloweeIdAndFollowerId(
         viewerId,
         userId
     );
@@ -144,7 +136,7 @@ public class FollowServiceImpl implements FollowService {
   }
 
   private void validateFollowAlreadyExist(Long followeeId, Long followerId) {
-    if (followRepository.existsByFolloweeIdAndFollowerId(followeeId, followerId)) {
+    if (followRepository.existsActiveByFolloweeIdAndFollowerId(followeeId, followerId)) {
       throw new FollowAlreadyExistException();
     }
   }
