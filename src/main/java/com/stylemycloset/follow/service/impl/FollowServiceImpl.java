@@ -16,6 +16,7 @@ import com.stylemycloset.follow.repository.FollowRepository;
 import com.stylemycloset.follow.service.FollowService;
 import com.stylemycloset.notification.event.domain.FollowEvent;
 import com.stylemycloset.user.entity.User;
+import com.stylemycloset.user.exception.UserNotFoundException;
 import com.stylemycloset.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -39,15 +40,7 @@ public class FollowServiceImpl implements FollowService {
     validateFollowAlreadyExist(followCreateRequest.followeeId(), followCreateRequest.followerId());
     User follower = getUser(followCreateRequest.followerId());
     User followee = getUser(followCreateRequest.followeeId());
-
-    Follow follow = followRepository.findSoftDeletedByFolloweeIdAndFollowerId(
-        followCreateRequest.followeeId(),
-        followCreateRequest.followerId()
-    ).map(deletedFollow -> {
-      deletedFollow.restore();
-      return deletedFollow;
-    }).orElseGet(() -> new Follow(followee, follower));
-    Follow savedFollow = followRepository.save(follow);
+    Follow savedFollow = followRepository.save(new Follow(followee, follower));
 
     publisher.publishEvent(new FollowEvent(followee.getId(), follower.getName()));
 
@@ -60,9 +53,12 @@ public class FollowServiceImpl implements FollowService {
     long followersNumber = followRepository.countActiveFollowers(userId);
     long followingsNumber = followRepository.countActiveFollowings(userId);
     Follow logInUserFollowTargetUser = followRepository.findActiveByFolloweeIdAndFollowerId(
-        userId, viewerId).orElse(null);
+        userId,
+        viewerId
+    ).orElse(null);
     boolean isFollowingMe = followRepository.existsActiveByFolloweeIdAndFollowerId(
-        viewerId, userId
+        viewerId,
+        userId
     );
 
     return FollowSummaryResult.of(
@@ -113,9 +109,8 @@ public class FollowServiceImpl implements FollowService {
   @Transactional
   @Override
   public void softDelete(Long followId) {
-    Follow follow = followRepository.findActiveById(followId)
+    Follow follow = followRepository.findById(followId)
         .orElseThrow(ActiveFollowNotFoundException::new);
-
     follow.softDelete();
     followRepository.save(follow);
   }
@@ -148,7 +143,7 @@ public class FollowServiceImpl implements FollowService {
 
   private User getUser(Long userId) {
     return userRepository.findById(userId)
-        .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다. id=" + userId));
+        .orElseThrow(UserNotFoundException::new);
   }
 
 }

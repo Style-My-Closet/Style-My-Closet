@@ -22,7 +22,7 @@ public class Weather extends CreatedAtEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "weather_seq_gen")
-  @SequenceGenerator(name = "weather_seq_gen", sequenceName = "weather_id_seq", allocationSize = 1)
+  @SequenceGenerator(name = "weather_seq_gen", sequenceName = "weather_id_seq", allocationSize = 50)
   private Long id;
 
   // created_at에서 날짜만 잘라 저장

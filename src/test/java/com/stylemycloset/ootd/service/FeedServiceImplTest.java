@@ -28,8 +28,6 @@ import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.FeedLike;
 import com.stylemycloset.ootd.mapper.CommentMapper;
 import com.stylemycloset.ootd.mapper.FeedMapper;
-import com.stylemycloset.ootd.mapper.OotdItemMapper;
-
 import com.stylemycloset.ootd.repo.FeedLikeRepository;
 import com.stylemycloset.ootd.repo.FeedRepository;
 import com.stylemycloset.user.entity.User;

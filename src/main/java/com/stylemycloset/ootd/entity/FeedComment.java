@@ -27,7 +27,7 @@ public class FeedComment extends SoftDeletableEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "feed_comments_seq_gen")
-  @SequenceGenerator(name = "feed_comments_seq_gen", sequenceName = "feed_comments_id_seq", allocationSize = 1)
+  @SequenceGenerator(name = "feed_comments_seq_gen", sequenceName = "feed_comments_id_seq", allocationSize = 50)
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)

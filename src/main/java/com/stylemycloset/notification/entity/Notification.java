@@ -25,7 +25,7 @@ public class Notification extends CreatedAtEntity {
   @SequenceGenerator(
       name = "notifications_seq",
       sequenceName = "notifications_id_seq",
-      allocationSize = 1
+      allocationSize = 50
   )
   private Long id;
 

@@ -1,7 +1,7 @@
 package com.stylemycloset.clothes.entity.clothes;
 
 
-public enum ClothesType { // 이 부분은 추가 가능한지 봐야됨
+public enum ClothesType {
   TOP,
   BOTTOM,
   DRESS,

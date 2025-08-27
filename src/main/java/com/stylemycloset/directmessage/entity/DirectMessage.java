@@ -23,7 +23,7 @@ public class DirectMessage extends SoftDeletableEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "messages_seq_gen")
-  @SequenceGenerator(name = "messages_seq_gen", sequenceName = "messages_id_seq", allocationSize = 1)
+  @SequenceGenerator(name = "messages_seq_gen", sequenceName = "messages_id_seq", allocationSize = 50)
   private Long id;
 
   @JoinColumn(name = "sender_id", nullable = false)
