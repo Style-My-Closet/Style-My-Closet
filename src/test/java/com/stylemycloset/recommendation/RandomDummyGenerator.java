@@ -2,8 +2,8 @@ package com.stylemycloset.recommendation;
 
 import com.stylemycloset.recommendation.entity.ClothingCondition;
 import com.stylemycloset.recommendation.entity.Color;
-import com.stylemycloset.recommendation.entity.PantsLength;
-import com.stylemycloset.recommendation.entity.SleeveLength;
+import com.stylemycloset.recommendation.entity.Length;
+import com.stylemycloset.recommendation.entity.Material;
 import com.stylemycloset.user.entity.Gender;
 import com.stylemycloset.weather.entity.Weather.AlertType;
 import com.stylemycloset.weather.entity.Weather.SkyStatus;
@@ -25,8 +25,8 @@ public class RandomDummyGenerator {
             .skyStatus(SkyStatus.values()[random.nextInt(SkyStatus.values().length)])
             .weatherType(AlertType.values()[random.nextInt(AlertType.values().length)])
             .color(Color.values()[random.nextInt(Color.values().length)])
-            .sleeveLength(SleeveLength.values()[random.nextInt(SleeveLength.values().length)])
-            .pantsLength(PantsLength.values()[random.nextInt(PantsLength.values().length)])
+            .length(Length.values()[random.nextInt(Length.values().length)])
+            .material(Material.values()[random.nextInt(Material.values().length)])
             .label(random.nextBoolean()) // 추천 여부
             .build();
         return cc;

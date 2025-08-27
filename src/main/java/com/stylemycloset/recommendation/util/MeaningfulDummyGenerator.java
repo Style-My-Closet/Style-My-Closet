@@ -1,255 +1,75 @@
 package com.stylemycloset.recommendation.util;
 
 import com.stylemycloset.recommendation.entity.ClothingCondition;
-import com.stylemycloset.recommendation.entity.PantsLength;
-import com.stylemycloset.recommendation.entity.SleeveLength;
+import com.stylemycloset.recommendation.entity.Length;
+import com.stylemycloset.recommendation.entity.Material;
 import com.stylemycloset.user.entity.Gender;
 import com.stylemycloset.weather.entity.Weather.AlertType;
 import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import com.stylemycloset.recommendation.entity.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class MeaningfulDummyGenerator {
     public static List<ClothingCondition> generateMeaningfulDummyList() {
         List<ClothingCondition> list = new ArrayList<>();
+        Random random = new Random();
 
-        // 1. 여름 맑은 날, 반팔, 반바지, 추천
-        list.add(ClothingCondition.builder()
-            .temperature(32)
-            .windSpeed(2)
-            .humidity(50)
-            .skyStatus(SkyStatus.CLEAR)
-            .weatherType(AlertType.NONE)
-            .gender(Gender.MALE)
-            .temperatureSensitivity(3)
-            .color(Color.YELLOW) // 가정: 맑은 날 밝은 색 추천
-            .sleeveLength(SleeveLength.SHORT_SLEEVE)
-            .pantsLength(PantsLength.SHORT_PANTS)
-            .label(true)
-            .build());
+        for (Material material : Material.values()) {
+            for (Color color : Color.values()) {
+                for (Length length : Length.values()) {
 
-        // 2. 여름 흐린 날, 반팔, 반바지, 추천
-        list.add(ClothingCondition.builder()
-            .temperature(30)
-            .windSpeed(1)
-            .humidity(60)
-            .skyStatus(SkyStatus.CLOUDY)
-            .weatherType(AlertType.NONE)
-            .gender(Gender.FEMALE)
-            .temperatureSensitivity(2)
-            .color(Color.BLUE)
-            .sleeveLength(SleeveLength.SHORT_SLEEVE)
-            .pantsLength(PantsLength.SHORT_PANTS)
-            .label(true)
-            .build());
+                    double temperature;
+                    boolean label;
 
-        // 3. 장마철 비오는 날, 긴팔, 긴바지, 추천
-        list.add(ClothingCondition.builder()
-            .temperature(24)
-            .windSpeed(3)
-            .humidity(80)
-            .skyStatus(SkyStatus.CLOUDY)
-            .weatherType(AlertType.RAIN)
-            .gender(Gender.MALE)
-            .temperatureSensitivity(3)
-            .color(Color.BLACK)
-            .sleeveLength(SleeveLength.LONG_SLEEVE)
-            .pantsLength(PantsLength.LONG_PANTS)
-            .label(true)
-            .build());
+                    // 간단한 추천 규칙
+                    if (isWinterMaterial(material)) {
+                        temperature = random.nextInt(5); // 0~4도
+                        label = (length != Length.SHORT); // 겨울 옷인데 SHORT면 비추천
+                    } else if (isSummerMaterial(material)) {
+                        temperature = 25 + random.nextInt(10); // 25~34도
+                        label = (length != Length.LONG); // 여름 옷인데 LONG이면 비추천
+                    } else {
+                        temperature = 10 + random.nextInt(15); // 10~24도
+                        label = true; // 중간 계절은 대체로 추천
+                    }
 
-        // 4. 겨울 맑은 날, 긴팔, 긴바지, 추천
-        list.add(ClothingCondition.builder()
-            .temperature(5)
-            .windSpeed(5)
-            .humidity(40)
-            .skyStatus(SkyStatus.CLEAR)
-            .weatherType(AlertType.LOW_TEMP)
-            .gender(Gender.FEMALE)
-            .temperatureSensitivity(1)
-            .color(Color.WHITE)
-            .sleeveLength(SleeveLength.LONG_SLEEVE)
-            .pantsLength(PantsLength.LONG_PANTS)
-            .label(true)
-            .build());
+                    // 날씨 조건 랜덤 배치
+                    SkyStatus skyStatus = SkyStatus.values()[random.nextInt(SkyStatus.values().length)];
+                    AlertType alertType = AlertType.values()[random.nextInt(AlertType.values().length)];
+                    Gender gender = random.nextBoolean() ? Gender.MALE : Gender.FEMALE;
 
-        // 5. 겨울 눈 오는 날, 긴팔, 긴바지, 추천
-        list.add(ClothingCondition.builder()
-            .temperature(-2)
-            .windSpeed(4)
-            .humidity(70)
-            .skyStatus(SkyStatus.CLOUDY)
-            .weatherType(AlertType.SNOW)
-            .gender(Gender.MALE)
-            .temperatureSensitivity(1)
-            .color(Color.BLACK)
-            .sleeveLength(SleeveLength.LONG_SLEEVE)
-            .pantsLength(PantsLength.LONG_PANTS)
-            .label(true)
-            .build());
+                    ClothingCondition cc = ClothingCondition.builder()
+                        .temperature(temperature)
+                        .humidity(30 + random.nextInt(50))  // 30~80%
+                        .windSpeed(random.nextInt(6))       // 0~5 m/s
+                        .gender(gender)
+                        .temperatureSensitivity(random.nextInt(3) - 1) // -1 ~ 1
+                        .skyStatus(skyStatus)
+                        .weatherType(alertType)
+                        .color(color)
+                        .length(length)
+                        .material(material)
+                        .label(label)
+                        .build();
 
-        // 6. 봄 맑은 날, 반팔, 긴바지, 추천
-        list.add(ClothingCondition.builder()
-            .temperature(18)
-            .windSpeed(2)
-            .humidity(50)
-            .skyStatus(SkyStatus.CLEAR)
-            .weatherType(AlertType.NONE)
-            .gender(Gender.FEMALE)
-            .temperatureSensitivity(2)
-            .color(Color.RED)
-            .sleeveLength(SleeveLength.SHORT_SLEEVE)
-            .pantsLength(PantsLength.LONG_PANTS)
-            .label(true)
-            .build());
-
-        // 7. 봄 비오는 날, 긴팔, 긴바지, 추천
-        list.add(ClothingCondition.builder()
-            .temperature(15)
-            .windSpeed(3)
-            .humidity(75)
-            .skyStatus(SkyStatus.CLOUDY)
-            .weatherType(AlertType.SHOWER)
-            .gender(Gender.MALE)
-            .temperatureSensitivity(2)
-            .color(Color.BLUE)
-            .sleeveLength(SleeveLength.LONG_SLEEVE)
-            .pantsLength(PantsLength.LONG_PANTS)
-            .label(true)
-            .build());
-
-        // 8. 여름 고온, 반팔, 반바지, 추천
-        list.add(ClothingCondition.builder()
-            .temperature(35)
-            .windSpeed(1)
-            .humidity(40)
-            .skyStatus(SkyStatus.CLEAR)
-            .weatherType(AlertType.HIGH_TEMP)
-            .gender(Gender.FEMALE)
-            .temperatureSensitivity(3)
-            .color(Color.YELLOW)
-            .sleeveLength(SleeveLength.SHORT_SLEEVE)
-            .pantsLength(PantsLength.SHORT_PANTS)
-            .label(true)
-            .build());
-
-        // 9. 선선한 날, 긴팔, 반바지, 추천
-        list.add(ClothingCondition.builder()
-            .temperature(22)
-            .windSpeed(2)
-            .humidity(55)
-            .skyStatus(SkyStatus.MOSTLY_CLOUDY)
-            .weatherType(AlertType.NONE)
-            .gender(Gender.MALE)
-            .temperatureSensitivity(2)
-            .color(Color.WHITE)
-            .sleeveLength(SleeveLength.LONG_SLEEVE)
-            .pantsLength(PantsLength.SHORT_PANTS)
-            .label(true)
-            .build());
-
-        // 10. 장마철 습한 날, 긴팔, 긴바지, 추천
-        list.add(ClothingCondition.builder()
-            .temperature(20)
-            .windSpeed(3)
-            .humidity(85)
-            .skyStatus(SkyStatus.CLOUDY)
-            .weatherType(AlertType.HEAVY_RAIN)
-            .gender(Gender.FEMALE)
-            .temperatureSensitivity(3)
-            .color(Color.BLUE)
-            .sleeveLength(SleeveLength.LONG_SLEEVE)
-            .pantsLength(PantsLength.LONG_PANTS)
-            .label(true)
-            .build());
-
-        // 추가 6개 비추천 데이터
-        list.add(ClothingCondition.builder()
-            .temperature(35)
-            .windSpeed(0)
-            .humidity(80)
-            .skyStatus(SkyStatus.CLOUDY)
-            .weatherType(AlertType.HIGH_TEMP)
-            .gender(Gender.MALE)
-            .temperatureSensitivity(3)
-            .color(Color.BLACK)
-            .sleeveLength(SleeveLength.LONG_SLEEVE)
-            .pantsLength(PantsLength.LONG_PANTS)
-            .label(false)
-            .build());
-
-        list.add(ClothingCondition.builder()
-            .temperature(10)
-            .windSpeed(5)
-            .humidity(60)
-            .skyStatus(SkyStatus.CLOUDY)
-            .weatherType(AlertType.LOW_TEMP)
-            .gender(Gender.FEMALE)
-            .temperatureSensitivity(1)
-            .color(Color.BLUE)
-            .sleeveLength(SleeveLength.SHORT_SLEEVE)
-            .pantsLength(PantsLength.SHORT_PANTS)
-            .label(false)
-            .build());
-
-        list.add(ClothingCondition.builder()
-            .temperature(20)
-            .windSpeed(4)
-            .humidity(90)
-            .skyStatus(SkyStatus.MOSTLY_CLOUDY)
-            .weatherType(AlertType.RAIN)
-            .gender(Gender.MALE)
-            .temperatureSensitivity(2)
-            .color(Color.WHITE)
-            .sleeveLength(SleeveLength.SHORT_SLEEVE)
-            .pantsLength(PantsLength.SHORT_PANTS)
-            .label(false)
-            .build());
-
-        list.add(ClothingCondition.builder()
-            .temperature(30)
-            .windSpeed(3)
-            .humidity(85)
-            .skyStatus(SkyStatus.CLOUDY)
-            .weatherType(AlertType.HEAVY_RAIN)
-            .gender(Gender.FEMALE)
-            .temperatureSensitivity(3)
-            .color(Color.RED)
-            .sleeveLength(SleeveLength.SHORT_SLEEVE)
-            .pantsLength(PantsLength.SHORT_PANTS)
-            .label(false)
-            .build());
-
-        list.add(ClothingCondition.builder()
-            .temperature(15)
-            .windSpeed(6)
-            .humidity(70)
-            .skyStatus(SkyStatus.CLEAR)
-            .weatherType(AlertType.STRONG_WIND)
-            .gender(Gender.MALE)
-            .temperatureSensitivity(1)
-            .color(Color.WHITE)
-            .sleeveLength(SleeveLength.LONG_SLEEVE)
-            .pantsLength(PantsLength.LONG_PANTS)
-            .label(false)
-            .build());
-
-        list.add(ClothingCondition.builder()
-            .temperature(5)
-            .windSpeed(2)
-            .humidity(95)
-            .skyStatus(SkyStatus.CLOUDY)
-            .weatherType(AlertType.SNOW)
-            .gender(Gender.FEMALE)
-            .temperatureSensitivity(2)
-            .color(Color.BLACK)
-            .sleeveLength(SleeveLength.SHORT_SLEEVE)
-            .pantsLength(PantsLength.SHORT_PANTS)
-            .label(false)
-            .build());
-
+                    list.add(cc);
+                }
+            }
+        }
 
         return list;
+    }
+
+    private static boolean isWinterMaterial(Material material) {
+        return material == Material.WOOL || material == Material.CASHMERE ||
+            material == Material.FLEECE || material == Material.DOWN ||
+            material == Material.LEATHER;
+    }
+
+    private static boolean isSummerMaterial(Material material) {
+        return material == Material.COTTON || material == Material.LINEN ||
+            material == Material.RAYON || material == Material.SILK;
     }
 }

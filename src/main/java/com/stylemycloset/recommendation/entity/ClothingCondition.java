@@ -7,7 +7,10 @@ import com.stylemycloset.weather.entity.Weather.AlertType;
 import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
+
 
 
 @Entity
@@ -44,16 +47,17 @@ public class ClothingCondition {
     private Color color;
 
     @Enumerated(EnumType.ORDINAL)
-    private SleeveLength sleeveLength;
+    private Length length;
 
     @Enumerated(EnumType.ORDINAL)
-    private PantsLength pantsLength;
+    private Material material;
 
     // 추천 여부 (1=추천, 0=비추천)
     private Boolean label;
 
     @Type(VectorType.class)
-    @Column(columnDefinition = "vector(28)")
+    @JdbcTypeCode(SqlTypes.OTHER)
+    @Column(columnDefinition = "vector(44)")
     private float[] embedding;
 
 

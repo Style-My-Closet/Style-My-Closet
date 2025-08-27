@@ -1,5 +1,7 @@
 package com.stylemycloset.common.util;
 
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
 import org.postgresql.util.PGobject;
@@ -39,8 +41,8 @@ public class VectorType implements UserType<float[]> {
         String value = rs.getString(position);
         if (value == null) return null;
 
-        // "{0.12,0.34,0.56}" 같은 vector string을 float[]로 변환
-        value = value.replaceAll("[{}]", "");
+        // pgvector는 "[0.12,0.34,0.56]" 이런 형식으로 반환됨
+        value = value.replaceAll("[\\[\\]]", ""); // 대괄호 제거
         String[] parts = value.split(",");
         float[] result = new float[parts.length];
         for (int i = 0; i < parts.length; i++) {
@@ -56,12 +58,14 @@ public class VectorType implements UserType<float[]> {
             st.setNull(index, Types.OTHER);
             return;
         }
+
         PGobject pg = new PGobject();
         pg.setType("vector");
 
-        // 수정: {} 대신 []로 벡터 문자열 생성
-        String vectorString = Arrays.toString(value)  // [0.1, 0.2, 0.3]
-            .replace(" ", ""); // 공백 제거
+        // pgvector는 [] 형식을 기대함
+        String vectorString = IntStream.range(0, value.length)
+            .mapToObj(i -> Float.toString(value[i]))
+            .collect(Collectors.joining(",", "[", "]"));
         pg.setValue(vectorString);
 
         st.setObject(index, pg);

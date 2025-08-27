@@ -1,6 +1,7 @@
 package com.stylemycloset.recommendation.repository;
 
 import com.stylemycloset.recommendation.entity.ClothingCondition;
+import org.postgresql.util.PGobject;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,5 +14,5 @@ public interface ClothingConditionRepository extends JpaRepository<ClothingCondi
         ORDER BY embedding <=> :inputVector
         LIMIT 1
         """, nativeQuery = true)
-    ClothingCondition findMostSimilar(@Param("inputVector") float[] inputVector);
+    ClothingCondition findMostSimilar(@Param("inputVector") PGobject inputVector);
 }

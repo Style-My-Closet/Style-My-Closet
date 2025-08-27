@@ -1,15 +1,15 @@
 package com.stylemycloset.weather.entity;
 
 import com.stylemycloset.location.Location;
-import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import jakarta.persistence.*; // JPA 어노테이션 전반
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import lombok.*; // Lombok 어노테이션
 import java.time.LocalDateTime; // 시간 관련
 import com.stylemycloset.common.entity.CreatedAtEntity;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
-import org.springframework.data.annotation.CreatedDate;
 
 @Entity
 @Table(name = "weather")
@@ -24,6 +24,10 @@ public class Weather extends CreatedAtEntity {
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "weather_seq_gen")
   @SequenceGenerator(name = "weather_seq_gen", sequenceName = "weather_id_seq", allocationSize = 50)
   private Long id;
+
+  // created_at에서 날짜만 잘라 저장
+  @Column(name = "created_date", nullable = false)
+  private LocalDate createdDate;
 
   @Column(name = "forecasted_at", nullable = false)
   private LocalDateTime forecastedAt;
@@ -106,6 +110,23 @@ public class Weather extends CreatedAtEntity {
         return false;
       }
     }
+  }
+
+
+  @PrePersist
+  public void prePersist() {
+    if (createdAt == null) {
+      createdAt = Instant.now();
+    }
+    createdDate = createdAt.atZone(ZoneId.systemDefault()).toLocalDate();
+  }
+
+  @PreUpdate
+  public void preUpdate() {
+    if (createdAt == null) {
+      createdAt = Instant.now();
+    }
+    createdDate = createdAt.atZone(ZoneId.systemDefault()).toLocalDate();
   }
 
 }

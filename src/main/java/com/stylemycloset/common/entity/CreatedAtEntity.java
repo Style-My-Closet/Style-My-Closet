@@ -15,6 +15,6 @@ public abstract class CreatedAtEntity {
 
   @CreatedDate
   @Column(name = "created_at", updatable = false, nullable = false)
-  private Instant createdAt;
+  protected Instant createdAt;
 
 }

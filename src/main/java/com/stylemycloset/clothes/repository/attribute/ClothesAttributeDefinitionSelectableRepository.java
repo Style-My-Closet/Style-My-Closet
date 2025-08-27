@@ -1,5 +1,6 @@
 package com.stylemycloset.clothes.repository.attribute;
 
+import com.stylemycloset.clothes.entity.attribute.ClothesAttributeDefinition;
 import com.stylemycloset.clothes.entity.attribute.ClothesAttributeSelectableValue;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,5 @@ public interface ClothesAttributeDefinitionSelectableRepository extends
       String value
   );
 
-} 
+    boolean existsByDefinitionAndValue(ClothesAttributeDefinition definition, String value);
+}
