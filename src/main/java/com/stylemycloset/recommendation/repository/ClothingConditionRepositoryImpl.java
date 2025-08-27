@@ -31,7 +31,7 @@ public class ClothingConditionRepositoryImpl implements ClothingConditionReposit
 
     @Override
     public ClothingCondition findMostSimilarByVector(float[] inputVector) {
-        String sql = "SELECT * FROM clothing_conditions ORDER BY embedding <#> ? LIMIT 1";
+        String sql = "SELECT * FROM clothing_conditions ORDER BY embedding <=> ? LIMIT 1";
 
         PGobject pg = VectorHelper.toPGVector(inputVector);
 
@@ -48,7 +48,7 @@ public class ClothingConditionRepositoryImpl implements ClothingConditionReposit
                     .skyStatus(SkyStatus.values()[rs.getInt("sky_status")])
                     .weatherType(AlertType.values()[rs.getInt("weather_type")])
                     .color(Color.values()[rs.getInt("color")])
-                    .length(Length.values()[rs.getInt("sleeve_length")])
+                    .length(Length.values()[rs.getInt("length")])
                     .material(Material.values()[rs.getInt("material")])
                     .label(rs.getBoolean("label"))
                     .embedding(VectorHelper.fromPGVector(rs.getString("embedding")))

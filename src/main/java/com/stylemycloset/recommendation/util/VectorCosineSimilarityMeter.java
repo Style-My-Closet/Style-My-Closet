@@ -21,9 +21,10 @@ public class VectorCosineSimilarityMeter {
 
   public boolean recommend(Clothes cloth, Weather weather, User user) {
 
-    float[] inputVector = conditionVectorizer.toConditionVector(
-        clothingConditionMapper.from3Entity(cloth.getSelectedValues(), weather, user, false)
-    );
+    ClothingCondition cc =
+        clothingConditionMapper.from3Entity(cloth.getSelectedValues(), weather, user, false);
+
+    float[] inputVector = cc.getEmbedding();
 
     ClothingCondition mostSimilar = repository.findMostSimilarByVector(inputVector);
 

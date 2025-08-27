@@ -7,10 +7,8 @@ import java.util.stream.IntStream;
 public class VectorHelper {
 
     // float[] → PGobject
-    public static PGobject toPGVector(float[] vector1) {
-        if (vector1 == null) return null;
-
-        float[] vector = normalize(vector1);
+    public static PGobject toPGVector(float[] vector) {
+        if (vector == null) return null;
 
         PGobject pg = new PGobject();
         pg.setType("vector");
