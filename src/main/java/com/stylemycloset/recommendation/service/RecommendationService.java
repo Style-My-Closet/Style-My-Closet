@@ -16,6 +16,7 @@ import com.stylemycloset.weather.repository.WeatherRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import ml.dmlc.xgboost4j.java.XGBoostError;
 import org.springframework.security.core.Authentication;
@@ -60,7 +61,7 @@ public class RecommendationService {
     if (clothes.size() < 10) {
       for (Clothes c : clothes) {
         if (!vectorCosineSimilarityMeter.recommend(c, weather, user)) {
-          current.clothes().remove(clothesMapper.toClothesDto(c));
+          current.clothes().removeIf(dto -> Objects.equals(dto.id(), c.getId()));
           result = current;
           if(!c.getSelectedValues().isEmpty()) {vectorCosineSimilarityMeter.recordFeedback(weather, user, c.getSelectedValues(), false);}
         } else {

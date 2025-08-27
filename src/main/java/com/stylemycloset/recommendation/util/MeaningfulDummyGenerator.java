@@ -45,7 +45,7 @@ public class MeaningfulDummyGenerator {
                         .humidity(30 + random.nextInt(50))  // 30~80%
                         .windSpeed(random.nextInt(6))       // 0~5 m/s
                         .gender(gender)
-                        .temperatureSensitivity(random.nextInt(3) - 1) // -1 ~ 1
+                        .temperatureSensitivity(random.nextInt(6) ) // -1 ~ 1
                         .skyStatus(skyStatus)
                         .weatherType(alertType)
                         .color(color)

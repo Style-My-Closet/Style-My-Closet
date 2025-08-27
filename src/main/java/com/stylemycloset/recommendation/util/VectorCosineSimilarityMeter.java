@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 public class VectorCosineSimilarityMeter {
 
   private final ClothingConditionRepositoryCustom repository;
-  private final ConditionVectorizer conditionVectorizer;
   private final ClothingConditionMapper clothingConditionMapper;
 
   public boolean recommend(Clothes cloth, Weather weather, User user) {

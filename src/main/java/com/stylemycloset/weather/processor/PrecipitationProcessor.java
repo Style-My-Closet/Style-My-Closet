@@ -2,6 +2,7 @@ package com.stylemycloset.weather.processor;
 
 import com.stylemycloset.weather.entity.Precipitation;
 import com.stylemycloset.weather.entity.Weather.AlertType;
+import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import com.stylemycloset.weather.util.WeatherBuilderHelperContext;
 import java.util.Set;
 import org.springframework.stereotype.Component;
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PrecipitationProcessor implements WeatherCategoryProcessor {
 
-    private static final Set<String> SUPPORTED = Set.of("POP", "PTY", "PCP");
+    private static final Set<String> SUPPORTED = Set.of("POP", "PTY", "PCP", "SKY");
 
     @Override
     public boolean supports(String category) {
@@ -20,6 +21,7 @@ public class PrecipitationProcessor implements WeatherCategoryProcessor {
     public void process(WeatherBuilderHelperContext ctx, String category, String value) {
 
         Precipitation old = ctx.precipitation;
+        SkyStatus oldsky = ctx.skyStatus;
 
         Double amount = old.getAmount();
         Double probability = old.getProbability();
@@ -38,9 +40,13 @@ public class PrecipitationProcessor implements WeatherCategoryProcessor {
                 alertType = convertToAlertType(value);
 
             }
+            case "SKY" ->{
+                oldsky = convertToSkyStatus(value);
+            }
         }
 
         ctx.precipitation = new Precipitation(alertType, amount, probability);
+        ctx.skyStatus = oldsky;
     }
 
     private double parseDoubleSafe(String value) {
@@ -71,6 +77,15 @@ public class PrecipitationProcessor implements WeatherCategoryProcessor {
             case "30.0~50.0mm" -> 40.0; // 비/눈
             case "50.0 mm 이상" -> 52.0;     // 눈
             default -> 0;
+        };
+    }
+
+    private SkyStatus convertToSkyStatus(String value) {
+        return switch (value) {
+            case "1" -> SkyStatus.CLEAR;
+            case "3" -> SkyStatus.MOSTLY_CLOUDY;
+            case "4" -> SkyStatus.CLOUDY;
+            default -> SkyStatus.CLEAR;
         };
     }
 }
