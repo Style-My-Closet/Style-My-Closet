@@ -40,3 +40,9 @@ ALTER TABLE clothing_conditions
     DROP COLUMN embedding;
 ALTER TABLE clothing_conditions
     ADD COLUMN embedding VECTOR(44);
+
+ALTER TABLE clothing_conditions DROP CONSTRAINT clothing_conditions_color_check;
+
+ALTER TABLE clothing_conditions
+    ADD CONSTRAINT clothing_conditions_color_check
+        CHECK (color >= 0 AND color <= 10);

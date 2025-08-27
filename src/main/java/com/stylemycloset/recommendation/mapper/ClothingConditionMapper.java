@@ -60,6 +60,7 @@ public class ClothingConditionMapper {
         .gender(cc.getGender())
         .temperatureSensitivity(cc.getTemperatureSensitivity())
         .length(cc.getLength())
+        .material(cc.getMaterial())
         .skyStatus(cc.getSkyStatus())
         .label(cc.getLabel());
     return builder.embedding(nomalize_vector).build();
