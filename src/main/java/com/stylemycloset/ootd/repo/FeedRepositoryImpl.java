@@ -9,7 +9,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.stylemycloset.ootd.dto.FeedSearchRequest;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.entity.QFeed;
-import com.stylemycloset.ootd.tempEnum.PrecipitationType;
 import com.stylemycloset.weather.entity.Weather.AlertType;
 import com.stylemycloset.weather.entity.Weather.SkyStatus;
 import java.time.Instant;
@@ -125,10 +124,10 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
     return authorId != null ? QFeed.feed.author.id.eq(authorId) : null;
   }
 
-  private BooleanExpression eqPrecipitationType(PrecipitationType type) {
+  private BooleanExpression eqPrecipitationType(AlertType type) {
     if (type == null) {
       return null;
     }
-    return feed.weather.precipitation.alertType.eq(AlertType.valueOf(type.name()));
+    return feed.weather.precipitation.alertType.eq(type);
   }
 }
