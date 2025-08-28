@@ -1,5 +1,7 @@
 package com.stylemycloset.user.service;
 
+import static com.stylemycloset.location.util.LamcConverter.mapConv;
+
 import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.binarycontent.repository.BinaryContentRepository;
 import com.stylemycloset.binarycontent.storage.s3.BinaryContentStorage;
@@ -123,8 +125,9 @@ public class UserServiceImpl implements UserService {
     Location location = null;
 
     if (request.location() != null) {
-      location = locationRepository.findByLatitudeAndLongitude(request.location().getLatitude(),
-              request.location().getLongitude())
+      double[] xy = mapConv(request.location().getLongitude(), request.location().getLatitude(), 0);
+      location = locationRepository.findByLatitudeAndLongitude((int)xy[1],
+              (int)xy[0])
           .orElseGet(() -> {
             Location newLocation = new Location(
                 request.location().getLatitude(),

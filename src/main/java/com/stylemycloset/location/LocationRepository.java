@@ -13,12 +13,12 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
     @Query(value = """
     SELECT *
     FROM locations l
-    WHERE ABS(l.latitude - :lat) < 0.01
-      AND ABS(l.longitude - :lon) < 0.01
+    WHERE ABS(l.y- :y) < 0.01
+      AND ABS(l.x - :x) < 0.01
     LIMIT 1
 """, nativeQuery = true)
-    Optional<Location> findByLatitudeAndLongitude(@Param("lat") double latitude,
-                                                  @Param("lon") double longitude);
+    Optional<Location> findByLatitudeAndLongitude(@Param("y") int y,
+                                                  @Param("x") int x);
 
     // 또는 범위 기반 조회 (실제 환경에서는 부동소수점 오차를 고려해 이 방식이 더 안전)
     Optional<Location> findTopByOrderByCreatedAtDesc();
