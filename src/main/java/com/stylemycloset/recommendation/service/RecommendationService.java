@@ -61,7 +61,7 @@ public class RecommendationService {
     if (clothes.size() < 10) {
       for (Clothes c : clothes) {
         if (!vectorCosineSimilarityMeter.recommend(c, weather, user)) {
-          current.clothes().removeIf(dto -> Objects.equals(dto.id(), c.getId()));
+          current.clothes().removeIf(dto -> Objects.equals(dto.clothesId(), c.getId()));
           result = current;
           if(!c.getSelectedValues().isEmpty()) {vectorCosineSimilarityMeter.recordFeedback(weather, user, c.getSelectedValues(), false);}
         } else {

@@ -3,7 +3,7 @@ package com.stylemycloset.recommendation.dto;
 import java.util.List;
 
 public record ClothesDto(
-    Long id,
+    Long clothesId,
     String name,
     String imageUrl,
     String type,
