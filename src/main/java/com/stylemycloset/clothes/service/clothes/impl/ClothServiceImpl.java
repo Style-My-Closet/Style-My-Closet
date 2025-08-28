@@ -1,6 +1,6 @@
 package com.stylemycloset.clothes.service.clothes.impl;
 
-import static com.stylemycloset.common.config.CacheConfig.CLOTHES_CACHE;
+import static com.stylemycloset.common.config.RedisConfig.CLOTHES_CACHE;
 
 import com.stylemycloset.binarycontent.entity.BinaryContent;
 import com.stylemycloset.clothes.dto.clothes.ClothesDto;
