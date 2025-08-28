@@ -39,16 +39,6 @@ public class SseSender {
     }
   }
 
-  @Async("sseTaskExecutor")
-  @Retryable(
-      retryFor = UncheckedIOException.class,
-      maxAttempts = 3,
-      backoff = @Backoff(delay = 1000, multiplier = 2)
-  )
-  public void sendToClientAsync(Long userId, SseEmitter emitter, String eventId, String eventName, Object data) {
-    sendToClient(userId, emitter, eventId, eventName, data);
-  }
-
   @Recover
   public void recover(UncheckedIOException e, Long userId, SseEmitter emitter,
       String eventId, String eventName, Object data) {

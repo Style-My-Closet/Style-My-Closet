@@ -1,7 +1,7 @@
 package com.stylemycloset.directmessage;
 
 import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,8 +12,7 @@ import com.stylemycloset.directmessage.dto.DirectMessageResult;
 import com.stylemycloset.directmessage.dto.request.DirectMessageCreateRequest;
 import com.stylemycloset.directmessage.entity.DirectMessageKey;
 import com.stylemycloset.directmessage.repository.DirectMessageRepository;
-import com.stylemycloset.notification.dto.NotificationDto;
-import com.stylemycloset.sse.service.SseService;
+import com.stylemycloset.notification.event.NotificationStreamPublisher;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.repository.UserRepository;
 import java.lang.reflect.Type;
@@ -54,7 +53,7 @@ class DirectMessageIntegrationTest extends IntegrationTestSupport {
   private DirectMessageRepository messageRepository;
 
   @MockitoBean
-  private SseService sseService;
+  private NotificationStreamPublisher streamPublisher;
 
   @LocalServerPort
   private int port;
@@ -115,7 +114,7 @@ class DirectMessageIntegrationTest extends IntegrationTestSupport {
         )
         .containsExactly(sender.getId(), receiver.getId(), content);
 
-    verify(sseService).sendNotification(any(NotificationDto.class));
+    verify(streamPublisher).processAndPublish(anyList());
   }
 
   private StompSession createClientSession()

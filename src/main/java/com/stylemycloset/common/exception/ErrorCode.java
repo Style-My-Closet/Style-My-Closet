@@ -65,7 +65,10 @@ public enum ErrorCode {
   MESSAGE_NOT_FOUND("메시지 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
   // URL Extractor
-  INVALID_CLOTHES_META_INFO("파싱할 수 없는 페이지입니다.", HttpStatus.UNPROCESSABLE_ENTITY);
+  INVALID_CLOTHES_META_INFO("파싱할 수 없는 페이지입니다.", HttpStatus.UNPROCESSABLE_ENTITY),
+
+  // Notification
+  NOTIFICATION_NOT_OWNER("다른 사용자의 알림에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
 
   private final String message;
   private final HttpStatus httpStatus;

@@ -2,15 +2,16 @@ package com.stylemycloset.notification.event.listener;
 
 import com.stylemycloset.notification.dto.NotificationDto;
 import com.stylemycloset.notification.entity.NotificationLevel;
+import com.stylemycloset.notification.event.NotificationStreamPublisher;
 import com.stylemycloset.notification.event.domain.FeedCommentEvent;
 import com.stylemycloset.notification.service.NotificationService;
 import com.stylemycloset.ootd.entity.Feed;
 import com.stylemycloset.ootd.exception.FeedNotFoundException;
 import com.stylemycloset.ootd.repo.FeedRepository;
-import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.exception.UserNotFoundException;
 import com.stylemycloset.user.repository.UserRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -23,9 +24,9 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class FeedCommentNotificationEventListener {
 
   private final NotificationService notificationService;
-  private final SseService sseService;
   private final FeedRepository feedRepository;
   private final UserRepository userRepository;
+  private final NotificationStreamPublisher streamPublisher;
 
   private static final String NEW_COMMENT = "%s님이 댓글을 달았어요.";
 
@@ -39,11 +40,10 @@ public class FeedCommentNotificationEventListener {
         .orElseThrow(UserNotFoundException::new);
     try {
       String title = String.format(NEW_COMMENT, feedCommentAuthor.getName());
-      NotificationDto notificationDto =
+      NotificationDto dto =
           notificationService.create(feed.getAuthor().getId(), title, feed.getContent(), NotificationLevel.INFO);
 
-      sseService.sendNotification(notificationDto);
-      log.info("피드 댓글 이벤트 완료 - notificationId={}", notificationDto.id());
+      streamPublisher.processAndPublish(List.of(dto));
     } catch (Exception e) {
       log.error("피드 댓글 이벤트 처리 중 예외 발생 - feedId={}, feedCommentAuthorId={}", event.feedId(),
           event.feedCommentAuthorId(), e);

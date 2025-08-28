@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.IntegrationTestSupport;
 import com.stylemycloset.notification.dto.NotificationDto;
 import com.stylemycloset.notification.entity.NotificationLevel;
+import com.stylemycloset.notification.repository.NotificationRepository;
 import com.stylemycloset.sse.cache.SseNotificationInfoCache;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.impl.SseServiceImpl;
@@ -44,6 +45,8 @@ public class SseServiceIntegrationTest extends IntegrationTestSupport {
   @Autowired
   UserRepository userRepository;
   @Autowired
+  NotificationRepository notificationRepository;
+  @Autowired
   ObjectMapper mapper;
 
   String NOTIFICATION_KEY = "notification:";
@@ -52,6 +55,7 @@ public class SseServiceIntegrationTest extends IntegrationTestSupport {
   @AfterEach
   void tearDown() {
     userRepository.deleteAllInBatch();
+    notificationRepository.deleteAllInBatch();
     try (var connection = connectionFactory.getConnection()) {
       connection.serverCommands().flushAll();
     }
@@ -92,32 +96,6 @@ public class SseServiceIntegrationTest extends IntegrationTestSupport {
       assertThat(logs).contains(String.format("[%d] %s SSE 이벤트 전송 성공 (eventId: %s)",
           userId, "notifications", secondId));
     });
-  }
-
-  @DisplayName("sendNotification() 호출 시 알림 데이터를 캐시에 저장하고 SSE로 전송한다.")
-  @Test
-  void sendNotification_storeToCache_and_sendToEmitters(CapturedOutput output) throws Exception {
-    // given
-    sseService.connect(userId, System.currentTimeMillis() + "-0", null);
-    NotificationDto dto = new NotificationDto(10L, Instant.now(), userId, "test", "test", NotificationLevel.INFO);
-
-    // when
-    sseService.sendNotification(dto);
-
-    // then
-    var records = template.opsForStream().reverseRange(NOTIFICATION_KEY + userId, Range.unbounded());
-    assertThat(records).isNotEmpty();
-
-    MapRecord<String, Object, Object> latest = records.getFirst();
-    String json = (String) latest.getValue().get("payload");
-    NotificationDto stored = mapper.readValue(json, NotificationDto.class);
-    assertThat(stored).isEqualTo(dto);
-
-    String logs = output.getOut();
-    await().untilAsserted(() ->
-        assertThat(logs).contains(String.format("[%d] %s SSE 이벤트 전송 성공 (eventId: %s)",
-            userId, "notifications", latest.getId()))
-    );
   }
 
   private String addToStream(String key, NotificationDto dto) throws Exception {

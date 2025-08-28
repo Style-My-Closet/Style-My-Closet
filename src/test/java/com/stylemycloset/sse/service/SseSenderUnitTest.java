@@ -27,9 +27,9 @@ public class SseSenderUnitTest extends IntegrationTestSupport {
 
   @DisplayName("sendToClient가 호출되면 send()를 호출한다")
   @Test
-  void sendToClientAsync_success() throws Exception {
+  void sendToClientAsync_success() {
     // when
-    sseSender.sendToClientAsync(
+    sseSender.sendToClient(
         1L,
         emitter,
         String.valueOf(System.currentTimeMillis()),
@@ -48,7 +48,7 @@ public class SseSenderUnitTest extends IntegrationTestSupport {
     doThrow(new IOException("SSE 전송 실패")).when(emitter).send(any(SseEmitter.SseEventBuilder.class));
 
     // when
-    sseSender.sendToClientAsync(
+    sseSender.sendToClient(
         1L,
         emitter,
         String.valueOf(System.currentTimeMillis()),
