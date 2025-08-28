@@ -1,5 +1,7 @@
 package com.stylemycloset.weather.batch;
 
+import static com.stylemycloset.location.util.LamcConverter.mapConv;
+
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.location.Location;
@@ -42,7 +44,9 @@ public class WeatherFetchTasklet implements Tasklet {
         double lat = latestLocationOpt.map(Location::getLatitude).orElse(DEFAULT_LATITUDE);
         double lon = latestLocationOpt.map(Location::getLongitude).orElse(DEFAULT_LONGITUDE);
 
-        Location location = locationRepository.findByLatitudeAndLongitude(lat,lon).orElseGet(
+        double[] xy = mapConv(lon, lat, 0);
+
+        Location location = locationRepository.findByLatitudeAndLongitude((int)xy[1],(int)xy[0]).orElseGet(
             ()->kakaoApiService.createLocation(lon,lat)  );
 
         Optional.ofNullable(location)
