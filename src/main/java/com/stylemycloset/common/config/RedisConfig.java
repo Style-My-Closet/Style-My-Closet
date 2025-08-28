@@ -1,6 +1,7 @@
 package com.stylemycloset.common.config;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,12 +28,12 @@ public class RedisConfig {
   }
 
   @Bean
-  public RedisTemplate<String, Object> redisTemplate() {
+  public RedisTemplate<String, Object> redisTemplate(ObjectMapper objectMapper) {
     RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
     redisTemplate.setConnectionFactory(redisConnectionFactory());
 
     StringRedisSerializer keySerializer = new StringRedisSerializer();
-    GenericJackson2JsonRedisSerializer valueSerializer = new GenericJackson2JsonRedisSerializer();
+    GenericJackson2JsonRedisSerializer valueSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
 
     redisTemplate.setKeySerializer(keySerializer);
     redisTemplate.setHashKeySerializer(keySerializer);

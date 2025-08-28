@@ -34,6 +34,7 @@ public class SseNotificationInfoCache{
   private final RedisScript<Long> redisTrimScript;
 
   private static final String NOTIFICATION_KEY = "notification:";
+  private static final String LAST_ID_KEY = "notification:last:";
   private final ObjectMapper mapper;
 
   @Retryable(
@@ -100,5 +101,15 @@ public class SseNotificationInfoCache{
         );
       }
     }
+  }
+
+  // -- lastDeliveredId 관리
+
+  public void addLastDeliveredId(Long userId, String eventId) {
+    template.opsForHash().put(LAST_ID_KEY, userId.toString(), eventId);
+  }
+
+  public String getLastDeliveredId(Long userId) {
+    return (String) template.opsForHash().get(LAST_ID_KEY, userId.toString());
   }
 }
