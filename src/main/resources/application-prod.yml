@@ -9,6 +9,12 @@ spring:
       minimum-idle: 10
       idle-timeout: 60000
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      ssl:
+        enabled: true
 server:
   port: 80
 
