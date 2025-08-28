@@ -1,5 +1,7 @@
 package com.stylemycloset.weather.service;
 
+import static com.stylemycloset.location.util.LamcConverter.mapConv;
+
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.location.Location;
@@ -43,7 +45,9 @@ public class WeatherServiceImpl implements WeatherService {
 
         List<Weather> weathers = getTheNext5DaysByLocation(latitude, longitude);
         if(weathers.isEmpty()){
-            Location location = locationRepository.findByLatitudeAndLongitude(latitude,longitude).orElseGet(
+            double[] xy = mapConv(longitude, latitude, 0);
+
+            Location location = locationRepository.findByLatitudeAndLongitude((int)xy[1],(int)xy[0]).orElseGet(
                 ()->kakaoApiService.createLocation(longitude,latitude)  );
             weathers = forecastApiService.fetchData(location);
             weatherRepository.saveAll(weathers);
@@ -54,7 +58,9 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     public WeatherAPILocation getLocation(double latitude, double longitude) {
-        Location location = locationRepository.findByLatitudeAndLongitude(latitude,longitude).orElseGet(
+        double[] xy = mapConv(longitude, latitude, 0);
+
+        Location location = locationRepository.findByLatitudeAndLongitude((int)xy[1],(int)xy[0]).orElseGet(
             ()->kakaoApiService.createLocation(longitude,latitude)  );
         return locationMapper.toDto(location);
     }
