@@ -5,6 +5,7 @@ import com.stylemycloset.notification.dto.NotificationDtoCursorResponse;
 import com.stylemycloset.notification.dto.NotificationFindAllRequest;
 import com.stylemycloset.notification.entity.Notification;
 import com.stylemycloset.notification.entity.NotificationLevel;
+import com.stylemycloset.notification.exception.NotificationNotOwnerException;
 import com.stylemycloset.notification.repository.NotificationQueryRepository;
 import com.stylemycloset.notification.repository.NotificationRepository;
 import com.stylemycloset.notification.service.NotificationService;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,6 +61,9 @@ public class NotificationServiceImpl implements NotificationService {
     if(notification == null) {
       log.info("이미 삭제된 알림이거나 존재하지 않은 알림: notificationId={}", notificationId);
       return;
+    }
+    if(!notification.getReceiverId().equals(receiverId)) {
+      throw new NotificationNotOwnerException();
     }
 
     notificationRepository.delete(notification);
