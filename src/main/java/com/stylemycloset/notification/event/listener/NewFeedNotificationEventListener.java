@@ -3,9 +3,9 @@ package com.stylemycloset.notification.event.listener;
 import com.stylemycloset.follow.repository.FollowRepository;
 import com.stylemycloset.notification.dto.NotificationDto;
 import com.stylemycloset.notification.entity.NotificationLevel;
+import com.stylemycloset.notification.event.NotificationStreamPublisher;
 import com.stylemycloset.notification.event.domain.NewFeedEvent;
 import com.stylemycloset.notification.service.NotificationService;
-import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.exception.UserNotFoundException;
 import com.stylemycloset.user.repository.UserRepository;
@@ -23,9 +23,9 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class NewFeedNotificationEventListener {
 
   private final NotificationService notificationService;
-  private final SseService sseService;
   private final UserRepository userRepository;
   private final FollowRepository followRepository;
+  private final NotificationStreamPublisher streamPublisher;
 
   private static final String FEED_ADDED = "%s님이 새로운 피드를 작성했어요.";
 
@@ -44,10 +44,7 @@ public class NewFeedNotificationEventListener {
       List<NotificationDto> notificationDtoList =
           notificationService.createAll(receivers, title, event.feedContent(), NotificationLevel.INFO);
 
-      for (NotificationDto notificationDto : notificationDtoList) {
-        sseService.sendNotification(notificationDto);
-      }
-      log.info("새로운 피드 생성 추가 이벤트 완료 - notification Size={}", notificationDtoList.size());
+      streamPublisher.processAndPublish(notificationDtoList);
     } catch(Exception e){
       log.error("새로운 피드 생성 추가 이벤트 처리 중 예외 발생 - feedId={}, feedAuthorId={}", event.feedId(), event.feedAuthorId(), e);
     }
