@@ -1,29 +1,35 @@
 package com.stylemycloset.notification.event.listener;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anySet;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.contains;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.stylemycloset.notification.dto.NotificationDto;
 import com.stylemycloset.notification.entity.NotificationLevel;
+import com.stylemycloset.notification.event.NotificationStreamPublisher;
 import com.stylemycloset.notification.event.domain.ClothAttributeChangedEvent;
 import com.stylemycloset.notification.event.domain.NewClothAttributeEvent;
 import com.stylemycloset.notification.service.NotificationService;
-import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.user.repository.UserRepository;
+import java.time.Instant;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.Set;
-
-import static org.mockito.Mockito.*;
-
 class NotificationEventListenerTest {
 
   @Mock private NotificationService notificationService;
   @Mock private UserRepository userRepository;
-  @Mock private SseService sseService;
+  @Mock private NotificationStreamPublisher streamPublisher;
 
   @InjectMocks private NewClothAttributeNotificationEventListener newAttrListener;
   @InjectMocks private ClothAttributeChangedNotificationEventListener changedAttrListener;
@@ -34,7 +40,7 @@ class NotificationEventListenerTest {
   }
 
   @Test
-  void handleNewClothAttributeEvent_publishesNotifications_and_sendsSse() {
+  void handleNewClothAttributeEvent_publishesNotifications_and_publishEvents() {
     // given
     when(userRepository.findActiveUserIds()).thenReturn(Set.of(1L));
     NotificationDto dto = NotificationDto.builder()
@@ -50,11 +56,11 @@ class NotificationEventListenerTest {
     // then
         verify(userRepository, times(1)).findActiveUserIds();
     verify(notificationService, times(1)).createAll(anySet(), contains("새로운 의상 속성"), contains("재질"), eq(NotificationLevel.INFO));
-    verify(sseService, times(1)).sendNotification(any());
+    verify(streamPublisher, times(1)).processAndPublish(any());
   }
 
   @Test
-  void handleClothAttributeChangedEvent_publishesNotifications_and_sendsSse() {
+  void handleClothAttributeChangedEvent_publishesNotifications_and_publishEvents() {
     // given
     when(userRepository.findActiveUserIds()).thenReturn(Set.of(1L));
     NotificationDto dto = NotificationDto.builder()
@@ -70,7 +76,7 @@ class NotificationEventListenerTest {
     // then
         verify(userRepository, times(1)).findActiveUserIds();
     verify(notificationService, times(1)).createAll(anySet(), contains("의상 속성 변경"), contains("색상"), eq(NotificationLevel.INFO));
-    verify(sseService, times(1)).sendNotification(any());
+    verify(streamPublisher, times(1)).processAndPublish(any());
   }
 }
 

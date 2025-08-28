@@ -1,7 +1,7 @@
 package com.stylemycloset.user.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -15,8 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stylemycloset.IntegrationTestSupport;
-import com.stylemycloset.notification.dto.NotificationDto;
-import com.stylemycloset.sse.service.SseService;
+import com.stylemycloset.notification.event.NotificationStreamPublisher;
 import com.stylemycloset.user.dto.request.ChangePasswordRequest;
 import com.stylemycloset.user.dto.request.ProfileUpdateRequest;
 import com.stylemycloset.user.dto.request.UserCreateRequest;
@@ -32,7 +31,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -56,7 +54,7 @@ public class UserControllerTest extends IntegrationTestSupport {
   private UserRepository userRepository;
 
   @MockitoBean
-  private SseService sseService;
+  private NotificationStreamPublisher streamPublisher;
 
   private UserCreateRequest userRequest1 = new UserCreateRequest("tester1", "tester1@naver.com",
       "testtest123!");
@@ -134,7 +132,7 @@ public class UserControllerTest extends IntegrationTestSupport {
       TestTransaction.end();
     }
 
-    verify(sseService).sendNotification(any(NotificationDto.class));
+    verify(streamPublisher).processAndPublish(anyList());
   }
 
   @Test

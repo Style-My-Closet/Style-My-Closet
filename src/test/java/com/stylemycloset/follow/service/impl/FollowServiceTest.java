@@ -1,7 +1,7 @@
 package com.stylemycloset.follow.service.impl;
 
 import static com.stylemycloset.follow.entity.QFollow.follow;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
 
 import com.stylemycloset.IntegrationTestSupport;
@@ -18,8 +18,7 @@ import com.stylemycloset.follow.exception.FollowAlreadyExistException;
 import com.stylemycloset.follow.exception.FollowSelfForbiddenException;
 import com.stylemycloset.follow.repository.FollowRepository;
 import com.stylemycloset.follow.service.FollowService;
-import com.stylemycloset.notification.dto.NotificationDto;
-import com.stylemycloset.sse.service.SseService;
+import com.stylemycloset.notification.event.NotificationStreamPublisher;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.exception.UserNotFoundException;
 import com.stylemycloset.user.repository.UserRepository;
@@ -45,7 +44,7 @@ class FollowServiceTest extends IntegrationTestSupport {
   @MockitoBean
   private BinaryContentStorage binaryContentStorage;
   @MockitoBean
-  private SseService sseService;
+  private NotificationStreamPublisher streamPublisher;
 
   @BeforeEach
   void setUp() {
@@ -76,7 +75,7 @@ class FollowServiceTest extends IntegrationTestSupport {
       softly.assertThat(followResult.followee().userId()).isEqualTo(userB.getId());
     });
 
-    verify(sseService).sendNotification(any(NotificationDto.class));
+    verify(streamPublisher).processAndPublish(anyList());
   }
 
   @DisplayName("자신은 스스로를 팔로우 할 수 없다")
