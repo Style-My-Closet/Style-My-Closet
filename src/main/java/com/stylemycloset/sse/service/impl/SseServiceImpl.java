@@ -2,14 +2,12 @@ package com.stylemycloset.sse.service.impl;
 
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
-import com.stylemycloset.notification.dto.NotificationDto;
 import com.stylemycloset.sse.cache.SseNotificationInfoCache;
 import com.stylemycloset.sse.dto.NotificationDtoWithId;
 import com.stylemycloset.sse.repository.SseRepository;
 import com.stylemycloset.sse.service.SseSender;
 import com.stylemycloset.sse.service.SseService;
 import java.io.IOException;
-import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -71,29 +69,6 @@ public class SseServiceImpl implements SseService {
 
   public boolean isValidStreamsId(String lastEventId) {
     return Pattern.compile("^\\d+-\\d+$").matcher(lastEventId).matches();
-  }
-
-  @Override
-  public void sendNotification(NotificationDto notificationDto) {
-    Long receiverId = notificationDto.receiverId();
-    Deque<SseEmitter> sseEmitters = sseRepository.findOrCreateEmitters(receiverId);
-    if(sseEmitters == null || sseEmitters.isEmpty()) {
-      log.debug("SSE 연결이 없어 알림 전송 실패 : id={}, notificationId={}",
-          receiverId, notificationDto.id());
-      return;
-    }
-
-    String eventId = System.currentTimeMillis() + "-0";
-    try{
-      eventId = cache.addNotificationInfo(receiverId, notificationDto);
-    } catch (Exception e) {
-      log.warn("캐시 저장에 실패하여 자체적인 eventId 생성. userId={}, notificationId={}, eventId={}, type={}, {}",
-          receiverId, notificationDto.id(), eventId, e.getClass().getName(), e.getMessage());
-    }
-
-    for(SseEmitter sseEmitter : List.copyOf(sseEmitters)) {
-      sseSender.sendToClientAsync(receiverId, sseEmitter, eventId, EVENT_NAME, notificationDto);
-    }
   }
 
   @Scheduled(fixedRate = 30 * 1000)

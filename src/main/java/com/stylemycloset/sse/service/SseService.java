@@ -7,6 +7,4 @@ public interface SseService {
 
   SseEmitter connect(Long userId, String eventId, String lastEventId);
 
-  void sendNotification(NotificationDto notificationDto);
-
 }
