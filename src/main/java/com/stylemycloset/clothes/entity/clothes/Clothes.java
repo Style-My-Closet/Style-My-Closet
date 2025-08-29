@@ -18,7 +18,10 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -66,7 +69,7 @@ public class Clothes extends SoftDeletableEntity {
     this.name = name;
     this.image = image;
     this.clothesType = ClothesType.from(type);
-    this.selectedValues = convertToSelectedValues(selectableValues);
+    this.selectedValues = toSelectedValues(selectableValues);
   }
 
   public void update(
@@ -85,7 +88,12 @@ public class Clothes extends SoftDeletableEntity {
       this.clothesType = ClothesType.from(type);
     }
     if (selectableValues != null) {
-      this.selectedValues = convertToSelectedValues(selectableValues);
+      Set<ClothesAttributeSelectedValue> existSelectables = new LinkedHashSet<>(
+          this.selectedValues);
+      Set<ClothesAttributeSelectedValue> newSelectables = new LinkedHashSet<>(
+          toSelectedValues(selectableValues));
+      removeOldValues(existSelectables, newSelectables);
+      addNewValues(existSelectables, newSelectables);
     }
   }
 
@@ -97,7 +105,53 @@ public class Clothes extends SoftDeletableEntity {
     }
   }
 
-  private List<ClothesAttributeSelectedValue> convertToSelectedValues(
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Clothes that)) {
+      return false;
+    }
+    if (!Objects.equals(ownerId, that.ownerId)) {
+      return false;
+    }
+    if (!Objects.equals(name, that.name)) {
+      return false;
+    }
+    return clothesType == that.clothesType;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = ownerId != null ? ownerId.hashCode() : 0;
+    result = 31 * result + (name != null ? name.hashCode() : 0);
+    result = 31 * result + (clothesType != null ? clothesType.hashCode() : 0);
+    return result;
+  }
+
+  private void removeOldValues(
+      Set<ClothesAttributeSelectedValue> existSelectables,
+      Set<ClothesAttributeSelectedValue> newSelectables
+  ) {
+    Set<ClothesAttributeSelectedValue> oldValues = new LinkedHashSet<>(existSelectables);
+    oldValues.removeAll(newSelectables);
+    for (ClothesAttributeSelectedValue selectableValue : oldValues) {
+      selectableValue.softDelete();
+    }
+    this.selectedValues.removeIf(oldValues::contains);
+  }
+
+  private void addNewValues(
+      Set<ClothesAttributeSelectedValue> existSelectables,
+      Set<ClothesAttributeSelectedValue> newSelectables
+  ) {
+    Set<ClothesAttributeSelectedValue> newValues = new LinkedHashSet<>(newSelectables);
+    newValues.removeAll(existSelectables);
+    this.selectedValues.addAll(newValues);
+  }
+
+  private List<ClothesAttributeSelectedValue> toSelectedValues(
       List<ClothesAttributeSelectableValue> selectableValues
   ) {
     if (selectableValues == null || selectableValues.isEmpty()) {
