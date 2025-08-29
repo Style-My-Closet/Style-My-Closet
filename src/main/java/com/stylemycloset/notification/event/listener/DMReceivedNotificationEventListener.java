@@ -35,7 +35,7 @@ public class DMReceivedNotificationEventListener {
     try {
       String title = String.format(NEW_MESSAGE, event.sendUsername());
       NotificationDto dto = notificationService.create(message.getReceiver().getId(),
-          title, "", NotificationLevel.INFO);
+          title, message.getContent(), NotificationLevel.INFO);
 
       streamPublisher.processAndPublish(List.of(dto));
     } catch (Exception e) {
