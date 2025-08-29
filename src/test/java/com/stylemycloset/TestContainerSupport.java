@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer.Service;
@@ -36,10 +37,13 @@ abstract class TestContainerSupport {
       .withServices(
           LocalStackContainer.Service.S3
       );
+  static GenericContainer<?> redis = new GenericContainer<>("redis:alpine")
+      .withExposedPorts(6379);
 
   static {
     POSTGRES_CONTAINER.start();
     LOCAL_STACK_CONTAINER.start();
+    redis.start();
   }
 
   @DynamicPropertySource
@@ -51,6 +55,9 @@ abstract class TestContainerSupport {
     registry.add("style-my-closet.storage.s3.access-key", LOCAL_STACK_CONTAINER::getAccessKey);
     registry.add("style-my-closet.storage.s3.secret-key", LOCAL_STACK_CONTAINER::getSecretKey);
     registry.add("style-my-closet.storage.s3.region", LOCAL_STACK_CONTAINER::getRegion);
+
+    registry.add("spring.data.redis.host", redis::getHost);
+    registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
   }
 
   @TestConfiguration
