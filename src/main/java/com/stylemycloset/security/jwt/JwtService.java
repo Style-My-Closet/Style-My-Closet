@@ -1,6 +1,5 @@
 package com.stylemycloset.security.jwt;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -47,7 +46,6 @@ public class JwtService {
   private long refreshTokenValiditySeconds;
 
   private final JwtSessionRepository jwtSessionRepository;
-  private final ObjectMapper objectMapper;
   private final JwtBlacklist jwtBlacklist;
   private final UserRepository userRepository;
   private final UserMapper userMapper;
@@ -74,7 +72,7 @@ public class JwtService {
 
     JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
         .subject(userDto.name())
-        .claim("userId", userDto.id())
+        .claim("userId", String.valueOf(userDto.id()))
         .claim("role", userDto.role())
         .claim("definitionName", userDto.name())
         .jwtID(UUID.randomUUID().toString())
@@ -189,7 +187,7 @@ public class JwtService {
       SignedJWT signedJWT = SignedJWT.parse(token);
       JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
 
-      Long userId = claims.getLongClaim("userId");
+      String userId = claims.getStringClaim("userId");
       String role = claims.getStringClaim("role");
       String name = claims.getStringClaim("definitionName");
 
@@ -197,7 +195,7 @@ public class JwtService {
         throw new StyleMyClosetException(ErrorCode.INVALID_TOKEN, Collections.emptyMap());
       }
 
-      return new TokenInfo(userId, role, name);
+      return new TokenInfo(Long.parseLong(userId), role, name);
     } catch (ParseException e) {
       log.error(e.getMessage());
       throw new StyleMyClosetException(ErrorCode.INVALID_TOKEN, Map.of("token", token));
