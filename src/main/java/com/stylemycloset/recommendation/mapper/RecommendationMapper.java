@@ -15,8 +15,11 @@ public class RecommendationMapper {
 
   private final ClothesMapper clothesMapper;
 
-  public RecommendationDto parseToRecommendationDto(List<Clothes> clothes, Weather weather,
-      User user) {
+  public RecommendationDto parseToRecommendationDto(
+      List<Clothes> clothes,
+      Weather weather,
+      User user
+  ) {
     return new RecommendationDto(
         weather.getId(),
         user.getId(),
@@ -24,7 +27,6 @@ public class RecommendationMapper {
             .map(clothesMapper::toClothesDto)
             .toList())
     );
-
-
   }
+
 }

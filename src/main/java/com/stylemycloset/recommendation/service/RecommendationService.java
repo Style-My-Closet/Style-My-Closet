@@ -5,7 +5,6 @@ import com.stylemycloset.clothes.repository.clothes.ClothesRepository;
 import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.recommendation.dto.RecommendationDto;
-import com.stylemycloset.recommendation.mapper.ClothesMapper;
 import com.stylemycloset.recommendation.mapper.RecommendationMapper;
 import com.stylemycloset.recommendation.util.VectorCosineSimilarityMeter;
 import com.stylemycloset.security.ClosetUserDetails;
@@ -34,7 +33,6 @@ public class RecommendationService {
   private final VectorCosineSimilarityMeter vectorCosineSimilarityMeter;
   private final MLModelService mlModelService;
   private final RecommendationMapper recommendationMapper;
-  private final ClothesMapper clothesMapper;
 
   @Transactional
   public RecommendationDto recommendation(Long weatherId) throws XGBoostError {
@@ -52,7 +50,7 @@ public class RecommendationService {
         () -> new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("weather", "null"))
     );
 
-    List<Clothes> clothes = clothRepository.findAll();
+    List<Clothes> clothes = clothRepository.findAllByOwnerIdFetch(user.getId());
 
     RecommendationDto result = new RecommendationDto(weatherId, user.getId(), new ArrayList<>());
     RecommendationDto current = recommendationMapper.parseToRecommendationDto(clothes, weather,

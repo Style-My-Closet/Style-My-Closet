@@ -2,7 +2,7 @@ package com.stylemycloset.clothes.repository.clothes.impl;
 
 import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.clothes.entity.clothes.ClothesType;
-import org.hibernate.query.SortDirection;
+import java.util.List;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort.Direction;
 
@@ -17,5 +17,7 @@ public interface ClothesRepositoryCustom {
       String sortBy,
       Direction direction
   );
+
+  List<Clothes> findAllByOwnerIdFetch(Long ownerId);
 
 }

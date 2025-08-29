@@ -29,7 +29,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WeatherServiceImpl implements WeatherService {
@@ -43,18 +42,13 @@ public class WeatherServiceImpl implements WeatherService {
     private final ForecastApiService forecastApiService;
 
     public List<WeatherDto> getWeatherByCoordinates(double latitude, double longitude) {
-        log.info("[WeatherService] getWeatherByCoordinates start lat={}, lon={}", latitude, longitude);
-
         List<Weather> weathers = getTheNext5DaysByLocation(latitude, longitude);
         if(weathers.isEmpty()){
             double[] xy = mapConv(longitude, latitude, 0);
-            log.info("[WeatherService] 캐시 없음 -> location 조회 (x={}, y={})", xy[1], xy[0]);
             Location location = locationRepository.findByLatitudeAndLongitude((int)xy[1],(int)xy[0]).orElseGet(
                 ()->kakaoApiService.createLocation(longitude,latitude)  );
             weathers = forecastApiService.fetchData(location);
-            log.info("[WeatherService] forecast API 결과 size={} locationId={}", weathers.size(), location.getId());
             weatherRepository.saveAll(weathers);
-            log.info("[WeatherService] forecast 데이터 저장 완료 count={}", weathers.size());
         }
         return weathers.stream()
             .map(weatherMapper::toDto)
@@ -62,19 +56,16 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     public WeatherAPILocation getLocation(double latitude, double longitude) {
-        log.info("[WeatherService] getLocation 호출 lat={}, lon={}", latitude, longitude);
         double[] xy = mapConv(longitude, latitude, 0);
 
         Location location = locationRepository.findByLatitudeAndLongitude((int)xy[1],(int)xy[0]).orElseGet(
             ()->kakaoApiService.createLocation(longitude,latitude)  );
-        log.info("[WeatherService] getLocation 완료 locationId={}", location.getId());
         return locationMapper.toDto(location);
     }
 
 
     @Transactional
     public void checkWeather(double latitude, double longitude, Long userId) {
-        log.info("[WeatherService] checkWeather 호출 userId={} lat={}, lon={}", userId, latitude, longitude);
         Optional<Weather> weather= getTodayWeatherByLocation(latitude, longitude);
         Weather data = weather.orElseThrow(
             ()->new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("weather", "weather")  )
@@ -82,7 +73,6 @@ public class WeatherServiceImpl implements WeatherService {
 
 
         if (data.getIsAlertTriggered()) {
-            log.info("[WeatherService] AlertTriggered=true type={} userId={}", data.getAlertType(), userId);
             StringBuilder messageBuilder = new StringBuilder("특수한 날씨입니다: ");
 
             AlertType alertType = data.getAlertType();
@@ -103,7 +93,6 @@ public class WeatherServiceImpl implements WeatherService {
             }
 
             String message = messageBuilder.toString().trim();
-            log.info("[WeatherService] WeatherAlertEvent 발행 userId={} weatherId={} message={}", userId, data.getId(), message);
             eventPublisher.publishEvent(new WeatherAlertEvent(userId, data.getId(), message));
         }
     }
@@ -111,8 +100,6 @@ public class WeatherServiceImpl implements WeatherService {
 
 
     public Optional<Weather> getTodayWeatherByLocation(double latitude, double longitude) {
-        log.debug("[WeatherService] getTodayWeatherByLocation 호출 lat={}, lon={}", latitude, longitude);
-
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul")); // 또는 시스템 기본 시간대
         Instant startOfDay = today.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
         Instant endOfDay = today.plusDays(1).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
@@ -127,7 +114,6 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     public List<Weather> getTheNext5DaysByLocation(Double latitude, Double longitude) {
-        log.debug("[WeatherService] getTheNext5DaysByLocation 호출 lat={}, lon={}", latitude, longitude);
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul")); // 한국 기준 오늘 날짜
         ZonedDateTime kstMidnight = today.atStartOfDay(ZoneId.of("Asia/Seoul")); // 한국 자정
         ZonedDateTime utcZoned = kstMidnight.withZoneSameInstant(ZoneOffset.UTC); // UTC 변환
@@ -137,14 +123,13 @@ public class WeatherServiceImpl implements WeatherService {
         Instant endOfDay = today.plusDays(1).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
 
         List<Weather> ws1 =  weatherRepository.findTheNext5DaysByLocation(latitude, longitude, utcTime);
-        log.info("[WeatherService] next5days rawCount={}", ws1.size());
         List<Weather> ws2 = ws1.stream()
             .filter(weather -> {
                 Instant createdAt = weather.getCreatedAt();
                 return !createdAt.isBefore(startOfDay) && createdAt.isBefore(endOfDay);
             })
             .toList();
-        log.info("[WeatherService] next5days filteredCount={} (todayOnly)", ws2.size());
+
         return ws2;
     }
 }

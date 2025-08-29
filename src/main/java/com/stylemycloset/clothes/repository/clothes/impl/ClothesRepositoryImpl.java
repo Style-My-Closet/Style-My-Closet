@@ -61,6 +61,19 @@ public class ClothesRepositoryImpl implements ClothesRepositoryCustom {
     return CustomSliceImpl.of(content, limit, primaryCursorStrategy, direction);
   }
 
+  @Override
+  public List<Clothes> findAllByOwnerIdFetch(Long ownerId) {
+    return queryFactory
+        .selectFrom(clothes)
+        .leftJoin(clothes.image).fetchJoin()
+        .leftJoin(clothes.selectedValues, clothesAttributeSelectedValue).fetchJoin()
+        .leftJoin(clothesAttributeSelectedValue.selectableValue).fetchJoin()
+        .leftJoin(clothesAttributeSelectedValue.selectableValue.definition).fetchJoin()
+        .where(buildOwnerIdPredicate(ownerId))
+        .fetch();
+  }
+
+
   private BooleanExpression buildTypeEqualPredicate(ClothesType typeEqual) {
     if (typeEqual == null) {
       return null;

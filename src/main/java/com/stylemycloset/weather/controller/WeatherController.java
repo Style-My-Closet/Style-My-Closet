@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/weathers")
 @RequiredArgsConstructor
@@ -33,13 +32,9 @@ public class WeatherController {
       @RequestParam(name = "latitude") double latitude,
       @AuthenticationPrincipal(expression = "userId") Long userId
   ) {
-    log.info("[WeatherAPI] 요청 - userId: {}, 위도: {}, 경도: {}",
-        userId, latitude, longitude);
     List<WeatherDto> weathers = weatherService.getWeatherByCoordinates(latitude, longitude);
-    log.info("[WeatherAPI] 조회된 날씨 데이터: {}", weathers);
     weatherService.checkWeather(latitude, longitude, userId);
 
-    log.info("[WeatherAPI] 응답 - userId: {}, 데이터 개수: {}", userId, weathers.size());
     return ResponseEntity.ok(weathers);
   }
 
@@ -48,13 +43,7 @@ public class WeatherController {
       @RequestParam(name = "longitude") double longitude,
       @RequestParam(name = "latitude") double latitude
   ) {
-
-    log.info("[WeatherLocation] 요청 - 위도: {}, 경도: {}", latitude, longitude);
     WeatherAPILocation location = weatherService.getLocation(latitude, longitude);
-    log.info("[WeatherLocation] 응답 - 요청 위도: {}, 경도: {}, 반환 위치명: {}, 행정구역코드: {}",
-        latitude, longitude,
-        location.x(),
-        location.y());
 
     return ResponseEntity.ok(location);
   }
