@@ -20,5 +20,4 @@ server:
 
 logging:
   level:
-    com.stylemycloset: DEBUG
-    org.hibernate.SQL: DEBUG
+    com.stylemycloset: INFO

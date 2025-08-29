@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class ForecastApiService {
 
@@ -31,16 +30,12 @@ public class ForecastApiService {
   private final WeatherRepository weatherRepository;
 
   public List<Weather> fetchData(Location location) {
-    log.info("[ForecastApiService] fetchData 호출 locationId={} lat={}, lon={}",
-        location.getId(), location.getLatitude(), location.getLongitude());
     LocalDateTime now = LocalDateTime.now();
     List<String> forecastTime = DateTimeUtils.toBaseDateAndTime(now);
     String baseDate = forecastTime.get(0);
     String baseTime = forecastTime.get(1);
 
     List<JsonNode> deduplicatedItems = apiFetcher.fetchAllPages(baseDate, baseTime, location);
-    log.info("[ForecastApiService] API 호출 후 아이템 수={} locationId={}",
-        deduplicatedItems.size(), location.getId());
     Map<String, WeatherBuilderHelper> builders = new LinkedHashMap<>();
     List<WeatherBuilderHelperContext> bhcs = new ArrayList<>();
 
@@ -50,7 +45,7 @@ public class ForecastApiService {
             TreeMap::new,      // 문자열 key 기준 오름차순 정렬
             Collectors.toList()
         ));
-    log.info("[ForecastApiService] 일자별 그룹핑 완료 daysCount={}", itemsByDate.size());
+
     for (Map.Entry<String, List<JsonNode>> entry : itemsByDate.entrySet()) {
       String fcstDate = entry.getKey();         // 날짜
       List<JsonNode> itemsForDate = entry.getValue(); // 해당 날짜의 JsonNode 리스트
@@ -102,11 +97,9 @@ public class ForecastApiService {
         }
       }
       latestWeather.add(builder.build());
-      log.info("Weather built: {}", latestWeather);
       i++;
     }
-    log.info("[ForecastApiService] fetchData 완료 locationId={} 결과 count={}",
-        location.getId(), latestWeather.size());
+
     return latestWeather;
 
   }
