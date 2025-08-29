@@ -1,8 +1,6 @@
 package com.stylemycloset.weather.service;
 
 
-
-import static com.stylemycloset.location.util.LamcConverter.lamcProj;
 import static com.stylemycloset.location.util.LamcConverter.mapConv;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -11,7 +9,6 @@ import com.stylemycloset.common.exception.ErrorCode;
 import com.stylemycloset.common.exception.StyleMyClosetException;
 import com.stylemycloset.location.Location;
 import com.stylemycloset.location.LocationRepository;
-import com.stylemycloset.location.util.LamcConverter;
 import com.stylemycloset.weather.dto.LocationInfo;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -38,7 +35,9 @@ public class KakaoApiService {
     private String baseUrl;
 
     public Location createLocation(double longitude, double latitude) {
+        log.info("[KakaoApiService] createLocation 호출 lat={}, lon={}", latitude, longitude);
         JsonNode documents = fetchDocumentsFromKakao(longitude, latitude);
+        log.debug("[KakaoApiService] Kakao API documents={}", documents);
         Location location = buildLocationFromJson(documents,longitude,latitude);
         return locationRepository.save(location);
     }
@@ -55,6 +54,7 @@ public class KakaoApiService {
             int status = connection.getResponseCode();
             if (status != HttpURLConnection.HTTP_OK) {
                 log.error("Kakao API 호출 실패: status = {}, url = {}", status, apiUrl);
+                log.info("Kakao API 호출 실패: status = {}, url = {}", status, apiUrl);
                 throw new RuntimeException("Kakao API 호출 실패");
             }
 
@@ -64,6 +64,7 @@ public class KakaoApiService {
 
         } catch (Exception e) {
             log.error("Kakao API 호출 중 오류 발생", e);
+            log.info("Kakao API 호출 중 오류 발생", e);
             throw new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("apiError", "Kakao API 호출 오류"));
         }
     }
@@ -76,6 +77,7 @@ public class KakaoApiService {
 
     private JsonNode extractValidDocument(JsonNode documentsNode) {
         if (documentsNode == null || !documentsNode.isArray() || documentsNode.isEmpty()) {
+            log.warn("[KakaoApiService] documentsNode 비어있음");
             throw new StyleMyClosetException(ErrorCode.ERROR_CODE, Map.of("document", "응답 데이터 없음"));
         }
         return documentsNode.get(0);
