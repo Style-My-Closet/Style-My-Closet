@@ -7,6 +7,7 @@ import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeCreateReq
 import com.stylemycloset.clothes.dto.attribute.request.ClothesAttributeUpdateRequest;
 import com.stylemycloset.clothes.dto.clothes.AttributeDto;
 import com.stylemycloset.clothes.dto.clothes.ClothesDto;
+import com.stylemycloset.clothes.dto.clothes.request.ClothUpdateRequest;
 import com.stylemycloset.clothes.dto.clothes.request.ClothesCreateRequest;
 import com.stylemycloset.clothes.dto.clothes.request.ClothesSearchCondition;
 import com.stylemycloset.clothes.dto.clothes.response.ClothDtoCursorResponse;
@@ -57,16 +58,66 @@ class ClothesServiceTest extends IntegrationTestSupport {
     clothesRepository.deleteAllInBatch();
   }
 
+  @DisplayName("의상 속성을 업데이트 합니다.")
+  @Test
+  void updateClothesSelectedValue() {
+    // given
+    User owner = save("name", "name@naver.com");
+    ClothesAttributeDefinitionDto carAttribute = createAttributeWithSelectableValue(
+        "차",
+        List.of("랜드로바", "벤츠")
+    );
+    AttributeRequestDto carAttributeRequest = createAttributeRequest(
+        carAttribute,
+        carAttribute.selectableValues().get(0)
+    );
+    ClothesDto cloth = createClothes(
+        owner,
+        "옷",
+        List.of(carAttributeRequest)
+    );
+
+    // when
+    AttributeRequestDto carAttributeUpdateRequest = createAttributeRequest(
+        carAttribute,
+        carAttribute.selectableValues().get(1)
+    );
+    ClothUpdateRequest clothUpdateRequest = new ClothUpdateRequest(
+        null,
+        ClothesType.OUTER.name(),
+        List.of(carAttributeUpdateRequest)
+    );
+    ClothesDto updatedCloth = clothService.updateCloth(
+        cloth.id(),
+        clothUpdateRequest,
+        null
+    );
+
+    // then
+    AttributeDto expectedAttribute = new AttributeDto(
+        carAttribute.id(),
+        carAttribute.definitionName(),
+        carAttribute.selectableValues(),
+        clothUpdateRequest.attributes().get(0).value()
+    );
+    Assertions.assertThat(updatedCloth)
+        .extracting(ClothesDto::name, ClothesDto::type, ClothesDto::attributes)
+        .containsExactly(cloth.name(), ClothesType.OUTER, List.of(expectedAttribute));
+  }
+
   @DisplayName("의상 속성 변경 시 남아 있지 않은 선택지는 소프트 삭제되며, 관련 선택 기록도 함께 제거된다")
   @Test
-  void update_softDelete() {
+  void updateAttribute_softDelete() {
     // given
     User owner = save("name", "name@naver.com");
     ClothesAttributeDefinitionDto carAttribute = createAttributeWithSelectableValue(
         "차",
         List.of("축구")
     );
-    AttributeRequestDto carAttributeRequest = createAttributeRequest(carAttribute);
+    AttributeRequestDto carAttributeRequest = createAttributeRequest(
+        carAttribute,
+        carAttribute.selectableValues().get(0)
+    );
     ClothesDto cloth = createClothes(
         owner,
         "옷",
@@ -110,8 +161,14 @@ class ClothesServiceTest extends IntegrationTestSupport {
         "가나",
         List.of("초콜릿", "달리기")
     );
-    AttributeRequestDto carAttributeRequest = createAttributeRequest(carAttribute);
-    AttributeRequestDto countryAttributeRequest = createAttributeRequest(countryAttribute);
+    AttributeRequestDto carAttributeRequest = createAttributeRequest(
+        carAttribute,
+        carAttribute.selectableValues().get(0)
+    );
+    AttributeRequestDto countryAttributeRequest = createAttributeRequest(
+        countryAttribute,
+        countryAttribute.selectableValues().get(0)
+    );
     ClothesDto cloth = createClothes(
         owner,
         "옷",
@@ -157,8 +214,14 @@ class ClothesServiceTest extends IntegrationTestSupport {
         "가나",
         List.of("초콜릿", "달리기")
     );
-    AttributeRequestDto carAttributeRequest = createAttributeRequest(carAttribute);
-    AttributeRequestDto countryAttributeRequest = createAttributeRequest(countryAttribute);
+    AttributeRequestDto carAttributeRequest = createAttributeRequest(
+        carAttribute,
+        carAttribute.selectableValues().get(0)
+    );
+    AttributeRequestDto countryAttributeRequest = createAttributeRequest(
+        countryAttribute,
+        countryAttribute.selectableValues().get(0)
+    );
     ClothesDto cloth = createClothes(
         owner,
         "옷",
@@ -204,8 +267,14 @@ class ClothesServiceTest extends IntegrationTestSupport {
         "가나",
         List.of("초콜릿", "달리기")
     );
-    AttributeRequestDto carAttributeRequest = createAttributeRequest(carAttribute);
-    AttributeRequestDto countryAttributeRequest = createAttributeRequest(countryAttribute);
+    AttributeRequestDto carAttributeRequest = createAttributeRequest(
+        carAttribute,
+        carAttribute.selectableValues().get(0)
+    );
+    AttributeRequestDto countryAttributeRequest = createAttributeRequest(
+        countryAttribute,
+        countryAttribute.selectableValues().get(0)
+    );
     ClothesDto firstCloth = createClothes(owner, "옷", List.of(carAttributeRequest));
     ClothesDto secondCloth = createClothes(owner, "옷장사", List.of(countryAttributeRequest));
 
@@ -233,11 +302,12 @@ class ClothesServiceTest extends IntegrationTestSupport {
   }
 
   private AttributeRequestDto createAttributeRequest(
-      ClothesAttributeDefinitionDto countryAttribute
+      ClothesAttributeDefinitionDto countryAttribute,
+      String value
   ) {
     return new AttributeRequestDto(
         countryAttribute.id(),
-        countryAttribute.selectableValues().get(0)
+        value
     );
   }
 
