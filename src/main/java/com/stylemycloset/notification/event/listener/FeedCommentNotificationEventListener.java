@@ -38,6 +38,10 @@ public class FeedCommentNotificationEventListener {
         .orElseThrow(() -> new FeedNotFoundException(event.feedId()));
     User feedCommentAuthor = userRepository.findById(event.feedCommentAuthorId())
         .orElseThrow(UserNotFoundException::new);
+    if(feed.getAuthor().getId().equals(feedCommentAuthor.getId())) {
+      log.info("셀프 댓글 알림 스킵: feedId={}, feedCommentAuthor={}", event.feedId(), event.feedCommentAuthorId());
+      return;
+    }
     try {
       String title = String.format(NEW_COMMENT, feedCommentAuthor.getName());
       NotificationDto dto =
