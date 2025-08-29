@@ -39,11 +39,11 @@ public class KakaoApiService {
 
     public Location createLocation(double longitude, double latitude) {
         JsonNode documents = fetchDocumentsFromKakao(longitude, latitude);
-        Location location = buildLocationFromJson(documents);
+        Location location = buildLocationFromJson(documents,longitude,latitude);
         return locationRepository.save(location);
     }
 
-    private JsonNode fetchDocumentsFromKakao(double longitude, double latitude) {
+    public JsonNode fetchDocumentsFromKakao(double longitude, double latitude) {
         try {
             String apiUrl = String.format("%s?x=%f&y=%f", baseUrl, longitude, latitude);
             URI uri = new URI(apiUrl);
@@ -68,9 +68,9 @@ public class KakaoApiService {
         }
     }
 
-    private Location buildLocationFromJson(JsonNode documentsNode) {
+    private Location buildLocationFromJson(JsonNode documentsNode, double longitude, double latitude) {
         JsonNode document = extractValidDocument(documentsNode);
-        LocationInfo locationInfo = parseLocationInfo(document);
+        LocationInfo locationInfo = parseLocationInfo(document, longitude, latitude);
         return buildLocationFromInfo(locationInfo);
     }
 
@@ -81,10 +81,7 @@ public class KakaoApiService {
         return documentsNode.get(0);
     }
 
-    private LocationInfo parseLocationInfo(JsonNode doc) {
-        double x = doc.path("x").asDouble(); // 경도
-        double y = doc.path("y").asDouble(); // 위도
-
+    private LocationInfo parseLocationInfo(JsonNode doc, double x, double y) {
         List<String> locationNames = List.of(
             doc.path("region_1depth_name").asText(),
             doc.path("region_2depth_name").asText(),
