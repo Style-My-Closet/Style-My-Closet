@@ -153,7 +153,7 @@ class FollowControllerTest extends ControllerTestSupport {
   void followers_missingFolloweeId_returns400() {
     // given & when
     MvcTestResult result = mvc.get()
-        .uri("/api/follows/follower?limit=10")
+        .uri("/api/follows/followers?limit=10")
         .exchange();
 
     // then
@@ -165,7 +165,7 @@ class FollowControllerTest extends ControllerTestSupport {
   void followers_limitInvalid_returns400() {
     // given & when
     MvcTestResult result = mvc.get()
-        .uri("/api/follows/follower?followeeId=1&limit=0")
+        .uri("/api/follows/followers?followeeId=1&limit=0")
         .exchange();
 
     // then
@@ -181,7 +181,7 @@ class FollowControllerTest extends ControllerTestSupport {
 
     // when
     MvcTestResult result = mvc.get()
-        .uri("/api/follows/follower?followeeId=1&limit=10&sortDirection=ASC")
+        .uri("/api/follows/followers?followeeId=1&limit=10&sortDirection=ASC")
         .exchange();
 
     // then
