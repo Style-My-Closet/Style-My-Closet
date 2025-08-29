@@ -290,7 +290,7 @@ public class FeedServiceImpl implements FeedService {
     FeedComment newComment = new FeedComment(feed, author, request.content());
     FeedComment savedComment = feedCommentRepository.save(newComment);
 
-    publisher.publishEvent(new FeedCommentEvent(newComment.getId(), newComment.getAuthor().getId()));
+    publisher.publishEvent(new FeedCommentEvent(feed.getId(), author.getId()));
 
     return commentMapper.toDto(savedComment);
   }
