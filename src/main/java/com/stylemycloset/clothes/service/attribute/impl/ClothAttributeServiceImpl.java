@@ -1,7 +1,7 @@
 package com.stylemycloset.clothes.service.attribute.impl;
 
-import static com.stylemycloset.common.config.CacheConfig.CLOTHES_ATTRIBUTES_KEY;
-import static com.stylemycloset.common.config.CacheConfig.CLOTHES_ATTRIBUTE_CACHE;
+import static com.stylemycloset.common.config.RedisConfig.CLOTHES_ATTRIBUTES_KEY;
+import static com.stylemycloset.common.config.RedisConfig.CLOTHES_ATTRIBUTE_CACHE;
 
 import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDto;
 import com.stylemycloset.clothes.dto.attribute.ClothesAttributeDefinitionDtoCursorResponse;

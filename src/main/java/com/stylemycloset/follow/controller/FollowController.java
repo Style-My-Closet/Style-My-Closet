@@ -55,7 +55,7 @@ public class FollowController {
     return ResponseEntity.ok(followings);
   }
 
-  @GetMapping("/follower")
+  @GetMapping("/followers")
   public ResponseEntity<FollowListResponse<FollowResult>> getFollowers(
       @Valid @ModelAttribute SearchFollowersCondition followersCondition
   ) {

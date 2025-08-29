@@ -18,18 +18,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @EnableRetry
 public class AsyncConfig {
 
-  @Bean(name = "sseTaskExecutor")
-  public TaskExecutor sseExecutor() {
-    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setCorePoolSize(4);
-    executor.setMaxPoolSize(8);
-    executor.setQueueCapacity(100);
-    executor.setThreadNamePrefix("sse-task-");
-    executor.setTaskDecorator(taskDecorator());
-    executor.initialize();
-    return executor;
-  }
-
   @Bean("uploadExecutor")
   public Executor s3Executor(TaskDecorator taskDecorator) {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -53,6 +41,20 @@ public class AsyncConfig {
     executor.setQueueCapacity(50);
     executor.setThreadNamePrefix("vision-");
     executor.setTaskDecorator(taskDecorator());
+    executor.initialize();
+    return executor;
+  }
+
+  @Bean(name = "streamMessageExecutor")
+  public TaskExecutor streamMessageExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(4);
+    executor.setMaxPoolSize(8);
+    executor.setQueueCapacity(100);
+    executor.setThreadNamePrefix("notification-");
+    executor.setTaskDecorator(taskDecorator());
+    executor.setWaitForTasksToCompleteOnShutdown(true);
+    executor.setAwaitTerminationSeconds(10);
     executor.initialize();
     return executor;
   }

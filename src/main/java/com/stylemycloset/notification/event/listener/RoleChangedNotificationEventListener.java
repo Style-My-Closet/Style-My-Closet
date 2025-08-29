@@ -2,12 +2,13 @@ package com.stylemycloset.notification.event.listener;
 
 import com.stylemycloset.notification.dto.NotificationDto;
 import com.stylemycloset.notification.entity.NotificationLevel;
+import com.stylemycloset.notification.event.NotificationStreamPublisher;
 import com.stylemycloset.notification.event.domain.RoleChangedEvent;
 import com.stylemycloset.notification.service.NotificationService;
-import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.user.entity.User;
 import com.stylemycloset.user.exception.UserNotFoundException;
 import com.stylemycloset.user.repository.UserRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -20,8 +21,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class RoleChangedNotificationEventListener {
 
   private final NotificationService notificationService;
-  private final SseService sseService;
   private final UserRepository userRepository;
+  private final NotificationStreamPublisher streamPublisher;
 
   private static final String ROLE_CHANGED = "내 권한이 변경되었어요.";
   private static final String ROLE_CHANGED_CONTENT = "내 권한이 [%s]에서 [%s]로 변경되었어요.";
@@ -35,11 +36,10 @@ public class RoleChangedNotificationEventListener {
     try {
       String content = String.format(ROLE_CHANGED_CONTENT, event.previousRole(),
           receiver.getRole());
-      NotificationDto notificationDto = notificationService.create(event.receiverId(), ROLE_CHANGED, content,
+      NotificationDto dto = notificationService.create(event.receiverId(), ROLE_CHANGED, content,
           NotificationLevel.INFO);
 
-      sseService.sendNotification(notificationDto);
-      log.info("사용자 권한 변경 이벤트 완료 - notificationId={}", notificationDto.id());
+      streamPublisher.processAndPublish(List.of(dto));
     } catch (Exception e) {
       log.error("사용자 권한 이벤트 처리 중 예외 발생 - receiverId={}", event.receiverId(), e);
     }

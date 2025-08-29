@@ -52,6 +52,7 @@ public class SseRepository {
   }
 
   public Deque<SseEmitter> findOrCreateEmitters(Long userId) {
-    return userEmitters.computeIfAbsent(userId, k -> new ArrayDeque<>());
+    Deque<SseEmitter> original = userEmitters.computeIfAbsent(userId, k -> new ArrayDeque<>());
+    return new ArrayDeque<>(original);
   }
 }

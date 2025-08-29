@@ -2,9 +2,9 @@ package com.stylemycloset.notification.event.listener;
 
 import com.stylemycloset.notification.dto.NotificationDto;
 import com.stylemycloset.notification.entity.NotificationLevel;
+import com.stylemycloset.notification.event.NotificationStreamPublisher;
 import com.stylemycloset.notification.event.domain.NewClothAttributeEvent;
 import com.stylemycloset.notification.service.NotificationService;
-import com.stylemycloset.sse.service.SseService;
 import com.stylemycloset.user.repository.UserRepository;
 import java.util.List;
 import java.util.Set;
@@ -20,8 +20,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class NewClothAttributeNotificationEventListener {
 
   private final NotificationService notificationService;
-  private final SseService sseService;
   private final UserRepository userRepository;
+  private final NotificationStreamPublisher streamPublisher;
 
   private static final String NEW_CLOTH_ATTRIBUTE = "새로운 의상 속성이 추가되었어요.";
   private static final String NEW_CLOTH_ATTRIBUTE_CONTENT = "내 의상에 [%s] 속성을 추가해보세요.";
@@ -38,10 +38,7 @@ public class NewClothAttributeNotificationEventListener {
           notificationService.createAll(receivers, NEW_CLOTH_ATTRIBUTE, content,
               NotificationLevel.INFO);
 
-      for (NotificationDto notificationDto : notificationDtoList) {
-        sseService.sendNotification(notificationDto);
-      }
-      log.info("의상 속성 추가 이벤트 완료 - notification Size={}", notificationDtoList.size());
+      streamPublisher.processAndPublish(notificationDtoList);
     } catch (Exception e) {
       log.error("의상 속성 추가 이벤트 처리 중 예외 발생 - clothAttributeId={}", event.clothAttributeId(), e);
     }
