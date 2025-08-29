@@ -7,6 +7,7 @@ import com.stylemycloset.clothes.dto.clothes.response.ClothDtoCursorResponse;
 import com.stylemycloset.clothes.entity.clothes.Clothes;
 import com.stylemycloset.common.repository.CustomSliceImpl;
 import com.stylemycloset.common.repository.NextCursorInfo;
+import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
@@ -23,6 +24,7 @@ public class ClothesMapper {
     List<AttributeDto> attributes = clothes.getSelectedValues()
         .stream()
         .map(AttributeDto::from)
+        .sorted(Comparator.comparing(AttributeDto::definitionName))
         .toList();
 
     return new ClothesDto(
