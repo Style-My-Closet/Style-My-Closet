@@ -1,30 +1,72 @@
 spring:
   flyway:
     enabled: true
-    baseline-on-migrate: false
+    baseline-on-migrate: true
   config:
     import: optional:file:.env[.properties]
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   servlet:
     multipart:
-      max-file-size: 4MB
-      max-request-size: 4MB
+      max-file-size: 20MB
+      max-request-size: 20MB
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         use_sql_comments: true
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: Asia/Seoul
     open-in-view: false
     generate-ddl: false
   sql:
     init:
       mode: never
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${CLOSET_ADMIN_EMAIL_ID}
+    password: ${CLOSET_ADMIN_EMAIL_PASSWORD}
+    properties:
+      mail.smtp:
+        auth: true
+        starttls.enable: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - profile
+              - email
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            scope:
+              - profile_nickname
+              - profile_image
+            client-name: Kakao
+
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 logging:
   level:
     root: info
@@ -34,3 +76,34 @@ management:
     web:
       exposure:
         include: health, metrics
+
+style-my-closet:
+  storage:
+    s3:
+      access-key: ${AWS_S3_ACCESS_KEY:access-key}
+      secret-key: ${AWS_S3_SECRET_KEY:secret-key}
+      region: ${AWS_S3_REGION:region}
+      bucket: ${AWS_S3_BUCKET:bucket}
+      presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION_SECOND:600}
+
+closet:
+  admin:
+    username: ${CLOSET_ADMIN_USERNAME:admin}
+    email: ${CLOSET_ADMIN_EMAIL:admin@closet.com}
+    password: ${CLOSET_ADMIN_PASSWORD:admin123!}
+
+external:
+  market-index:
+    service-key: ${SERVICE_KEY}
+    base-url: https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0
+    num-of-rows: 264
+  kakao:
+    rest-api-key: ${REST_API_KEY}
+    base-url: https://dapi.kakao.com/v2/local/geo/coord2regioncode.json
+
+security:
+  jwt:
+    secret: ${SECURITY_JWT_SECRET}
+    access-token-validity-seconds: ${SECURITY_JWT_ACCESS_TOKEN_VALIDITY_SECONDS}
+    refresh-token-validity-seconds: ${SECURITY_JWT_REFRESH_TOKEN_VALIDITY_SECONDS}
+

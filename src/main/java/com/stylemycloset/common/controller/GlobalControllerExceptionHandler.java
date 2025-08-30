@@ -1,16 +1,22 @@
 package com.stylemycloset.common.controller;
 
-import com.stylemycloset.common.controller.exception.StyleMyClosetException;
+import com.stylemycloset.common.exception.StyleMyClosetException;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import jakarta.validation.ConstraintViolationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @RestControllerAdvice
@@ -18,7 +24,8 @@ public class GlobalControllerExceptionHandler {
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<List<ErrorResponse>> handleValidationErrors(
-      MethodArgumentNotValidException exception) {
+      MethodArgumentNotValidException exception
+  ) {
     List<FieldError> fieldErrors = exception.getBindingResult().getFieldErrors();
     log.error("Wrong Method Argument: {}", exception.getMessage());
 
@@ -27,9 +34,41 @@ public class GlobalControllerExceptionHandler {
         .body(errorResponses);
   }
 
+  @ExceptionHandler(BindException.class)
+  public ResponseEntity<List<ErrorResponse>> handleBindErrors(
+      BindException exception
+  ) {
+    List<FieldError> fieldErrors = exception.getBindingResult().getFieldErrors();
+    log.error("Bind error: {}", exception.getMessage());
+
+    List<ErrorResponse> errorResponses = ErrorResponse.of(exception, fieldErrors);
+    return ResponseEntity.badRequest().body(errorResponses);
+  }
+
+  @ExceptionHandler(ConstraintViolationException.class)
+  public ResponseEntity<ErrorResponse> handleConstraintViolation(
+      ConstraintViolationException exception
+  ) {
+    log.error("Constraint violation: {}", exception.getMessage());
+    ErrorResponse errorResponse = ErrorResponse.of(exception, HttpStatus.BAD_REQUEST.value());
+    return ResponseEntity.badRequest().body(errorResponse);
+  }
+
+  @ExceptionHandler(MissingServletRequestParameterException.class)
+  public ResponseEntity<ErrorResponse> handleMissingParam(
+      MissingServletRequestParameterException exception
+  ) {
+    log.error("Missing request parameter: {}", exception.getParameterName());
+
+    ErrorResponse errorResponse = ErrorResponse.of(exception, HttpStatus.BAD_REQUEST.value());
+    return ResponseEntity.badRequest()
+        .body(errorResponse);
+  }
+
   @ExceptionHandler(MissingServletRequestPartException.class)
   public ResponseEntity<ErrorResponse> handleMissingPart(
-      MissingServletRequestPartException exception) {
+      MissingServletRequestPartException exception
+  ) {
     log.error("Missing multipart part: {}", exception.getRequestPartName());
 
     ErrorResponse errorResponse = ErrorResponse.of(exception, HttpStatus.BAD_REQUEST.value());
@@ -48,10 +87,12 @@ public class GlobalControllerExceptionHandler {
 
   @ExceptionHandler(StyleMyClosetException.class)
   public ResponseEntity<ErrorResponse> handleStyleMyClosetException(
-      StyleMyClosetException exception) {
+      StyleMyClosetException exception
+  ) {
     log.error("커스텀 예외 발생: errorCodeName={}, message={}", exception.getErrorCode(),
         exception.getMessage(),
         exception);
+
     HttpStatus status = exception.getErrorCode().getHttpStatus();
     ErrorResponse errorResponse = ErrorResponse.of(exception, status.value());
     return ResponseEntity.status(status)
@@ -59,13 +100,33 @@ public class GlobalControllerExceptionHandler {
   }
 
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception exception) {
+  public ResponseEntity<?> handleUnexpectedException(Exception exception, HttpServletRequest request) {
+    String accept = request.getHeader("Accept");
+    final String uri = request.getRequestURI();
+    boolean isSse = accept != null && accept.toLowerCase().contains(MediaType.TEXT_EVENT_STREAM_VALUE)
+        && uri != null && uri.startsWith("/api/sse");
+
+    if (isSse) {
+        log.debug("[SSE] benign disconnect handled quietly: uri={}, ex={}",
+            request.getRequestURI(), exception.toString());
+        return ResponseEntity.ok()
+            .header("Cache-Control", "no-store")
+            .build();
+    }
+
     log.error("Not SpecificException: {}", exception.getMessage());
 
     ErrorResponse errorResponse = ErrorResponse.of(exception,
         HttpStatus.INTERNAL_SERVER_ERROR.value());
     return ResponseEntity.internalServerError()
         .body(errorResponse);
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException exception) {
+    log.error("Type mismatch: {}", exception.getMessage());
+    ErrorResponse errorResponse = ErrorResponse.of(exception, HttpStatus.BAD_REQUEST.value());
+    return ResponseEntity.badRequest().body(errorResponse);
   }
 
 }

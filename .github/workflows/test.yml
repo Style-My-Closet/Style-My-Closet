@@ -3,25 +3,31 @@ name: CI
 on:
   pull_request:
     branches:
-      - main
+      - develop
 
 jobs:
   test:
     name: CI - Run Tests and Upload Coverage
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: Set up JDK 21 (+ Gradle cache)
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'corretto'
           cache: gradle
+          cache-dependency-path: |
+            **/*.gradle*
+            **/settings.gradle*
+            **/gradle.properties
+            **/gradle-wrapper.properties
 
-      - name:  Run tests
-        run: ./gradlew test
+      - name: Run tests
+        run: ./gradlew test --no-daemon
 
       - name: Upload test report on failure
         if: failure()
@@ -29,8 +35,3 @@ jobs:
         with:
           name: test-report
           path: build/reports/tests/test
-
-      - name: Upload test coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: build/reports/jacoco/test/jacocoTestReport.xml

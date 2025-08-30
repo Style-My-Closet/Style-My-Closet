@@ -1,9 +1,10 @@
 package com.stylemycloset.common.controller;
 
-import com.stylemycloset.common.controller.exception.StyleMyClosetException;
+import com.stylemycloset.common.exception.StyleMyClosetException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 

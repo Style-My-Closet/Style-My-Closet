@@ -1,0 +1,126 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/*'
+  workflow_dispatch: { }
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ecs-deploy-${{ github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  ECR_REPOSITORY_URI: ${{ vars.ECR_REPOSITORY_URI }}
+  ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
+  ECS_SERVICE: ${{ vars.ECS_SERVICE }}
+  ECS_TASK_DEFINITION: ${{ vars.ECS_TASK_DEFINITION }}
+  CONTAINER_NAME: ${{ vars.ECS_CONTAINER_NAME }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compute image tag
+        run: echo "IMAGE_TAG=$(date +'%Y%m%d%H%M%S')-${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials (static keys)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR Public
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
+        env:
+          AWS_REGION: us-east-1
+          AWS_DEFAULT_REGION: us-east-1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+          driver: docker-container
+          driver-opts: |
+            image=moby/buildkit:latest
+            network=host
+
+      - name: Build & Push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.ECR_REPOSITORY_URI }}:${{ env.IMAGE_TAG }}
+            ${{ env.ECR_REPOSITORY_URI }}:latest
+          cache-from: type=gha,scope=ecs
+          cache-to: type=gha,mode=max,scope=ecs
+
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ env.ECS_TASK_DEFINITION }} \
+            --query taskDefinition > task-def.json
+
+      # 🧩 새 이미지로 태스크 정의 렌더
+      - name: Render task definition
+        id: render
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-def.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ env.ECR_REPOSITORY_URI }}:${{ env.IMAGE_TAG }}
+
+      # 📝 새 태스크 정의 등록
+      - name: Register task definition
+        id: register
+        run: |
+          arn=$(aws ecs register-task-definition \
+            --cli-input-json file://${{ steps.render.outputs.task-definition }} \
+            --query "taskDefinition.taskDefinitionArn" \
+            --output text)
+          echo "task_definition_arn=$arn" >> $GITHUB_OUTPUT
+
+      # 🚀 ECS 롤링 배포 (재시도 포함)
+      - name: Deploy ECS with manual retry
+        run: |
+          n=0
+          until [ $n -ge 3 ]
+          do
+            aws ecs update-service \
+              --cluster $ECS_CLUSTER \
+              --service $ECS_SERVICE \
+              --force-new-deployment \
+              --task-definition $TASK_DEFINITION && break
+            n=$((n+1))
+            echo "Retrying in 60 seconds... ($n/3)"
+            sleep 60
+          done
+          if [ $n -ge 3 ]; then
+            echo "Deployment failed after 3 attempts"
+            exit 1
+          fi
+        env:
+          ECS_CLUSTER: ${{ env.ECS_CLUSTER }}
+          ECS_SERVICE: ${{ env.ECS_SERVICE }}
+          TASK_DEFINITION: ${{ steps.register.outputs.task_definition_arn }}
+
+      - name: Summarize service state
+        run: |
+          aws ecs describe-services \
+          --cluster "$ECS_CLUSTER" \
+          --services "$ECS_SERVICE" \
+          --query "services[0].{status:status,desired:desiredCount,running:runningCount,taskDef:taskDefinition}" \
+          --output table
